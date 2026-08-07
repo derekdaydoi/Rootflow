@@ -1,12 +1,12 @@
-# Rootflow V3.0
+# Rootflow V3.1.0
 
 Root family visual system + Rootwork-style natural document scrolling + finance features from V2.6/V2.9.
 
 **Release:** 2026-08-07  
 **Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.0-2026-08-07`
+**PWA cache:** `rootflow-v3.1.0-2026-08-07`
 
-V3.0 is a presentation-first release: the finance engine and persistence model stay intact, while the Dashboard/header/Home Screen icon move to the final Root family direction: warm ivory, botanical green, sprout + flowing path, ROOT graphite + FLOW green, and `SEE WHAT COMES NEXT.`.
+V3.1.0 locks the final Rootflow identity and keeps the existing finance architecture intact: the finance engine and persistence model stay intact, while the Dashboard/header/Home Screen icon move to the final Root family direction: warm ivory, botanical green, sprout + flowing path, ROOT graphite + FLOW green, and `SEE WHAT COMES NEXT.`.
 
 # Rootflow V2.6
 
@@ -61,10 +61,10 @@ Có sẵn icon cho: Ăn uống, Cafe, Di chuyển, Thể thao, Giải trí, **Y�
 | `sw.js` | Service worker / offline cache / update strategy |
 | `manifest.json` | PWA manifest |
 | `vendor/` | React 18 UMD local |
-| `icon-master.svg` | Master app icon |
+| `brand/rootflow-logo-master.png` | High-resolution master logo generated independently (not cropped from mockup) |
 | `icon-*.png` | PWA / iOS icon sizes |
-| `brand/` | Vector brand mark + wordmark |
-| `make_icons.py` | Regenerate PNG icon set from vector design |
+| `brand/` | High-resolution master + runtime logo exports |
+| `make_icons.py` | Regenerate all PWA/iOS PNG icons from the high-resolution master |
 
 Không có bước build. GitHub Pages phục vụ trực tiếp các file tĩnh.
 

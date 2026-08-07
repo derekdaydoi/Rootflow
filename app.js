@@ -179,32 +179,12 @@
 
   function RootflowGlyph(props) {
     var size = props && props.size || 52;
-    return h('svg', {
-      className: 'rootflow-glyph', width: size, height: size, viewBox: '0 0 128 128',
-      role: 'img', 'aria-label': 'Rootflow mark', preserveAspectRatio: 'xMidYMid meet'
-    },
-      h('defs', null,
-        h('linearGradient', { id: 'rootflow-family-green', x1: '25', y1: '106', x2: '86', y2: '24', gradientUnits: 'userSpaceOnUse' },
-          h('stop', { offset: '0', stopColor: '#4F7B48' }),
-          h('stop', { offset: '.55', stopColor: '#608E54' }),
-          h('stop', { offset: '1', stopColor: '#7BA65F' }))),
-      h('path', {
-        d: 'M18 106C37 102 48 96 54 88C60 80 55 74 43 71C31 68 31 61 45 58C54 56 62 56 64 55',
-        fill: 'none', stroke: 'url(#rootflow-family-green)', strokeWidth: 12,
-        strokeLinecap: 'round', strokeLinejoin: 'round'
-      }),
-      h('path', {
-        d: 'M17 106C34 103 45 98 51 91C57 84 54 79 44 76',
-        fill: 'none', stroke: '#F7F5EC', strokeWidth: 2.9,
-        strokeLinecap: 'round', opacity: .95
-      }),
-      h('path', {
-        d: 'M64 59V30', fill: 'none', stroke: 'url(#rootflow-family-green)',
-        strokeWidth: 8, strokeLinecap: 'round'
-      }),
-      h('path', { d: 'M60 48C49 47 42 40 42 29C53 29 61 35 64 45C64 47 62 48 60 48Z', fill: 'url(#rootflow-family-green)' }),
-      h('path', { d: 'M68 49C69 38 77 31 89 32C88 43 80 50 69 52C68 52 67 50 68 49Z', fill: 'url(#rootflow-family-green)' }),
-      h('path', { d: 'M63 31C61 20 66 12 76 8C82 18 78 27 67 33C65 34 64 33 63 31Z', fill: 'url(#rootflow-family-green)' }));
+    return h('img', {
+      className: 'rootflow-glyph',
+      src: './brand/rootflow-symbol.png',
+      width: size, height: size,
+      alt: '', 'aria-hidden': 'true', draggable: false
+    });
   }
 
   function BrandMark(props) {

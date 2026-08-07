@@ -1,3 +1,12 @@
+# V3.1.0 — 2026-08-07
+
+- Rebuilt Rootflow logo from a dedicated 1254×1254 high-resolution master; no mockup crop.
+- Regenerated Home Screen/PWA icons at 180/192/256/512/1024 using Lanczos resampling.
+- Header uses the same exact master-derived mark as the Home Screen icon.
+- Fine-tuned header proportions, wordmark and tagline for mobile.
+- Finance engine, store schema and existing user data remain unchanged.
+- PWA cache bumped to `rootflow-v3.1.0-2026-08-07`.
+
 # Rootflow V3.0 — Root family UI
 
 - Giữ nguyên finance engine, schema v4, store/persistence và dữ liệu người dùng từ V2.9.
