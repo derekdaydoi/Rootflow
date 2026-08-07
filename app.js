@@ -501,7 +501,14 @@
         setTimeout(syncViewport, 360);
       }
 
+      var lockedScrollY = window.scrollY || window.pageYOffset || 0;
+      body.dataset.rfScrollY = String(lockedScrollY);
       body.classList.add('sheet-open');
+      body.style.position = 'fixed';
+      body.style.top = (-lockedScrollY) + 'px';
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
       syncViewport();
       if (vv) { vv.addEventListener('resize', syncViewport); vv.addEventListener('scroll', syncViewport); }
       window.addEventListener('resize', syncViewport);
@@ -509,12 +516,23 @@
 
       return function () {
         body.classList.remove('sheet-open');
+        var restoreY = Number(body.dataset.rfScrollY || lockedScrollY || 0);
+        body.style.position = '';
+        body.style.top = '';
+        body.style.left = '';
+        body.style.right = '';
+        body.style.width = '';
+        delete body.dataset.rfScrollY;
         root.classList.remove('keyboard-open');
         root.style.removeProperty('--visual-viewport-height');
         root.style.removeProperty('--visual-viewport-top');
         if (vv) { vv.removeEventListener('resize', syncViewport); vv.removeEventListener('scroll', syncViewport); }
         window.removeEventListener('resize', syncViewport);
         document.removeEventListener('focusin', revealField);
+        requestAnimationFrame(function () {
+          try { window.scrollTo({ top: restoreY, left: 0, behavior: 'auto' }); }
+          catch (e) { window.scrollTo(0, restoreY); }
+        });
       };
     }, []);
 
@@ -1653,6 +1671,28 @@
     var [planYm, setPlanYm] = useState(D.monthOf(D.today()));
     var dataRef = useRef(boot.data);
 
+    function goView(next) {
+      setView(next);
+      requestAnimationFrame(function () {
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }
+        catch (e) { window.scrollTo(0, 0); }
+      });
+    }
+
+    /* iOS/Safari có thể restore scroll position khi PWA được mở từ Home Screen.
+       Cold mount phải luôn bắt đầu ở đầu màn hình; resume từ background không remount
+       nên vẫn giữ đúng vị trí người dùng đang đọc. */
+    useEffect(function () {
+      try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+      function resetInitialScroll() {
+        try { window.scrollTo({ top: 0, left: 0, behavior: 'auto' }); }
+        catch (err) { window.scrollTo(0, 0); }
+      }
+      requestAnimationFrame(resetInitialScroll);
+      var id = setTimeout(resetInitialScroll, 80);
+      return function () { clearTimeout(id); };
+    }, []);
+
     useEffect(function () { S.persist(); }, []);
 
     /* localStorage là synchronous. Debounce tránh block main thread ngay sau
@@ -1962,7 +2002,7 @@
         setHorizon(blank.settings.horizonDays);
         setYm(D.monthOf(D.today()));
         setPlanYm(D.monthOf(D.today()));
-        setView('home');
+        goView('home');
         setSheet(null);
         say('Đã xoá toàn bộ dữ liệu');
       }).catch(function () {
@@ -1982,7 +2022,7 @@
         setHorizon(next.settings.horizonDays || 90);
         setYm(D.monthOf(D.today()));
         setPlanYm(D.monthOf(D.today()));
-        setView('home');
+        goView('home');
         setSheet(null);
         say('Đã nạp bản sao lưu');
       });
@@ -2040,14 +2080,14 @@
     var screen;
     if (view === 'accounts') {
       screen = h(AccountsScreen, {
-        data: data, derived: derived, onBack: function () { setView('home'); },
+        data: data, derived: derived, onBack: function () { goView('home'); },
         onNew: function () { setSheet({ type: 'account', account: {} }); },
         onEdit: function (a) { setSheet({ type: 'account', account: a }); },
         onSettings: function () { setSheet({ type: 'settings' }); }
       });
     } else if (view === 'flows') {
       screen = h(FlowsScreen, {
-        data: data, derived: derived, onBack: function () { setView('home'); },
+        data: data, derived: derived, onBack: function () { goView('home'); },
         onNew: openNewFlow,
         onEdit: function (f) { setSheet({ type: 'flow', flow: f }); },
         onDefer: deferFlow, onDelete: deleteFlow,
@@ -2055,19 +2095,19 @@
       });
     } else if (view === 'forecast') {
       screen = h(ForecastScreen, {
-        data: data, derived: derived, onBack: function () { setView('home'); },
+        data: data, derived: derived, onBack: function () { goView('home'); },
         onHorizon: setHorizon, onSettings: function () { setSheet({ type: 'settings' }); },
         onEdit: function (f) { setSheet({ type: 'flow', flow: f }); }
       });
     } else if (view === 'month') {
       screen = h(MonthScreen, {
-        data: data, derived: derived, onBack: function () { setView('home'); },
-        onMonth: function (n) { setYm(D.addMonthsToYm(ym, n)); }, onGo: setView,
+        data: data, derived: derived, onBack: function () { goView('home'); },
+        onMonth: function (n) { setYm(D.addMonthsToYm(ym, n)); }, onGo: goView,
         onSettings: function () { setSheet({ type: 'settings' }); }
       });
     } else if (view === 'plan') {
       screen = h(PlanScreen, {
-        data: data, derived: derived, ym: planYm, onGo: setView,
+        data: data, derived: derived, ym: planYm, onGo: goView,
         onMonth: function (n) { setPlanYm(D.addMonthsToYm(planYm, n)); },
         onNew: function () { setSheet({ type: 'budget', budget: {}, month: planYm }); },
         onEdit: function (b) { setSheet({ type: 'budget', budget: b, month: planYm }); },
@@ -2084,7 +2124,7 @@
     } else {
       screen = h(Home, {
         data: data, derived: derived, settingsButton: settingsButton, storageError: storageError,
-        onGo: setView, onEditFlow: function (f) { setSheet({ type: 'flow', flow: f }); },
+        onGo: goView, onEditFlow: function (f) { setSheet({ type: 'flow', flow: f }); },
         onNewAccount: function () { setSheet({ type: 'account', account: {} }); }
       });
     }
@@ -2133,12 +2173,10 @@
     }
 
     return h('div', { className: 'app-frame' },
-      h('div', { className: 'safe-top-mask', 'aria-hidden': 'true' }),
-      h('div', { className: 'app-scroll' },
-        h('div', { className: 'app-shell' },
-          screen,
-          h('footer', { className: 'app-copyright' }, '© derekdaydoi'))),
-      h(BottomNav, { view: view, onGo: setView, onAdd: openNewFlow }),
+      h('main', { className: 'app-shell' },
+        screen,
+        h('footer', { className: 'app-copyright' }, '© derekdaydoi')),
+      h(BottomNav, { view: view, onGo: goView, onAdd: openNewFlow }),
       sheetNode,
       toast ? h('div', { className: 'toast' },
         h('span', null, toast.msg),
