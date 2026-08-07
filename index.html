@@ -774,6 +774,38 @@ body.sheet-open .app-scroll{overflow:hidden}
   .burn-summary>div:last-child{grid-column:1/-1}
 }
 
+
+
+/* ================= V2.6.1 · brand lockup alignment ================= */
+/* ROOTFLOW is a single lockup: mark + ROOT (graphite) + FLOW (Root Green). */
+.brand-lockup{display:flex;align-items:center;gap:11px;min-width:0}
+.rootflow-mark-wrap{width:54px;height:48px;display:grid;place-items:center;flex:none}
+.rootflow-mark-wrap .rootflow-glyph{width:54px;height:44px}
+.brand-copy{display:grid;gap:2px;border-left:0;padding-left:0;min-width:0}
+.brand-copy b{display:flex;align-items:baseline;font-size:25px;line-height:1;letter-spacing:-1.05px;font-weight:800;white-space:nowrap}
+.brand-copy b>span{font:inherit;color:#111111}
+.brand-copy b>em{font:inherit;font-style:normal;color:#3AA66B}
+.brand-copy .brand-tagline{font-size:10px;line-height:1.1;color:var(--muted);letter-spacing:.05px}
+.dashboard-head{align-items:center}
+
+@media(max-width:620px){
+  /* Keep the wordmark visible on phone; only the small tagline disappears. */
+  .brand-lockup{gap:9px}
+  .rootflow-mark-wrap{width:47px;height:42px}
+  .rootflow-mark-wrap .rootflow-glyph{width:47px;height:39px}
+  .brand-copy{display:grid}
+  .brand-copy b{font-size:23px;letter-spacing:-.9px}
+  .brand-copy .brand-tagline{display:none}
+  .dashboard-head{min-height:54px;align-items:center}
+}
+
+@media(max-width:360px){
+  .brand-lockup{gap:7px}
+  .rootflow-mark-wrap{width:42px;height:38px}
+  .rootflow-mark-wrap .rootflow-glyph{width:42px;height:35px}
+  .brand-copy b{font-size:21px;letter-spacing:-.75px}
+}
+
 </style>
 </head>
 <body>

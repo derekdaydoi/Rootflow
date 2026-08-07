@@ -56,3 +56,11 @@
 - Dashboard consumer-finance mới.
 - Charts, block budget, Scenario Lab, bottom nav.
 - Static React PWA deploy trực tiếp GitHub Pages.
+
+## V2.6.1 — Brand lockup alignment
+- Dashboard header now shows the complete ROOTFLOW lockup on mobile.
+- ROOT is graphite/black; FLOW is Root Green.
+- Rootflow mark viewBox is cropped so the mark no longer looks tiny or isolated.
+- Removed the vertical divider in the lockup and aligned mark + wordmark as one unit.
+- Mobile hides only the tagline, not the ROOTFLOW name.
+- Service-worker cache bumped to v2.6.1.

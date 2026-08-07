@@ -180,26 +180,25 @@
   function RootflowGlyph(props) {
     var size = props && props.size || 52;
     return h('svg', {
-      className: 'rootflow-glyph', width: size, height: size, viewBox: '0 0 1024 1024',
-      role: 'img', 'aria-label': 'Rootflow'
+      className: 'rootflow-glyph', width: size, height: size, viewBox: '24 38 222 168',
+      role: 'img', 'aria-label': 'Rootflow mark', preserveAspectRatio: 'xMidYMid meet'
     },
-      h('defs', null, h('linearGradient', { id: 'rootflow-glyph-flow', x1: '270', y1: '690', x2: '790', y2: '280', gradientUnits: 'userSpaceOnUse' },
-        h('stop', { offset: '0', stopColor: '#17664d' }),
-        h('stop', { offset: '.55', stopColor: '#3f9d72' }),
-        h('stop', { offset: '1', stopColor: '#57b982' }))),
+      h('defs', null, h('linearGradient', { id: 'rootflow-glyph-flow', x1: '54', y1: '174', x2: '218', y2: '55', gradientUnits: 'userSpaceOnUse' },
+        h('stop', { offset: '0', stopColor: '#176A50' }),
+        h('stop', { offset: '1', stopColor: '#57B987' }))),
       h('path', {
-        d: 'M 290 640 C 360 540, 432 592, 492 624 C 555 658, 619 646, 663 584 C 715 511, 709 390, 804 318',
-        fill: 'none', stroke: 'url(#rootflow-glyph-flow)', strokeWidth: 82, strokeLinecap: 'round', strokeLinejoin: 'round'
+        d: 'M58 170C84 132 110 137 137 155C163 172 185 166 197 130C208 98 219 77 236 64',
+        fill: 'none', stroke: 'url(#rootflow-glyph-flow)', strokeWidth: 24, strokeLinecap: 'round', strokeLinejoin: 'round'
       }),
-      h('circle', { cx: 245, cy: 690, r: 86, fill: '#111211' }));
+      h('circle', { cx: 49, cy: 181, r: 28, fill: '#111111' }));
   }
 
   function BrandMark(props) {
-    return h('div', { className: cx('brand-lockup', props && props.compact && 'compact') },
-      h('div', { className: 'rootflow-mark-wrap' }, h(RootflowGlyph, { size: props && props.compact ? 40 : 54 })),
+    return h('div', { className: cx('brand-lockup', props && props.compact && 'compact'), 'aria-label': 'ROOTFLOW' },
+      h('div', { className: 'rootflow-mark-wrap' }, h(RootflowGlyph, { size: props && props.compact ? 40 : 56 })),
       props && props.compact ? null : h('div', { className: 'brand-copy' },
-        h('b', null, h('span', null, 'Root'), h('em', null, 'flow')),
-        h('span', null, 'Nhìn trước dòng tiền')));
+        h('b', null, h('span', null, 'ROOT'), h('em', null, 'FLOW')),
+        h('span', { className: 'brand-tagline' }, 'Nhìn trước dòng tiền')));
   }
 
   function DonutChart(props) {
