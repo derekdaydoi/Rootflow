@@ -1,17 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <radialGradient id="paper" cx="46%" cy="38%" r="78%">
-      <stop offset="0" stop-color="#fbfaf6"/>
-      <stop offset="1" stop-color="#f0eee8"/>
-    </radialGradient>
-    <linearGradient id="flow" x1="270" y1="690" x2="790" y2="280" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#17664d"/>
-      <stop offset="0.55" stop-color="#3f9d72"/>
-      <stop offset="1" stop-color="#57b982"/>
+    <linearGradient id="tile" x1="130" y1="100" x2="870" y2="930" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFDF8"/>
+      <stop offset="1" stop-color="#EFF3E3"/>
+    </linearGradient>
+    <linearGradient id="g" x1="220" y1="820" x2="700" y2="210" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F744A"/>
+      <stop offset=".55" stop-color="#4B965B"/>
+      <stop offset="1" stop-color="#6FAE5A"/>
     </linearGradient>
   </defs>
-  <rect width="1024" height="1024" fill="url(#paper)"/>
-  <path d="M 290 640 C 360 540, 432 592, 492 624 C 555 658, 619 646, 663 584 C 715 511, 709 390, 804 318"
-        fill="none" stroke="url(#flow)" stroke-width="82" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="245" cy="690" r="86" fill="#111211"/>
+  <rect width="1024" height="1024" rx="220" fill="url(#tile)"/>
+  <path d="M180 820C335 790 425 735 470 665C515 595 475 545 380 520C285 495 290 435 400 410C470 395 515 395 530 385" fill="none" stroke="url(#g)" stroke-width="86" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M175 820C315 798 405 755 450 695C490 645 470 610 395 585" fill="none" stroke="#F8F6EE" stroke-width="20" stroke-linecap="round" opacity=".98"/>
+  <path d="M530 405V225" fill="none" stroke="url(#g)" stroke-width="58" stroke-linecap="round"/>
+  <path d="M500 340C420 335 370 285 370 205C450 205 510 250 530 320C535 335 520 343 500 340Z" fill="url(#g)"/>
+  <path d="M560 345C570 265 625 215 710 225C700 305 645 355 565 365C555 365 550 350 560 345Z" fill="url(#g)"/>
+  <path d="M525 225C510 145 550 88 620 55C665 125 640 195 565 235C545 245 530 240 525 225Z" fill="url(#g)"/>
 </svg>

@@ -862,6 +862,160 @@ body.sheet-open{
   }
 }
 
+
+
+/* ================= V2.8 · Root family brand header =================
+   Chỉ thay presentation. Data model, finance engine và persistence giữ nguyên. */
+:root{
+  --root-green:#3AA66B;
+  --root-green-deep:#2F744A;
+  --root-ivory:#F5F1E7;
+  --root-graphite:#111111;
+}
+
+/* Header có cùng DNA với Rootwork: mark tile + ROOT/product + promise line. */
+.dashboard-head{
+  align-items:center!important;
+  gap:14px!important;
+  margin-bottom:20px!important;
+  padding:2px 0 17px!important;
+  border-bottom:1px solid rgba(17,17,17,.055);
+}
+.brand-lockup{
+  display:flex!important;
+  align-items:center!important;
+  gap:13px!important;
+  min-width:0!important;
+  flex:1 1 auto;
+}
+.rootflow-mark-wrap{
+  width:58px!important;
+  height:58px!important;
+  display:grid!important;
+  place-items:center!important;
+  flex:none!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,#fbfaf6 0%,#f0f3e4 100%)!important;
+  border:1px solid rgba(17,17,17,.045)!important;
+  box-shadow:0 8px 24px rgba(44,61,42,.08),inset 0 1px 0 rgba(255,255,255,.92)!important;
+}
+.rootflow-mark-wrap .rootflow-glyph{
+  width:44px!important;
+  height:44px!important;
+  overflow:visible!important;
+}
+.brand-copy{
+  display:grid!important;
+  gap:5px!important;
+  min-width:0!important;
+  border:0!important;
+  padding:0!important;
+}
+.brand-copy b{
+  display:flex!important;
+  align-items:baseline!important;
+  margin:0!important;
+  font-size:28px!important;
+  line-height:.94!important;
+  letter-spacing:-1.35px!important;
+  font-weight:850!important;
+  white-space:nowrap!important;
+}
+.brand-copy b>span{font:inherit!important;color:var(--root-graphite)!important}
+.brand-copy b>em{font:inherit!important;font-style:normal!important;color:var(--root-green)!important}
+.brand-copy .brand-tagline{
+  display:block!important;
+  color:#8A8D87!important;
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:1.55px!important;
+  white-space:nowrap!important;
+}
+.dashboard-actions{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  flex:none!important;
+}
+.dashboard-actions .icon-btn{
+  width:50px!important;
+  height:50px!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.86)!important;
+  border:1px solid rgba(17,17,17,.07)!important;
+  color:#5E625D!important;
+  box-shadow:0 7px 20px rgba(16,17,16,.07)!important;
+}
+.dashboard-actions .icon-btn:active{transform:scale(.97)}
+.dashboard-actions .icon-btn:hover{color:var(--root-green-deep)!important;background:#fff!important}
+
+/* Compact lockup ở các màn phụ vẫn dùng cùng mark nhưng không tạo một logo thứ hai. */
+.brand-lockup.compact{flex:none!important;gap:0!important}
+.brand-lockup.compact .rootflow-mark-wrap{
+  width:42px!important;height:42px!important;border-radius:13px!important
+}
+.brand-lockup.compact .rootflow-mark-wrap .rootflow-glyph{width:31px!important;height:31px!important}
+
+@media(max-width:620px){
+  .dashboard-head{
+    gap:10px!important;
+    margin-bottom:16px!important;
+    padding-bottom:15px!important;
+  }
+  .brand-lockup{gap:10px!important}
+  .rootflow-mark-wrap{
+    width:52px!important;height:52px!important;border-radius:16px!important
+  }
+  .rootflow-mark-wrap .rootflow-glyph{width:39px!important;height:39px!important}
+  .brand-copy{display:grid!important;gap:4px!important}
+  .brand-copy b{font-size:24px!important;letter-spacing:-1.05px!important}
+  .brand-copy .brand-tagline{
+    display:block!important;font-size:7.7px!important;letter-spacing:1.15px!important
+  }
+  .dashboard-actions{gap:7px!important}
+  .dashboard-actions .icon-btn{
+    width:44px!important;height:44px!important;border-radius:14px!important
+  }
+}
+
+@media(max-width:390px){
+  .dashboard-head{gap:8px!important}
+  .brand-lockup{gap:8px!important}
+  .rootflow-mark-wrap{width:47px!important;height:47px!important;border-radius:15px!important}
+  .rootflow-mark-wrap .rootflow-glyph{width:35px!important;height:35px!important}
+  .brand-copy b{font-size:21px!important;letter-spacing:-.82px!important}
+  .brand-copy .brand-tagline{font-size:6.8px!important;letter-spacing:.92px!important}
+  .dashboard-actions{gap:5px!important}
+  .dashboard-actions .icon-btn{width:40px!important;height:40px!important;border-radius:13px!important}
+}
+
+@media(max-width:350px){
+  .brand-copy .brand-tagline{display:none!important}
+  .brand-copy b{font-size:20px!important}
+}
+
+/* ================= V2.9 · exact Rootflow logo treatment ================= */
+.rootflow-mark-wrap{
+  width:62px!important;height:62px!important;border-radius:19px!important;
+  background:linear-gradient(145deg,#fffdf8 0%,#eff3e3 100%)!important;
+  border:1px solid rgba(17,17,17,.04)!important;
+  box-shadow:0 10px 26px rgba(52,70,45,.09),inset 0 1px 0 rgba(255,255,255,.96)!important;
+}
+.rootflow-mark-wrap .rootflow-glyph{width:48px!important;height:48px!important}
+.brand-copy b{font-size:29px!important;font-weight:850!important;letter-spacing:-1.55px!important}
+.brand-copy .brand-tagline{font-size:9px!important;letter-spacing:1.72px!important;font-weight:750!important}
+@media(max-width:620px){
+  .rootflow-mark-wrap{width:56px!important;height:56px!important;border-radius:17px!important}
+  .rootflow-mark-wrap .rootflow-glyph{width:43px!important;height:43px!important}
+  .brand-copy b{font-size:25px!important;letter-spacing:-1.15px!important}
+  .brand-copy .brand-tagline{font-size:7.7px!important;letter-spacing:1.18px!important}
+}
+@media(max-width:390px){
+  .rootflow-mark-wrap{width:50px!important;height:50px!important;border-radius:15px!important}
+  .rootflow-mark-wrap .rootflow-glyph{width:38px!important;height:38px!important}
+  .brand-copy b{font-size:22px!important;letter-spacing:-.9px!important}
+}
 </style>
 </head>
 <body>

@@ -180,25 +180,39 @@
   function RootflowGlyph(props) {
     var size = props && props.size || 52;
     return h('svg', {
-      className: 'rootflow-glyph', width: size, height: size, viewBox: '24 38 222 168',
+      className: 'rootflow-glyph', width: size, height: size, viewBox: '0 0 128 128',
       role: 'img', 'aria-label': 'Rootflow mark', preserveAspectRatio: 'xMidYMid meet'
     },
-      h('defs', null, h('linearGradient', { id: 'rootflow-glyph-flow', x1: '54', y1: '174', x2: '218', y2: '55', gradientUnits: 'userSpaceOnUse' },
-        h('stop', { offset: '0', stopColor: '#176A50' }),
-        h('stop', { offset: '1', stopColor: '#57B987' }))),
+      h('defs', null,
+        h('linearGradient', { id: 'rootflow-family-green', x1: '25', y1: '106', x2: '86', y2: '24', gradientUnits: 'userSpaceOnUse' },
+          h('stop', { offset: '0', stopColor: '#2F744A' }),
+          h('stop', { offset: '.55', stopColor: '#4B965B' }),
+          h('stop', { offset: '1', stopColor: '#6FAE5A' }))),
       h('path', {
-        d: 'M58 170C84 132 110 137 137 155C163 172 185 166 197 130C208 98 219 77 236 64',
-        fill: 'none', stroke: 'url(#rootflow-glyph-flow)', strokeWidth: 24, strokeLinecap: 'round', strokeLinejoin: 'round'
+        d: 'M18 106C37 102 48 96 54 88C60 80 55 74 43 71C31 68 31 61 45 58C54 56 62 56 64 55',
+        fill: 'none', stroke: 'url(#rootflow-family-green)', strokeWidth: 12,
+        strokeLinecap: 'round', strokeLinejoin: 'round'
       }),
-      h('circle', { cx: 49, cy: 181, r: 28, fill: '#111111' }));
+      h('path', {
+        d: 'M17 106C34 103 45 98 51 91C57 84 54 79 44 76',
+        fill: 'none', stroke: '#F7F5EC', strokeWidth: 2.9,
+        strokeLinecap: 'round', opacity: .95
+      }),
+      h('path', {
+        d: 'M64 59V30', fill: 'none', stroke: 'url(#rootflow-family-green)',
+        strokeWidth: 8, strokeLinecap: 'round'
+      }),
+      h('path', { d: 'M60 48C49 47 42 40 42 29C53 29 61 35 64 45C64 47 62 48 60 48Z', fill: 'url(#rootflow-family-green)' }),
+      h('path', { d: 'M68 49C69 38 77 31 89 32C88 43 80 50 69 52C68 52 67 50 68 49Z', fill: 'url(#rootflow-family-green)' }),
+      h('path', { d: 'M63 31C61 20 66 12 76 8C82 18 78 27 67 33C65 34 64 33 63 31Z', fill: 'url(#rootflow-family-green)' }));
   }
 
   function BrandMark(props) {
     return h('div', { className: cx('brand-lockup', props && props.compact && 'compact'), 'aria-label': 'ROOTFLOW' },
-      h('div', { className: 'rootflow-mark-wrap' }, h(RootflowGlyph, { size: props && props.compact ? 40 : 56 })),
+      h('div', { className: 'rootflow-mark-wrap' }, h(RootflowGlyph, { size: props && props.compact ? 34 : 44 })),
       props && props.compact ? null : h('div', { className: 'brand-copy' },
         h('b', null, h('span', null, 'ROOT'), h('em', null, 'FLOW')),
-        h('span', { className: 'brand-tagline' }, 'Nhìn trước dòng tiền')));
+        h('span', { className: 'brand-tagline' }, 'SEE WHAT COMES NEXT.')));
   }
 
   function DonutChart(props) {
