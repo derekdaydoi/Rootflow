@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 <meta name="description" content="Rootflow — theo dõi hiện tại, lập kế hoạch và nhìn trước dòng tiền." />
-<meta name="theme-color" content="#ecebe6" />
+<meta name="theme-color" content="#f4f1e8" />
 <meta name="color-scheme" content="light" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1015,6 +1015,160 @@ body.sheet-open{
   .rootflow-mark-wrap{width:50px!important;height:50px!important;border-radius:15px!important}
   .rootflow-mark-wrap .rootflow-glyph{width:38px!important;height:38px!important}
   .brand-copy b{font-size:22px!important;letter-spacing:-.9px!important}
+}
+
+
+/* ================= V3.0 · ROOT family visual system =================
+   Presentation-only patch. Finance model, persistence and business rules stay intact.
+   Target: same warm ivory / botanical green family as Rootwork, with the exact
+   Rootflow sprout + flowing path lockup and a single compact menu action. */
+:root{
+  --bg:#f4f1e8;
+  --surface:#fffdf8;
+  --surface-2:#f8f6ef;
+  --surface-3:#eeece3;
+  --line:#e7e3d8;
+  --line-strong:#cbc6b8;
+  --ink:#171a18;
+  --muted:#626760;
+  --subtle:#898d86;
+  --brand-mark:#6b9b58;
+  --brand:#5d8b53;
+  --brand-strong:#456f42;
+  --brand-soft:#edf4e8;
+  --root-green:#6b9b58;
+  --root-green-deep:#4d7747;
+  --root-ivory:#f4f1e8;
+  --root-graphite:#171a18;
+  --shadow-1:0 1px 2px rgba(42,47,40,.035),0 8px 24px rgba(62,66,57,.055);
+  --shadow-2:0 3px 8px rgba(42,47,40,.05),0 18px 42px rgba(62,66,57,.075);
+}
+body{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(125,159,91,.07),transparent 26rem),
+    linear-gradient(180deg,#f7f4ec 0%,var(--bg) 38%,#f1eee5 100%)!important;
+}
+
+/* Header is one premium card, not a loose logo row. */
+.dashboard-head.family-header{
+  position:relative;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  min-height:92px!important;
+  padding:16px 18px!important;
+  margin:0 0 22px!important;
+  border:1px solid rgba(76,83,70,.07)!important;
+  border-radius:24px!important;
+  background:rgba(255,253,248,.94)!important;
+  box-shadow:0 14px 40px rgba(68,72,61,.08),inset 0 1px 0 rgba(255,255,255,.92)!important;
+  overflow:hidden;
+}
+.dashboard-head.family-header::after{
+  content:"";
+  position:absolute;
+  inset:auto -50px -70px auto;
+  width:190px;height:140px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(121,155,91,.09),rgba(121,155,91,0) 69%);
+  pointer-events:none;
+}
+.family-header .brand-lockup{gap:14px!important;position:relative;z-index:1}
+.family-header .rootflow-mark-wrap{
+  width:64px!important;height:64px!important;border-radius:19px!important;
+  background:
+    radial-gradient(circle at 48% 38%,rgba(198,222,173,.42),rgba(241,246,230,.84) 48%,#f8f7ef 100%)!important;
+  border:1px solid rgba(88,116,69,.07)!important;
+  box-shadow:0 9px 24px rgba(69,94,55,.11),inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+.family-header .rootflow-mark-wrap .rootflow-glyph{width:51px!important;height:51px!important}
+.family-header .brand-copy{gap:7px!important}
+.family-header .brand-copy b{
+  font-size:30px!important;font-weight:860!important;line-height:.9!important;
+  letter-spacing:-1.7px!important;
+}
+.family-header .brand-copy b>span{color:var(--root-graphite)!important}
+.family-header .brand-copy b>em{color:var(--root-green)!important}
+.family-header .brand-copy .brand-tagline{
+  display:block!important;color:#898d86!important;font-size:9.1px!important;
+  font-weight:760!important;letter-spacing:1.78px!important;line-height:1!important;
+}
+.family-header .dashboard-actions{position:relative;z-index:2}
+.family-header .app-menu-btn{
+  width:52px!important;height:52px!important;border-radius:17px!important;
+  color:#737970!important;background:rgba(255,255,255,.84)!important;
+  border:1px solid rgba(61,67,57,.07)!important;
+  box-shadow:0 8px 22px rgba(47,51,44,.08)!important;
+}
+.family-header .app-menu-btn:hover{color:var(--brand-strong)!important;background:#fff!important}
+
+/* Dashboard cards: warm, softer and more closely related to Rootwork. */
+.dashboard .notice,
+.dashboard .panel,
+.dashboard .stat-strip{
+  background:rgba(255,253,248,.96)!important;
+  border:1px solid rgba(74,79,69,.055)!important;
+  box-shadow:var(--shadow-1)!important;
+}
+.balance-hero{
+  color:var(--ink)!important;
+  border:1px solid rgba(90,124,69,.11)!important;
+  background:
+    radial-gradient(ellipse at 91% 105%,rgba(87,135,70,.26) 0 18%,transparent 19%),
+    radial-gradient(ellipse at 77% 107%,rgba(123,160,94,.19) 0 28%,transparent 29%),
+    linear-gradient(128deg,#f7f6ed 0%,#eef3e4 57%,#e5edd9 100%)!important;
+  box-shadow:0 14px 34px rgba(70,82,60,.08)!important;
+}
+.balance-hero::after{
+  right:-36px!important;top:-72px!important;width:225px!important;height:225px!important;
+  border:34px solid rgba(107,155,88,.055)!important;
+}
+.hero-label{color:#596057!important;font-weight:650!important}
+.hero-balance{color:#172019!important}
+.hero-foot{color:#626b60!important}
+.hero-foot b{color:var(--brand-strong)!important}
+.stat-strip{overflow:hidden}
+.stat-cell{background:transparent!important}
+
+/* Softer Root-family navigation. */
+.bottom-nav{
+  background:rgba(255,253,248,.975)!important;
+  border-color:rgba(61,67,57,.12)!important;
+  box-shadow:0 16px 38px rgba(51,55,47,.13)!important;
+}
+.bottom-nav .nav-add{
+  background:linear-gradient(145deg,#6d9c5d,#4f804a)!important;
+  box-shadow:0 10px 25px rgba(82,126,73,.30)!important;
+}
+.bottom-nav>button.on{color:var(--brand-strong)!important}
+.app-copyright{color:#92958e!important}
+.app-menu-sheet .row{min-height:64px}
+
+@media(max-width:620px){
+  .dashboard-head.family-header{
+    min-height:82px!important;padding:13px 14px!important;margin-bottom:18px!important;
+    border-radius:21px!important;
+  }
+  .family-header .brand-lockup{gap:10px!important}
+  .family-header .rootflow-mark-wrap{width:57px!important;height:57px!important;border-radius:17px!important}
+  .family-header .rootflow-mark-wrap .rootflow-glyph{width:45px!important;height:45px!important}
+  .family-header .brand-copy{display:grid!important;gap:5px!important}
+  .family-header .brand-copy b{font-size:25px!important;letter-spacing:-1.2px!important}
+  .family-header .brand-copy .brand-tagline{display:block!important;font-size:7.3px!important;letter-spacing:1.12px!important}
+  .family-header .app-menu-btn{width:46px!important;height:46px!important;border-radius:15px!important}
+  .balance-hero{border-radius:21px!important;padding:21px!important}
+}
+@media(max-width:390px){
+  .dashboard-head.family-header{padding:12px!important;gap:7px!important}
+  .family-header .brand-lockup{gap:8px!important}
+  .family-header .rootflow-mark-wrap{width:51px!important;height:51px!important;border-radius:15px!important}
+  .family-header .rootflow-mark-wrap .rootflow-glyph{width:40px!important;height:40px!important}
+  .family-header .brand-copy b{font-size:22px!important;letter-spacing:-.92px!important}
+  .family-header .brand-copy .brand-tagline{font-size:6.5px!important;letter-spacing:.82px!important}
+  .family-header .app-menu-btn{width:42px!important;height:42px!important;border-radius:14px!important}
+}
+@media(max-width:350px){
+  .family-header .brand-copy .brand-tagline{display:none!important}
 }
 </style>
 </head>

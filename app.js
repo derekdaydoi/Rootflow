@@ -185,9 +185,9 @@
     },
       h('defs', null,
         h('linearGradient', { id: 'rootflow-family-green', x1: '25', y1: '106', x2: '86', y2: '24', gradientUnits: 'userSpaceOnUse' },
-          h('stop', { offset: '0', stopColor: '#2F744A' }),
-          h('stop', { offset: '.55', stopColor: '#4B965B' }),
-          h('stop', { offset: '1', stopColor: '#6FAE5A' }))),
+          h('stop', { offset: '0', stopColor: '#4F7B48' }),
+          h('stop', { offset: '.55', stopColor: '#608E54' }),
+          h('stop', { offset: '1', stopColor: '#7BA65F' }))),
       h('path', {
         d: 'M18 106C37 102 48 96 54 88C60 80 55 74 43 71C31 68 31 61 45 58C54 56 62 56 64 55',
         fill: 'none', stroke: 'url(#rootflow-family-green)', strokeWidth: 12,
@@ -1003,6 +1003,24 @@
       h('div', { className: 'sheet-note-line' }, 'Kịch bản chỉ dùng để mô phỏng. Chỉ khi bấm “Đưa vào kế hoạch” nó mới trở thành dòng tiền dự kiến.'));
   }
 
+  /* ====================== SHEET: MENU ỨNG DỤNG ====================== */
+
+  function AppMenuSheet(props) {
+    return h(Sheet, { title: 'Rootflow', onClose: props.onClose },
+      h('div', { className: 'sheet-block app-menu-sheet' },
+        h('button', { type: 'button', className: 'row', onClick: props.onAccounts },
+          h('span', { className: 'row-icon in' }, Icon('wallet', 18)),
+          h('span', { className: 'row-main' },
+            h('span', { className: 'row-label' }, 'Tài khoản'),
+            h('span', { className: 'row-value' }, 'Ví, ngân hàng, thẻ và khoản vay'))),
+        h('button', { type: 'button', className: 'row', onClick: props.onSettings },
+          h('span', { className: 'row-icon' }, Icon('gear', 18)),
+          h('span', { className: 'row-main' },
+            h('span', { className: 'row-label' }, 'Cài đặt'),
+            h('span', { className: 'row-value' }, 'Dự phòng, backup và dữ liệu')))),
+      h('div', { className: 'sheet-note-line' }, 'SEE WHAT COMES NEXT.'));
+  }
+
   /* ====================== SHEET: CÀI ĐẶT ====================== */
 
   function SettingsSheet(props) {
@@ -1158,11 +1176,9 @@
     }
 
     return h('div', { className: 'dashboard' },
-      h('header', { className: 'dashboard-head' },
+      h('header', { className: 'dashboard-head family-header' },
         h(BrandMark),
-        h('div', { className: 'dashboard-actions' },
-          h('button', { className: 'icon-btn', onClick: function () { props.onGo('accounts'); }, title: 'Tài khoản' }, Icon('wallet', 20)),
-          props.settingsButton)),
+        h('div', { className: 'dashboard-actions' }, props.menuButton)),
 
       notice,
 
@@ -2089,6 +2105,12 @@
       'aria-label': 'Cài đặt', title: 'Cài đặt'
     }, Icon('gear', 21));
 
+    var menuButton = h('button', {
+      className: 'icon-btn app-menu-btn',
+      onClick: function () { setSheet({ type: 'menu' }); },
+      'aria-label': 'Menu Rootflow', title: 'Menu'
+    }, Icon('menu', 22));
+
     /* ---------- màn hình ---------- */
 
     var screen;
@@ -2137,7 +2159,7 @@
       });
     } else {
       screen = h(Home, {
-        data: data, derived: derived, settingsButton: settingsButton, storageError: storageError,
+        data: data, derived: derived, menuButton: menuButton, storageError: storageError,
         onGo: goView, onEditFlow: function (f) { setSheet({ type: 'flow', flow: f }); },
         onNewAccount: function () { setSheet({ type: 'account', account: {} }); }
       });
@@ -2167,6 +2189,12 @@
         key: sheet.scenario.id || 'new-scenario', scenario: sheet.scenario, accounts: data.accounts,
         onClose: function () { setSheet(null); }, onSave: saveScenario, onDelete: deleteScenario,
         onNeedAccount: function () { setSheet({ type: 'account', account: {}, returnTo: 'scenario' }); }
+      });
+    } else if (sheet && sheet.type === 'menu') {
+      sheetNode = h(AppMenuSheet, {
+        onClose: function () { setSheet(null); },
+        onAccounts: function () { setSheet(null); goView('accounts'); },
+        onSettings: function () { setSheet({ type: 'settings' }); }
       });
     } else if (sheet && sheet.type === 'settings') {
       sheetNode = h(SettingsSheet, {

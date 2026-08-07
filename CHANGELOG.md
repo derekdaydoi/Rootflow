@@ -1,3 +1,32 @@
+# Rootflow V3.0 — Root family UI
+
+- Giữ nguyên finance engine, schema v4, store/persistence và dữ liệu người dùng từ V2.9.
+- Dashboard header chuyển thành một family card hoàn chỉnh: sprout + flowing path tile, ROOT graphite, FLOW botanical green, tagline `SEE WHAT COMES NEXT.`.
+- Header chỉ còn một nút menu theo đúng visual target; menu mở lối vào Tài khoản và Cài đặt để không mất chức năng.
+- Home Screen icon dùng cùng sprout + flowing path mark, nền ivory/green đồng bộ Rootwork.
+- Dashboard palette chuyển sang warm ivory + botanical green; balance hero và card surfaces mềm hơn, cùng family với Rootwork.
+- Giữ Rootwork-style natural document scrolling từ V2.7.
+- Cache: `rootflow-v3.0-2026-08-07`.
+
+# Rootflow V2.8 — Root family brand refresh
+
+- Giữ nguyên schema, domain logic, store/persistence và dữ liệu V2.7.
+- Header Dashboard chuyển sang family lockup: mark tile + ROOT đen + FLOW xanh.
+- Tagline mới: `SEE WHAT COMES NEXT.`
+- Mark mới kết hợp dòng chảy và mầm cây; dùng chung cho header và Home Screen icon.
+- Thay toàn bộ icon 180/192/256/512/1024 và brand assets nhưng giữ nguyên tên file để manifest không phải đổi.
+- Cache: `rootflow-v2.8-2026-08-07`.
+
+# Rootflow V2.7 — Rootwork-style scroll
+
+- Bỏ fixed app-frame / inner `.app-scroll` / safe-area overlay.
+- Trở lại document scroll tự nhiên như Rootwork.
+- Giữ bottom navigation fixed/floating.
+- Cold launch từ Home Screen luôn reset về đầu trang; resume app vẫn giữ vị trí.
+- Chuyển tab chính reset về đầu tab.
+- Sheet khóa body tại đúng scroll position và restore khi đóng.
+- Cache: `rootflow-v2.7-2026-08-07`.
+
 # V2.6.2 — iOS scroll hotfix
 
 - Replaced `100dvh` app-frame sizing with a fixed viewport frame (`position: fixed; inset: 0`).

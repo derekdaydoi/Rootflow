@@ -1,21 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 170" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 180" role="img" aria-labelledby="title desc">
   <title id="title">ROOTFLOW</title>
-  <desc id="desc">Rootflow wordmark with the Root name in graphite and Flow in green.</desc>
+  <desc id="desc">Rootflow wordmark. ROOT is graphite and FLOW is botanical green.</desc>
   <defs>
-    <linearGradient id="rootflowGreen" x1="22" y1="124" x2="94" y2="24" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#2F744A"/>
-      <stop offset="1" stop-color="#6FAE5A"/>
+    <linearGradient id="g" x1="25" y1="106" x2="86" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4F7B48"/><stop offset=".55" stop-color="#608E54"/><stop offset="1" stop-color="#7BA65F"/>
     </linearGradient>
+    <radialGradient id="tile" cx="48%" cy="38%" r="76%">
+      <stop offset="0" stop-color="#F3F8E8"/><stop offset="1" stop-color="#F5F3EA"/>
+    </radialGradient>
   </defs>
-  <g transform="translate(10 10) scale(.92)">
-    <path d="M18 106C37 102 48 96 54 88C60 80 55 74 43 71C31 68 31 61 45 58C54 56 62 56 64 55" fill="none" stroke="url(#rootflowGreen)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M17 106C34 103 45 98 51 91C57 84 54 79 44 76" fill="none" stroke="#F7F5EC" stroke-width="2.9" stroke-linecap="round" opacity=".95"/>
-    <path d="M64 59V30" fill="none" stroke="url(#rootflowGreen)" stroke-width="8" stroke-linecap="round"/>
-    <path d="M60 48C49 47 42 40 42 29C53 29 61 35 64 45C64 47 62 48 60 48Z" fill="url(#rootflowGreen)"/>
-    <path d="M68 49C69 38 77 31 89 32C88 43 80 50 69 52C68 52 67 50 68 49Z" fill="url(#rootflowGreen)"/>
-    <path d="M63 31C61 20 66 12 76 8C82 18 78 27 67 33C65 34 64 33 63 31Z" fill="url(#rootflowGreen)"/>
+  <rect x="8" y="8" width="142" height="142" rx="38" fill="url(#tile)"/>
+  <g transform="translate(20 18) scale(.92)">
+    <path d="M18 106C37 102 48 96 54 88C60 80 55 74 43 71C31 68 31 61 45 58C54 56 62 56 64 55" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17 106C34 103 45 98 51 91C57 84 54 79 44 76" fill="none" stroke="#F6F4EB" stroke-width="2.9" stroke-linecap="round"/>
+    <path d="M64 59V30" fill="none" stroke="url(#g)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M60 48C49 47 42 40 42 29C53 29 61 35 64 45C64 47 62 48 60 48Z" fill="url(#g)"/>
+    <path d="M68 49C69 38 77 31 89 32C88 43 80 50 69 52C68 52 67 50 68 49Z" fill="url(#g)"/>
+    <path d="M63 31C61 20 66 12 76 8C82 18 78 27 67 33C65 34 64 33 63 31Z" fill="url(#g)"/>
   </g>
-  <text x="130" y="88" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="850" font-size="66" letter-spacing="-3" fill="#111111">ROOT</text>
-  <text x="342" y="88" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="850" font-size="66" letter-spacing="-3" fill="#3AA66B">FLOW</text>
-  <text x="133" y="126" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="700" font-size="15" letter-spacing="5" fill="#8A8D87">SEE WHAT COMES NEXT.</text>
+  <text x="180" y="88" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="850" font-size="66" letter-spacing="-3" fill="#171A18">ROOT</text>
+  <text x="390" y="88" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="850" font-size="66" letter-spacing="-3" fill="#6B9B58">FLOW</text>
+  <text x="183" y="128" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-weight="700" font-size="15" letter-spacing="5" fill="#898D86">SEE WHAT COMES NEXT.</text>
 </svg>

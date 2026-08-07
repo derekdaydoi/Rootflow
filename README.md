@@ -1,3 +1,13 @@
+# Rootflow V3.0
+
+Root family visual system + Rootwork-style natural document scrolling + finance features from V2.6/V2.9.
+
+**Release:** 2026-08-07  
+**Data schema:** v4 (unchanged)  
+**PWA cache:** `rootflow-v3.0-2026-08-07`
+
+V3.0 is a presentation-first release: the finance engine and persistence model stay intact, while the Dashboard/header/Home Screen icon move to the final Root family direction: warm ivory, botanical green, sprout + flowing path, ROOT graphite + FLOW green, and `SEE WHAT COMES NEXT.`.
+
 # Rootflow V2.6
 
 Rootflow là personal cash-flow operating system theo hướng **hiểu hiện tại → kiểm soát nhịp chi → nhìn trước dòng tiền tương lai**. Bản này chạy trực tiếp như PWA trên GitHub Pages, local-first, không server và không tài khoản.
