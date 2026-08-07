@@ -1,0 +1,458 @@
+/* Rootflow — domain.js
+   Toàn bộ nghiệp vụ tài chính. Hàm thuần: không đụng DOM, không đụng storage.
+   Mọi số dư (tài sản, nợ, phải thu) đều lưu dưới dạng độ lớn dương. */
+(function (global) {
+  'use strict';
+
+  var DAY = 86400000;
+
+  /* ============================ NGÀY ============================ */
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+  function ymd(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function parseYmd(s) {
+    var p = String(s || '').split('-');
+    return new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  }
+
+  function today() { return ymd(new Date()); }
+
+  function addDays(s, n) {
+    var d = parseYmd(s);
+    d.setDate(d.getDate() + n);
+    return ymd(d);
+  }
+
+  /* Cộng tháng, kẹp về ngày cuối tháng nếu tràn (31/1 + 1 tháng = 28/2). */
+  function addMonths(s, n) {
+    var d = parseYmd(s);
+    var day = d.getDate();
+    d.setDate(1);
+    d.setMonth(d.getMonth() + n);
+    var last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(day, last));
+    return ymd(d);
+  }
+
+  function diffDays(a, b) {
+    return Math.round((parseYmd(b) - parseYmd(a)) / DAY);
+  }
+
+  function monthOf(s) { return String(s || '').slice(0, 7); }
+
+  function monthBounds(ym) {
+    var p = ym.split('-');
+    var y = Number(p[0]), m = Number(p[1]);
+    var last = new Date(y, m, 0).getDate();
+    return { from: ym + '-01', to: ym + '-' + pad(last) };
+  }
+
+  function addMonthsToYm(ym, n) {
+    var p = ym.split('-');
+    var d = new Date(Number(p[0]), Number(p[1]) - 1 + n, 1);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1);
+  }
+
+  var DOW = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+
+  function fmtDate(s) {
+    var d = parseYmd(s);
+    return d.getDate() + ' thg ' + (d.getMonth() + 1);
+  }
+
+  function fmtDateFull(s) {
+    var d = parseYmd(s);
+    return DOW[d.getDay()] + ', ' + d.getDate() + ' thg ' + (d.getMonth() + 1);
+  }
+
+  function fmtMonth(ym) {
+    var p = ym.split('-');
+    return 'Tháng ' + Number(p[1]) + ' · ' + p[0];
+  }
+
+  /* Nhãn tương đối cho danh sách: hôm nay / ngày mai / quá hạn n ngày. */
+  function relLabel(s, base) {
+    var n = diffDays(base || today(), s);
+    if (n === 0) return 'Hôm nay';
+    if (n === 1) return 'Ngày mai';
+    if (n === -1) return 'Hôm qua';
+    if (n < 0) return fmtDateFull(s) + ' · quá ' + (-n) + ' ngày';
+    return fmtDateFull(s);
+  }
+
+  /* ============================ TIỀN ============================ */
+
+  function fmtVND(n) {
+    var v = Math.round(Number(n) || 0);
+    var neg = v < 0;
+    var s = String(Math.abs(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return (neg ? '−' : '') + s;
+  }
+
+  /* Rút gọn cho chỗ hẹp: 12,4 tr — 850 ng. */
+  function fmtShort(n) {
+    var v = Math.round(Number(n) || 0);
+    var neg = v < 0;
+    var a = Math.abs(v);
+    var s;
+    if (a >= 1e9) s = trim1(a / 1e9) + ' tỷ';
+    else if (a >= 1e6) s = trim1(a / 1e6) + ' tr';
+    else if (a >= 1e3) s = trim1(a / 1e3) + ' ng';
+    else s = String(a);
+    return (neg ? '−' : '') + s;
+  }
+
+  function trim1(x) {
+    var s = (Math.round(x * 10) / 10).toString();
+    return s.replace('.', ',');
+  }
+
+  function parseMoney(str) {
+    var digits = String(str == null ? '' : str).replace(/[^0-9]/g, '');
+    return digits ? Number(digits) : 0;
+  }
+
+  function groupDigits(str) {
+    var digits = String(str == null ? '' : str).replace(/[^0-9]/g, '');
+    if (!digits) return '';
+    digits = digits.replace(/^0+(?=\d)/, '');
+    return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  /* ========================== METADATA ========================== */
+
+  var ACCOUNT_TYPES = {
+    cash:        { label: 'Tiền mặt',      group: 'liquid' },
+    bank:        { label: 'Ngân hàng',     group: 'liquid' },
+    ewallet:     { label: 'Ví điện tử',    group: 'liquid' },
+    credit_card: { label: 'Thẻ tín dụng',  group: 'liability' },
+    loan:        { label: 'Khoản vay',     group: 'liability' },
+    receivable:  { label: 'Người nợ mình', group: 'receivable' }
+  };
+
+  var ACCOUNT_ORDER = ['cash', 'bank', 'ewallet', 'credit_card', 'loan', 'receivable'];
+
+  /* pl: ảnh hưởng tới thu/chi trong kỳ. null = luân chuyển vốn, không phải thu/chi.
+     counter: nhóm tài khoản đối ứng bắt buộc, null = không cần. */
+  var FLOW_KINDS = {
+    income:       { label: 'Thu nhập',   dir: 1,  pl: 'income',  counter: null },
+    expense:      { label: 'Chi tiêu',   dir: -1, pl: 'expense', counter: null },
+    transfer:     { label: 'Chuyển tiền', dir: 0, pl: null,      counter: 'any' },
+    borrow:       { label: 'Vay tiền',   dir: 1,  pl: null,      counter: 'liability' },
+    repay:        { label: 'Trả gốc',    dir: -1, pl: null,      counter: 'liability' },
+    lend:         { label: 'Cho vay',    dir: -1, pl: null,      counter: 'receivable' },
+    collect:      { label: 'Thu nợ',     dir: 1,  pl: null,      counter: 'receivable' },
+    interest_in:  { label: 'Lãi nhận',   dir: 1,  pl: 'income',  counter: null },
+    interest_out: { label: 'Lãi phải trả', dir: -1, pl: 'expense', counter: null },
+    fee:          { label: 'Phí',        dir: -1, pl: 'expense', counter: null }
+  };
+
+  var KIND_ORDER = ['expense', 'income', 'transfer', 'repay', 'borrow', 'lend', 'collect', 'fee', 'interest_out', 'interest_in'];
+
+  var CATEGORIES = [
+    'Ăn uống', 'Cafe', 'Thể thao', 'Di chuyển', 'Đi lại', 'Nhà ở', 'Hoá đơn', 'Mua sắm',
+    'Sức khoẻ', 'Học tập', 'Giải trí', 'Yêu đương', 'Gia đình', 'Đầu tư', 'Trading', 'Business', 'Khác'
+  ];
+
+  function groupOf(type) {
+    var t = ACCOUNT_TYPES[type];
+    return t ? t.group : 'liquid';
+  }
+  function isLiquid(a) { return a && groupOf(a.type) === 'liquid'; }
+  function isLiability(a) { return a && groupOf(a.type) === 'liability'; }
+  function isReceivable(a) { return a && groupOf(a.type) === 'receivable'; }
+
+  function byId(accounts) {
+    var m = {};
+    for (var i = 0; i < accounts.length; i++) m[accounts[i].id] = accounts[i];
+    return m;
+  }
+
+  /* ===================== TÁC ĐỘNG CỦA DÒNG TIỀN =====================
+     Trả về danh sách {accountId, delta} theo độ lớn riêng của từng tài khoản:
+     - tài sản: delta dương = có thêm tiền
+     - nợ:      delta dương = nợ thêm
+     - phải thu: delta dương = người ta nợ mình thêm  */
+
+  function effects(f, accMap) {
+    var a = accMap[f.accountId];
+    if (!a) return [];
+    var amt = Math.abs(Number(f.amount) || 0);
+    var b = f.counterAccountId ? accMap[f.counterAccountId] : null;
+    var onCard = a.type === 'credit_card';
+    var out = [];
+
+    switch (f.kind) {
+      case 'income':
+      case 'interest_in':
+        out.push({ accountId: a.id, delta: amt });
+        break;
+
+      case 'expense':
+      case 'fee':
+      case 'interest_out':
+        /* Quẹt thẻ: tiền mặt chưa giảm, dư nợ thẻ tăng. */
+        out.push({ accountId: a.id, delta: onCard ? amt : -amt });
+        break;
+
+      case 'transfer':
+        out.push({ accountId: a.id, delta: -amt });
+        if (b) out.push({ accountId: b.id, delta: isLiability(b) ? -amt : amt });
+        break;
+
+      case 'borrow':
+        out.push({ accountId: a.id, delta: amt });
+        if (b) out.push({ accountId: b.id, delta: amt });
+        break;
+
+      case 'repay':
+        out.push({ accountId: a.id, delta: -amt });
+        if (b) out.push({ accountId: b.id, delta: -amt });
+        break;
+
+      case 'lend':
+        out.push({ accountId: a.id, delta: -amt });
+        if (b) out.push({ accountId: b.id, delta: amt });
+        break;
+
+      case 'collect':
+        out.push({ accountId: a.id, delta: amt });
+        if (b) out.push({ accountId: b.id, delta: -amt });
+        break;
+    }
+    return out;
+  }
+
+  /* Thay đổi tiền mặt khả dụng — chỉ tính tài khoản nhóm liquid. */
+  function liquidDelta(f, accMap) {
+    var e = effects(f, accMap), s = 0;
+    for (var i = 0; i < e.length; i++) {
+      var a = accMap[e[i].accountId];
+      if (isLiquid(a)) s += e[i].delta;
+    }
+    return s;
+  }
+
+  function live(flows) {
+    return flows.filter(function (f) { return !f.deletedAt; });
+  }
+
+  /* Số dư từng tài khoản. opts.upto = chỉ tính dòng tiền tới ngày đó.
+     opts.includeExpected = cộng cả dòng planned (chưa tới hạn). */
+  function balances(accounts, flows, opts) {
+    opts = opts || {};
+    var accMap = byId(accounts);
+    var out = {};
+    for (var i = 0; i < accounts.length; i++) out[accounts[i].id] = Number(accounts[i].openingBalance) || 0;
+
+    var list = live(flows);
+    for (var j = 0; j < list.length; j++) {
+      var f = list[j];
+      if (!f.confirmed && !opts.includeExpected) continue;
+      if (f.skipped) continue;
+      if (opts.upto && f.date > opts.upto) continue;
+      var e = effects(f, accMap);
+      for (var k = 0; k < e.length; k++) {
+        if (out[e[k].accountId] === undefined) continue;
+        out[e[k].accountId] += e[k].delta;
+      }
+    }
+    return out;
+  }
+
+  function totals(accounts, bal) {
+    var t = { liquid: 0, liability: 0, receivable: 0 };
+    for (var i = 0; i < accounts.length; i++) {
+      var a = accounts[i];
+      if (a.archived) continue;
+      var v = bal[a.id] || 0;
+      if (isLiquid(a)) t.liquid += v;
+      else if (isLiability(a)) t.liability += v;
+      else if (isReceivable(a)) t.receivable += v;
+    }
+    t.netWorth = t.liquid + t.receivable - t.liability;
+    return t;
+  }
+
+  /* ============================ DỰ PHÓNG ============================
+     Số dư khả dụng dự phóng tại ngày d
+       = số dư khả dụng hiện tại (chỉ dòng actual đã ghi nhận)
+       + mọi dòng planned có ngày <= d
+     Dòng planned quá hạn được cộng vào ngày đầu tiên — migration/runtime sẽ auto-post khi app hoạt động. */
+
+  function forecast(accounts, flows, horizonDays, reserveFloor, baseDate) {
+    var start = baseDate || today();
+    var accMap = byId(accounts);
+    var current = totals(accounts, balances(accounts, flows)).liquid;
+
+    var pending = live(flows).filter(function (f) {
+      return !f.confirmed && !f.skipped;
+    });
+
+    var points = [];
+    var running = current;
+    var idx = 0;
+    var sorted = pending.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+
+    for (var i = 0; i <= horizonDays; i++) {
+      var d = addDays(start, i);
+      while (idx < sorted.length && sorted[idx].date <= d) {
+        running += liquidDelta(sorted[idx], accMap);
+        idx++;
+      }
+      points.push({ date: d, value: running });
+    }
+
+    var lowest = points[0], i2;
+    for (i2 = 1; i2 < points.length; i2++) if (points[i2].value < lowest.value) lowest = points[i2];
+
+    var floor = Number(reserveFloor) || 0;
+    return {
+      points: points,
+      current: current,
+      end: points[points.length - 1].value,
+      lowest: lowest.value,
+      lowestDate: lowest.date,
+      reserveFloor: floor,
+      safeToSpend: Math.max(0, lowest.value - floor),
+      breaches: lowest.value < floor
+    };
+  }
+
+  /* ============================ THÁNG ============================ */
+
+  function monthSummary(accounts, flows, ym) {
+    var b = monthBounds(ym);
+    var accMap = byId(accounts);
+    var inMonth = live(flows).filter(function (f) {
+      return f.date >= b.from && f.date <= b.to && !f.skipped;
+    });
+
+    var r = {
+      ym: ym, income: 0, expense: 0, netCash: 0,
+      debtService: 0, lent: 0, collected: 0, borrowed: 0,
+      byCategory: {}, count: inMonth.length, pending: 0, confirmed: 0
+    };
+
+    for (var i = 0; i < inMonth.length; i++) {
+      var f = inMonth[i];
+      var meta = FLOW_KINDS[f.kind] || {};
+      var amt = Math.abs(Number(f.amount) || 0);
+
+      if (f.confirmed) r.confirmed++; else { r.pending++; continue; }
+
+      if (meta.pl === 'income') r.income += amt;
+      if (meta.pl === 'expense') {
+        r.expense += amt;
+        var c = f.category || 'Khác';
+        r.byCategory[c] = (r.byCategory[c] || 0) + amt;
+      }
+      if (f.kind === 'repay' || f.kind === 'interest_out') r.debtService += amt;
+      if (f.kind === 'lend') r.lent += amt;
+      if (f.kind === 'collect') r.collected += amt;
+      if (f.kind === 'borrow') r.borrowed += amt;
+
+      r.netCash += liquidDelta(f, accMap);
+    }
+
+    r.categories = Object.keys(r.byCategory)
+      .map(function (k) { return { name: k, amount: r.byCategory[k] }; })
+      .sort(function (x, y) { return y.amount - x.amount; });
+
+    r.savingRate = r.income > 0 ? Math.max(0, Math.round((r.income - r.expense) / r.income * 100)) : 0;
+    return r;
+  }
+
+  /* Dòng planned đã tới hạn nhưng chưa được auto-post — chỉ còn như fallback vệ sinh dữ liệu. */
+  function overdue(flows, baseDate) {
+    var t = baseDate || today();
+    return live(flows).filter(function (f) {
+      return !f.confirmed && !f.skipped && f.date <= t;
+    });
+  }
+
+  function upcoming(flows, days, baseDate) {
+    var t = baseDate || today();
+    var to = addDays(t, days);
+    return live(flows).filter(function (f) {
+      return !f.confirmed && !f.skipped && f.date >= t && f.date <= to;
+    });
+  }
+
+  /* ========================== LẶP LẠI ==========================
+     Mỗi chuỗi được sinh trước thành các dòng độc lập nhưng giữ metadata
+     tần suất, vị trí và tổng số kỳ để màn sửa có thể khôi phục đúng lịch. */
+
+  function expand(base, freq, count, newId, existingSeriesId) {
+    var out = [];
+    var normalized = freq === 'weekly' || freq === 'monthly' ? freq : 'none';
+    var n = normalized === 'none' ? 1 : Math.max(1, Math.min(60, Number(count) || 1));
+    var series = normalized === 'none' ? null : (existingSeriesId || newId());
+    for (var i = 0; i < n; i++) {
+      var date = normalized === 'weekly' ? addDays(base.date, i * 7)
+        : normalized === 'monthly' ? addMonths(base.date, i)
+        : base.date;
+      var f = {};
+      for (var k in base) if (Object.prototype.hasOwnProperty.call(base, k)) f[k] = base[k];
+      f.id = newId();
+      f.date = date;
+      f.seriesId = series;
+      f.seriesFreq = normalized;
+      f.seriesIndex = i;
+      f.seriesCount = n;
+      out.push(f);
+    }
+    return out;
+  }
+
+  /* ========================== KIỂM TRA ========================== */
+
+  function validateFlow(f, accMap) {
+    if (!f.accountId || !accMap[f.accountId]) return 'Chọn tài khoản.';
+    var meta = FLOW_KINDS[f.kind];
+    if (!meta) return 'Chọn loại dòng tiền.';
+    if (!(Number(f.amount) > 0)) return 'Nhập số tiền lớn hơn 0.';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(f.date || '')) return 'Chọn ngày.';
+    if (meta.counter) {
+      var b = accMap[f.counterAccountId];
+      if (!b) return 'Chọn tài khoản đối ứng.';
+      if (b.id === f.accountId) return 'Hai tài khoản phải khác nhau.';
+      if (meta.counter !== 'any' && groupOf(b.type) !== meta.counter) {
+        var need = meta.counter === 'liability' ? 'thẻ tín dụng hoặc khoản vay' : 'khoản cho vay';
+        return 'Tài khoản đối ứng phải là ' + need + '.';
+      }
+    }
+    var a = accMap[f.accountId];
+    if ((f.kind === 'income' || f.kind === 'interest_in' || f.kind === 'transfer' ||
+         f.kind === 'borrow' || f.kind === 'repay' || f.kind === 'lend' || f.kind === 'collect')
+        && !isLiquid(a)) {
+      return 'Tài khoản nguồn phải là tiền mặt, ngân hàng hoặc ví.';
+    }
+    return null;
+  }
+
+  function validateAccount(a) {
+    if (!String(a.name || '').trim()) return 'Đặt tên cho tài khoản.';
+    if (!ACCOUNT_TYPES[a.type]) return 'Chọn loại tài khoản.';
+    if (Number(a.openingBalance) < 0) return 'Số dư ban đầu không được âm — dùng loại tài khoản nợ thay vì số âm.';
+    return null;
+  }
+
+  global.RootflowDomain = {
+    DAY: DAY,
+    ymd: ymd, parseYmd: parseYmd, today: today, addDays: addDays, addMonths: addMonths,
+    diffDays: diffDays, monthOf: monthOf, monthBounds: monthBounds, addMonthsToYm: addMonthsToYm,
+    fmtDate: fmtDate, fmtDateFull: fmtDateFull, fmtMonth: fmtMonth, relLabel: relLabel,
+    fmtVND: fmtVND, fmtShort: fmtShort, parseMoney: parseMoney, groupDigits: groupDigits,
+    ACCOUNT_TYPES: ACCOUNT_TYPES, ACCOUNT_ORDER: ACCOUNT_ORDER,
+    FLOW_KINDS: FLOW_KINDS, KIND_ORDER: KIND_ORDER, CATEGORIES: CATEGORIES,
+    groupOf: groupOf, isLiquid: isLiquid, isLiability: isLiability, isReceivable: isReceivable,
+    byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,
+    forecast: forecast, monthSummary: monthSummary, overdue: overdue, upcoming: upcoming,
+    expand: expand, validateFlow: validateFlow, validateAccount: validateAccount
+  };
+})(window);

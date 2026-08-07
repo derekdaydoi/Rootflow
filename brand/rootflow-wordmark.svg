@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" role="img" aria-labelledby="title">
+  <title id="title">Rootflow wordmark</title>
+  <defs>
+    <linearGradient id="flow" x1="42" y1="130" x2="160" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#176A50"/>
+      <stop offset="1" stop-color="#57B987"/>
+    </linearGradient>
+  </defs>
+  <path d="M48 126C68 97 88 101 108 115C128 128 145 123 154 96C162 72 171 57 184 48" fill="none" stroke="url(#flow)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="41" cy="134" r="21" fill="#111111"/>
+  <text x="222" y="117" font-family="Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="82" font-weight="800" letter-spacing="-4" fill="#111111">Root</text>
+  <text x="390" y="117" font-family="Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="82" font-weight="800" letter-spacing="-4" fill="#278B63">flow</text>
+</svg>

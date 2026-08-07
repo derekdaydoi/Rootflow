@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Rootflow mark</title>
+  <desc id="desc">Graphite root point connected to a rising green flow curve.</desc>
+  <defs>
+    <linearGradient id="flow" x1="54" y1="174" x2="218" y2="55" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#176A50"/>
+      <stop offset="1" stop-color="#57B987"/>
+    </linearGradient>
+  </defs>
+  <path d="M58 170C84 132 110 137 137 155C163 172 185 166 197 130C208 98 219 77 236 64" fill="none" stroke="url(#flow)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="49" cy="181" r="28" fill="#111111"/>
+</svg>
