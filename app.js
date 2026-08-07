@@ -1429,8 +1429,7 @@
         h('div', { className: 'screen-head-left' },
           h('button', { className: 'back-btn', onClick: props.onBack, 'aria-label': 'Quay lại' }, Icon('back', 22)),
           h('div', null,
-            h('h1', { className: 'screen-title' }, 'Dự phóng'),
-            h('div', { className: 'screen-sub' }, 'Số dư khả dụng trong ' + d.horizon + ' ngày tới'))),
+            h('h1', { className: 'screen-title' }, 'Dự phóng'))),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)))),
 
@@ -1556,7 +1555,7 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kế hoạch'), h('div', { className: 'screen-sub' }, 'Hạn mức chi theo từng block'))),
+        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kế hoạch'))),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Thêm block'))),
@@ -1628,7 +1627,7 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kịch bản'), h('div', { className: 'screen-sub' }, 'Mô phỏng trước khi tiền thực sự di chuyển'))),
+        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kịch bản'))),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Tạo kịch bản'))),
