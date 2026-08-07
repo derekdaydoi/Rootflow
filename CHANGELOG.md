@@ -1,3 +1,12 @@
+# V2.6.2 — iOS scroll hotfix
+
+- Replaced `100dvh` app-frame sizing with a fixed viewport frame (`position: fixed; inset: 0`).
+- Removed the hard-coded 44px iOS safe-area fallback; Rootflow now trusts the native `env(safe-area-inset-top)`.
+- Changed the inner scroller from `overscroll-behavior: contain` to `none` to stop rubber-band gaps.
+- Anchored the top safe-area mask and bottom navigation to the app frame with `position: absolute`.
+- Locked the document body itself to prevent Safari from scrolling/bouncing the page behind Rootflow.
+- Bumped service-worker cache to `rootflow-v2.6.2-2026-08-07`.
+
 # Rootflow changelog
 
 ## V2.6 — 2026-08-07
