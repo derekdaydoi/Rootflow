@@ -1,3 +1,24 @@
+# V3.7.1 — 2026-08-10
+
+- Locked Personal Balance Sheet subtitle to `Tài sản = Nợ phải trả + Vốn chủ`.
+- Removed the appended date from that subtitle to keep the card visually balanced.
+- Standardized the receivable account label to `Phải thu`.
+- Preserved V3.7 logo assets, typography, navigation, layout, schema v5, and accounting behavior.
+- PWA cache bumped to `rootflow-v3.7.1-2026-08-10`.
+
+# V3.7.0 — 2026-08-10
+
+- Fixed the snapshot-vs-ledger mismatch for newly-added current liability balances.
+- Added per-account `balanceAsOf` so historical flows before a snapshot do not replay onto that account.
+- Bumped storage schema to v5 with backward-compatible migration that preserves legacy v4 calculated balances.
+- Preserved the existing Root Green / white R logo, Manrope/system typography and navigation structure.
+- Kept loan repayment input as `Vốn / gốc` + `Chi phí vay`; moved transaction `Loại` above the amount fields.
+- Added `legacyDebtPayment` compatibility: old debt-payment rows can reduce cash without being misclassified as full OPEX.
+- Legacy debt payments remain included in debt-service cash obligations and trigger a Dashboard reconciliation note until split.
+- Added tests for account snapshot baselines and legacy debt-payment treatment.
+- Self-test suite: 54/54 pass.
+- PWA cache bumped to `rootflow-v3.7.0-2026-08-10`.
+
 # V3.6.0 — 2026-08-10
 
 - Preserved the V3.5 Root Green / white R-flow logo assets, display typography and navigation structure.

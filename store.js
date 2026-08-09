@@ -4,7 +4,7 @@
   'use strict';
 
   var KEY = 'rootflow.data';
-  var SCHEMA = 4;
+  var SCHEMA = 5;
   var TRASH_DAYS = 30;
   var WARN_BYTES = 3 * 1024 * 1024;
   var D = global.RootflowDomain;
@@ -32,6 +32,7 @@
     var data = raw;
     if (!data || typeof data !== 'object') return empty();
     if (!data.schemaVersion) data.schemaVersion = 1;
+    var fromVersion = Number(data.schemaVersion) || 1;
 
     var base = empty();
     data.accounts = Array.isArray(data.accounts) ? data.accounts : [];
@@ -39,6 +40,19 @@
     data.budgets = Array.isArray(data.budgets) ? data.budgets : [];
     data.scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
     data.settings = Object.assign({}, base.settings, data.settings || {});
+
+    /* V5: openingBalance trở thành snapshot có ngày gốc riêng cho từng account.
+       Với dữ liệu cũ, đặt baseline trước ngày account được tạo một ngày để
+       giữ nguyên 100% cách replay ledger trước đây. Account tạo mới từ V5
+       sẽ lưu balanceAsOf = hôm nay ngay trong form. */
+    data.accounts = data.accounts.map(function (a) {
+      a = Object.assign({}, a || {});
+      if (!a.balanceAsOf) {
+        var created = String(a.createdAt || '').slice(0, 10);
+        if (/^\d{4}-\d{2}-\d{2}$/.test(created)) a.balanceAsOf = D.addDays(created, -1);
+      }
+      return a;
+    });
 
     data.budgets = data.budgets.map(function (b) {
       return Object.assign({

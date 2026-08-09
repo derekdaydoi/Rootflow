@@ -174,6 +174,37 @@
     check('CAPEX nhận transfer vào tài sản sở hữu', bs.capex, 5000000);
     check('Debt ratio đúng', Math.round(bs.debtRatio), 27);
 
+
+    /* --- 18. Snapshot account không replay lịch sử trước balanceAsOf --- */
+    var snapAccounts = [
+      { id: 'sb', name: 'Bank', type: 'bank', openingBalance: 10000000, balanceAsOf: '2026-08-01', archived: false },
+      { id: 'sl', name: 'Loan snapshot', type: 'loan', openingBalance: 20000000, balanceAsOf: '2026-08-10', archived: false }
+    ];
+    var snapFlows = [
+      { id: 'sr1', date: '2026-08-08', confirmed: true, skipped: false, kind: 'repay',
+        accountId: 'sb', counterAccountId: 'sl', amount: 4000000, principalAmount: 3200000, borrowingCost: 800000, category: '', note: '' }
+    ];
+    var snapBal = D.balances(snapAccounts, snapFlows);
+    check('Repay lịch sử vẫn làm giảm cash của account cũ', snapBal.sb, 6000000);
+    check('Repay trước snapshot không làm giảm dư nợ hiện tại lần hai', snapBal.sl, 20000000);
+
+    /* --- 19. Legacy debt payment giữ cash nhưng không làm phình OPEX --- */
+    var legacyAccounts = [
+      { id: 'lb', name: 'Bank', type: 'bank', openingBalance: 7998000, balanceAsOf: '2026-08-06', archived: false }
+    ];
+    var legacyFlows = [
+      { id: 'li', date: '2026-08-08', confirmed: true, skipped: false, kind: 'income',
+        accountId: 'lb', amount: 16000000, category: '', note: '' },
+      { id: 'lf', date: '2026-08-08', confirmed: true, skipped: false, kind: 'fee',
+        accountId: 'lb', amount: 5340000, category: 'Business', note: 'Nợ vay 2', legacyDebtPayment: true }
+    ];
+    var legacyBal = D.balances(legacyAccounts, legacyFlows);
+    var legacyMonth = D.monthSummary(legacyAccounts, legacyFlows, '2026-08');
+    check('Legacy debt payment vẫn giảm tiền khả dụng', legacyBal.lb, 18658000);
+    check('Legacy debt payment không tính toàn bộ vào OPEX', legacyMonth.expense, 0);
+    check('Legacy debt payment vẫn tính vào debt service cash obligation', legacyMonth.debtService, 5340000);
+    check('Legacy debt payment được flag là chưa phân bổ', legacyMonth.unallocatedDebtPayment, 5340000);
+
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };
   }

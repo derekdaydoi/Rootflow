@@ -129,7 +129,7 @@
     cash:        { label: 'Tiền mặt',        group: 'liquid' },
     bank:        { label: 'Ngân hàng',       group: 'liquid' },
     ewallet:     { label: 'Ví điện tử',      group: 'liquid' },
-    receivable:  { label: 'Người nợ mình',  group: 'receivable' },
+    receivable:  { label: 'Phải thu',        group: 'receivable' },
     investment:  { label: 'Tài sản đầu tư', group: 'investment' },
     fixed_asset: { label: 'Tài sản sở hữu', group: 'fixed_asset' },
     credit_card: { label: 'Thẻ tín dụng',   group: 'liability' },
@@ -169,6 +169,25 @@
   function isReceivable(a) { return a && groupOf(a.type) === 'receivable'; }
   function isInvestment(a) { return a && groupOf(a.type) === 'investment'; }
   function isFixedAsset(a) { return a && groupOf(a.type) === 'fixed_asset'; }
+
+  /* openingBalance là số dư snapshot tại cuối balanceAsOf.
+     Chỉ các flow SAU ngày này mới được replay lên riêng tài khoản đó.
+     Điều này cho phép thêm một khoản vay với "dư nợ hiện tại" mà không
+     double-count các kỳ trả nợ lịch sử đã xảy ra trước snapshot. */
+  function accountBalanceAsOf(a) {
+    if (!a) return null;
+    var d = String(a.balanceAsOf || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
+  }
+
+  function effectAfterBaseline(f, a) {
+    var asOf = accountBalanceAsOf(a);
+    return !asOf || String(f && f.date || '') > asOf;
+  }
+
+  function isLegacyDebtPayment(f) {
+    return Boolean(f && f.kind === 'fee' && f.legacyDebtPayment);
+  }
 
   /* Backward compatible repayment split.
      Legacy repay rows only have amount => 100% principal, zero borrowing cost.
@@ -286,6 +305,8 @@
       var e = effects(f, accMap);
       for (var k = 0; k < e.length; k++) {
         if (out[e[k].accountId] === undefined) continue;
+        var target = accMap[e[k].accountId];
+        if (!effectAfterBaseline(f, target)) continue;
         out[e[k].accountId] += e[k].delta;
       }
     }
@@ -344,6 +365,7 @@
       opex: 0,
       capex: 0,
       debtService: 0,
+      unallocatedDebtPayment: 0,
       debtServiceRatio: null
     };
 
@@ -363,6 +385,7 @@
     var m = monthSummary(accounts, flows, ym);
     bs.opex = m.expense;
     bs.debtService = m.debtService;
+    bs.unallocatedDebtPayment = m.unallocatedDebtPayment || 0;
 
     var bounds = monthBounds(ym);
     var accMap = byId(accounts);
@@ -437,7 +460,7 @@
 
     var r = {
       ym: ym, income: 0, expense: 0, netCash: 0,
-      debtService: 0, debtPrincipal: 0, borrowingCost: 0,
+      debtService: 0, debtPrincipal: 0, borrowingCost: 0, unallocatedDebtPayment: 0,
       lent: 0, collected: 0, borrowed: 0,
       byCategory: {}, count: inMonth.length, pending: 0, confirmed: 0
     };
@@ -450,13 +473,16 @@
       if (f.confirmed) r.confirmed++; else { r.pending++; continue; }
 
       if (meta.pl === 'income') r.income += amt;
-      if (meta.pl === 'expense') {
+      if (meta.pl === 'expense' && !isLegacyDebtPayment(f)) {
         r.expense += amt;
         var c = f.category || 'Khác';
         r.byCategory[c] = (r.byCategory[c] || 0) + amt;
       }
 
-      if (f.kind === 'repay') {
+      if (isLegacyDebtPayment(f)) {
+        r.debtService += amt;
+        r.unallocatedDebtPayment += amt;
+      } else if (f.kind === 'repay') {
         var principal = repayPrincipal(f);
         var cost = repayCost(f);
         r.debtService += principal + cost;
@@ -562,6 +588,7 @@
     if (!String(a.name || '').trim()) return 'Đặt tên cho tài khoản.';
     if (!ACCOUNT_TYPES[a.type]) return 'Chọn loại tài khoản.';
     if (Number(a.openingBalance) < 0) return 'Số dư ban đầu không được âm — dùng loại tài khoản nợ thay vì số âm.';
+    if (a.balanceAsOf && !/^\d{4}-\d{2}-\d{2}$/.test(String(a.balanceAsOf))) return 'Ngày snapshot không hợp lệ.';
     return null;
   }
 
@@ -576,6 +603,8 @@
     groupOf: groupOf, isLiquid: isLiquid, isLiability: isLiability, isReceivable: isReceivable,
     isInvestment: isInvestment, isFixedAsset: isFixedAsset, termClass: termClass,
     repayPrincipal: repayPrincipal, repayCost: repayCost, repayTotal: repayTotal,
+    accountBalanceAsOf: accountBalanceAsOf, effectAfterBaseline: effectAfterBaseline,
+    isLegacyDebtPayment: isLegacyDebtPayment,
     byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,
     personalBalanceSheet: personalBalanceSheet,
     forecast: forecast, monthSummary: monthSummary, overdue: overdue, upcoming: upcoming,

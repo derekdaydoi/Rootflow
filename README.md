@@ -1,31 +1,35 @@
-# Rootflow V3.6.0
+# Rootflow V3.7.1
 
-Rootflow is a local-first personal financial operating system: **liquidity → operating performance → personal balance sheet**. V3.6 keeps the V3.5 logo, typography and navigation structure unchanged, then adds a personal-accounting layer on top of the existing cash-flow engine.
+Rootflow is a local-first personal financial operating system: **liquidity → operating performance → personal balance sheet**. V3.7 fixes the snapshot/ledger mismatch that appears when current loan balances are added on top of an older cash-flow history.
 
 **Release:** 2026-08-10  
-**Data schema:** v4 (backward-compatible optional fields)  
-**PWA cache:** `rootflow-v3.6.0-2026-08-10`
+**Data schema:** v5  
+**PWA cache:** `rootflow-v3.7.1-2026-08-10`
 
-## V3.6 changes
+## V3.7.1 changes
 
-- **Logo and typography unchanged from V3.5:** Root Green square + white R-flow/root dot, Manrope display layer + system operational UI.
-- Loan repayment input is simplified to two values only: **Vốn / gốc** and **Chi phí vay**. Rootflow automatically keeps total cash out = principal + borrowing cost.
-- Repayment accounting bridge:
-  - principal reduces cash and liability;
-  - borrowing cost reduces cash and is recognized as monthly expense;
-  - forecast uses the full cash out.
-- Dashboard adds a compact **Bảng cân đối cá nhân**:
-  - Tài sản = Nợ phải trả + Vốn chủ / Net Worth;
-  - current vs. non-current assets/liabilities;
-  - NWC, Debt ratio, Current ratio, Debt-service ratio, OPEX and CAPEX.
-- New optional account types: **Tài sản đầu tư** and **Tài sản sở hữu**.
-- `Kỳ hạn trên bảng cân đối` can classify loan / receivable / investment as current or long-term for NWC and current-ratio calculations.
-- CAPEX is recognized when cash is transferred into a **Tài sản sở hữu** account; capital allocation into investments stays off OPEX.
-- Existing legacy `repay` rows remain valid: when no split exists, 100% of the old amount is treated as principal with zero borrowing cost.
-- Dashboard terminology is clarified:
-  - historical chart → `Số dư khả dụng — 30 ngày qua`;
-  - forward metric → `Biến động 30 ngày tới`.
-- Self-test suite expanded to cover split repayment, personal balance sheet and CAPEX.
+- Balance Sheet subtitle is locked to exactly **`Tài sản = Nợ phải trả + Vốn chủ`**; no date is appended.
+- Account type `receivable` is displayed consistently as **Phải thu**.
+- No layout, logo, typography, navigation, schema, or accounting formula change.
+
+## V3.7 changes
+
+- **Logo, typography and navigation remain unchanged from V3.6/V3.5.**
+- Every account now has a `Số dư tại ngày` / `balanceAsOf` snapshot date.
+  - `openingBalance` is interpreted as the balance at the end of that date.
+  - only flows after that date are replayed onto that account.
+  - this prevents historical repayments from reducing a newly-entered current loan balance a second time.
+- Old schema v4 data migrates to schema v5 without changing its calculated balances: legacy accounts receive a baseline before their original created date so historical ledger replay remains backward compatible.
+- Loan repayment input keeps the two-field model: **Vốn / gốc** + **Chi phí vay**.
+- Transaction form now asks for **Loại** before showing the amount/split fields, so the repayment breakdown appears in the expected place.
+- `legacyDebtPayment` compatibility flag is supported for old loan-installment rows that were previously entered as `Phí`:
+  - cash still decreases by the full amount;
+  - the row is excluded from OPEX until principal/borrowing-cost is properly split;
+  - it still counts toward debt-service cash obligations;
+  - Dashboard warns when such unallocated debt payments remain.
+- Historical repayments can be reclassified into `Trả khoản vay` and linked to a current liability without double-counting the current loan snapshot.
+- Personal Balance Sheet, NWC, Debt Ratio, Current Ratio, Debt Service, OPEX and CAPEX remain in the same Dashboard structure.
+- Self-test suite expanded to cover snapshot baselines and legacy debt-payment compatibility.
 
 ## Brand assets
 

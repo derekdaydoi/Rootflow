@@ -389,7 +389,7 @@
         var source = incomeSourceName(f);
         out.byIncomeSource[source] = (out.byIncomeSource[source] || 0) + amt;
       }
-      if (meta.pl === 'expense') {
+      if (meta.pl === 'expense' && !D.isLegacyDebtPayment(f)) {
         out.expense += amt;
         var c = f.category || 'Khác';
         out.byCategory[c] = (out.byCategory[c] || 0) + amt;
@@ -438,7 +438,7 @@
       if (f.deletedAt || f.skipped || !f.confirmed || f.date < bounds.from || f.date > bounds.to) return;
       var meta = D.FLOW_KINDS[f.kind] || {};
       var spend = 0;
-      if (meta.pl === 'expense') spend = Math.abs(Number(f.amount) || 0);
+      if (meta.pl === 'expense' && !D.isLegacyDebtPayment(f)) spend = Math.abs(Number(f.amount) || 0);
       else if (f.kind === 'repay') spend = D.repayCost(f);
       if (!(spend > 0)) return;
       var d = Number(String(f.date).slice(8, 10));
@@ -680,7 +680,7 @@
     var meta = D.FLOW_KINDS[kind] || {};
     if (meta.counter === 'any' && accounts.length < 2) return 'Cần thêm một tài khoản đối ứng.';
     if (meta.counter === 'liability' && !accounts.some(function (a) { return D.isLiability(a); })) return 'Cần tạo thẻ tín dụng hoặc khoản vay trước.';
-    if (meta.counter === 'receivable' && !accounts.some(function (a) { return D.isReceivable(a); })) return 'Cần tạo tài khoản “Người nợ mình” trước.';
+    if (meta.counter === 'receivable' && !accounts.some(function (a) { return D.isReceivable(a); })) return 'Cần tạo tài khoản “Phải thu” trước.';
     return '';
   }
 
@@ -743,6 +743,7 @@
             if (n.borrowingCost === undefined) n.borrowingCost = 0;
             n.amount = Math.abs(Number(n.principalAmount) || 0) + Math.abs(Number(n.borrowingCost) || 0);
           }
+          if (v !== 'fee') delete n.legacyDebtPayment;
         }
         return n;
       });
@@ -809,15 +810,6 @@
     },
       err ? h('div', { className: 'sheet-error' }, err) : null,
 
-      f.kind === 'repay'
-        ? h(RepaySplitInput, {
-            principal: f.principalAmount || 0,
-            cost: f.borrowingCost || 0,
-            onPrincipal: function (v) { setRepayPart('principalAmount', v); },
-            onCost: function (v) { setRepayPart('borrowingCost', v); }
-          })
-        : h(MoneyInput, { value: f.amount, dir: dir, onChange: function (v) { set('amount', v); } }),
-
       h('div', { className: 'sheet-block' },
         h('div', { className: 'sheet-field stack' },
           h('label', null, 'Loại'),
@@ -836,6 +828,15 @@
         !kindReady(accounts, f.kind)
           ? h('div', { className: 'sheet-note-line inset' }, kindBlockedReason(accounts, f.kind))
           : null,
+
+      f.kind === 'repay'
+        ? h(RepaySplitInput, {
+            principal: f.principalAmount || 0,
+            cost: f.borrowingCost || 0,
+            onPrincipal: function (v) { setRepayPart('principalAmount', v); },
+            onCost: function (v) { setRepayPart('borrowingCost', v); }
+          })
+        : h(MoneyInput, { value: f.amount, dir: dir, onChange: function (v) { set('amount', v); } }),
 
       h('div', { className: 'sheet-block' },
         Field('Ngày', h('input', {
@@ -928,8 +929,10 @@
       h('div', { className: 'sheet-note-line' },
         f.kind === 'expense' && accMap[f.accountId] && accMap[f.accountId].type === 'credit_card'
           ? 'Quẹt thẻ: tiền khả dụng chưa giảm, dư nợ thẻ tăng. Khi thanh toán sao kê hãy dùng loại Chuyển tiền từ ngân hàng sang thẻ.'
+          : D.isLegacyDebtPayment(f)
+            ? 'Khoản trả nợ cũ chưa được tách gốc / chi phí vay: vẫn giảm tiền khả dụng nhưng tạm thời không tính vào OPEX. Hãy đổi sang “Trả khoản vay” khi có breakdown.'
           : f.kind === 'repay'
-            ? 'Vốn / gốc làm giảm dư nợ. Chi phí vay làm giảm tài sản ròng và được tính vào chi tiêu tháng. Tổng tiền ra vẫn đi vào dự phóng thanh khoản.'
+            ? 'Vốn / gốc làm giảm dư nợ. Chi phí vay làm giảm tài sản ròng và được tính vào chi tiêu tháng. Nếu ngày giao dịch nằm trước snapshot của khoản nợ, Rootflow chỉ tái phân loại lịch sử và không giảm dư nợ lần hai.'
             : meta.pl === null && f.kind !== 'transfer'
               ? 'Đây là luân chuyển vốn, không tính vào thu hoặc chi trong tháng.'
               : 'Ngày hôm nay hoặc quá khứ được ghi nhận ngay. Dòng ở tương lai nằm trong dự phóng và tự ghi nhận khi đến ngày.'));
@@ -941,7 +944,7 @@
   function AccountSheet(props) {
     var isNew = !props.account.id;
     var [a, setA] = useState(function () {
-      return Object.assign({ name: '', type: 'bank', openingBalance: 0, creditLimit: 0, archived: false }, props.account);
+      return Object.assign({ name: '', type: 'bank', openingBalance: 0, balanceAsOf: D.today(), creditLimit: 0, archived: false }, props.account);
     });
     var [err, setErr] = useState(null);
 
@@ -980,6 +983,10 @@
             placeholder: '0',
             onChange: function (e) { set('openingBalance', D.parseMoney(e.target.value)); }
           })),
+        Field('Số dư tại ngày', h('input', {
+          className: 'field', type: 'date', value: a.balanceAsOf || D.today(),
+          onChange: function (e) { set('balanceAsOf', e.target.value); }
+        })),
         (a.type === 'loan' || a.type === 'receivable' || a.type === 'investment') ? Field('Kỳ hạn trên bảng cân đối', h('select', {
           className: 'field', value: termValue,
           onChange: function (e) { set('termClass', e.target.value); }
@@ -995,7 +1002,7 @@
 
       h('div', { className: 'sheet-note-line' },
         accountGroup === 'liability'
-          ? 'Nhập số đang nợ dưới dạng số dương. Rootflow tự trừ vào vốn chủ / tài sản ròng.'
+          ? 'Nhập số đang nợ dưới dạng số dương tại ngày snapshot. Các khoản trả nợ từ trước hoặc đúng ngày snapshot sẽ không bị trừ thêm lần nữa.'
           : accountGroup === 'fixed_asset'
             ? 'Tài sản sở hữu nằm trên bảng cân đối. Chuyển tiền từ tài khoản khả dụng sang tài sản này được ghi nhận là CAPEX.'
             : accountGroup === 'investment'
@@ -1339,7 +1346,7 @@
         h('div', { className: 'panel-head' },
           h('div', null,
             h('h2', { className: 'panel-title' }, 'Bảng cân đối cá nhân'),
-            h('div', { className: 'panel-sub' }, 'Tài sản = Nợ phải trả + Vốn chủ · ' + D.fmtDateFull(D.today()))),
+            h('div', { className: 'panel-sub' }, 'Tài sản = Nợ phải trả + Vốn chủ')),
           h('button', { className: 'text-link', onClick: function () { props.onGo('accounts'); } }, 'Tài khoản →')),
         h('div', { className: 'bs-equation' },
           h('div', { className: 'bs-pillar asset' },
@@ -1389,7 +1396,11 @@
           h('div', { className: 'bs-kpi' },
             h('span', null, 'CAPEX tháng'),
             h('b', null, D.fmtShort(bs.capex)),
-            h('small', null, 'Tăng tài sản sở hữu')))),
+            h('small', null, 'Tăng tài sản sở hữu'))),
+        bs.unallocatedDebtPayment > 0
+          ? h('div', { className: 'sheet-note-line inset' },
+              'Có ' + D.fmtShort(bs.unallocatedDebtPayment) + ' khoản trả nợ cũ chưa tách gốc / chi phí vay. Tiền khả dụng đã giảm đúng, nhưng OPEX chưa bao gồm phần chi phí vay của các khoản này.')
+          : null),
 
       h('section', { className: 'dashboard-grid wide' },
         h('div', { className: 'panel chart-panel' },
