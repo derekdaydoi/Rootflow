@@ -1,3 +1,14 @@
+# V3.3.0 — 2026-08-10
+
+- Rootflow Design Tokens V1 applied across all screens.
+- Primary/active green standardized to `#14614A`; removed olive/sage primary treatments.
+- Dashboard balance hero changed to a neutral financial surface; decorative green gradients removed.
+- Bottom navigation standardized to neutral surface + Root Green active/action states.
+- Kế hoạch and Kịch bản now include the same Back control as Giao dịch.
+- Updated multi-category chart palette to a restrained, brand-compatible set.
+- PWA cache bumped to `rootflow-v3.3.0-2026-08-10`.
+- Finance engine, schema v4, and persistence logic unchanged.
+
 # V3.2.0 — 2026-08-09
 
 - Replaced the botanical mark with the Root → Flow `R` identity.

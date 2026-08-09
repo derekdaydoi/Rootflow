@@ -1,12 +1,16 @@
-# Rootflow V3.2.0
+# Rootflow V3.3.0
 
 Root → Flow identity refresh + cleaner navigation headers. Finance engine and stored data remain unchanged.
 
 **Release:** 2026-08-09  
 **Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.2.0-2026-08-09`
+**PWA cache:** `rootflow-v3.3.0-2026-08-10`
 
-### V3.2 changes
+### V3.3 changes
+
+- Chuẩn hoá Design Tokens V1 trên toàn app: Warm Ivory `#F3F0E7`, Graphite `#101110`, Root Green `#14614A`, neutral cards và semantic states.
+- Loại bỏ sage/olive gradients khỏi balance card và bottom navigation; Root Green chỉ dùng cho action, active state, forecast/positive emphasis.
+- Đồng bộ header của Kế hoạch, Kịch bản và Giao dịch: tất cả đều có nút Back về Tổng quan.
 - New vector `R` symbol: graphite root/anchor → deep green (`#14614A`) flow trajectory.
 - Dashboard keeps the full ROOTFLOW lockup; `ROOT` is graphite and `FLOW` uses the same deep green as the R flow stroke.
 - `Kế hoạch` and `Kịch bản` headers no longer repeat the Rootflow mark; they show the page title only.

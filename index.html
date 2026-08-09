@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
 <meta name="description" content="Rootflow — theo dõi hiện tại, lập kế hoạch và nhìn trước dòng tiền." />
-<meta name="theme-color" content="#f4f1e8" />
+<meta name="theme-color" content="#F3F0E7" />
 <meta name="color-scheme" content="light" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1171,19 +1171,6 @@ body{
   .family-header .brand-copy .brand-tagline{display:none!important}
 }
 </style>
-</head>
-<body>
-<div id="root"><div class="loading">Đang mở Rootflow…</div></div>
-<noscript><div class="loading">Rootflow cần JavaScript để chạy.</div></noscript>
-
-<script src="vendor/react.production.min.js"></script>
-<script src="vendor/react-dom.production.min.js"></script>
-<script src="domain.js"></script>
-<script src="store.js"></script>
-<script src="selftest.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
 <style id="v301-iconfix">
 /* V3.0.1 — exact accepted Rootflow botanical mark */
 .rootflow-mark-wrap .rootflow-glyph{
@@ -1312,3 +1299,147 @@ body{
   }
 }
 </style>
+
+
+<style id="v330-design-system">
+/* ================= V3.3.0 · Rootflow Design Tokens V1 =================
+   One color system across every screen. Root Green is an accent/action color,
+   not an ambient background treatment. */
+:root{
+  --bg:#F3F0E7!important;
+  --surface:#FFFDF9!important;
+  --surface-2:#F7F5EF!important;
+  --surface-3:#EFECE3!important;
+  --ink:#101110!important;
+  --muted:#5B5F5A!important;
+  --subtle:#858981!important;
+  --line:#E3E1D8!important;
+  --line-strong:#C9C6BB!important;
+  --brand-mark:#14614A!important;
+  --brand:#14614A!important;
+  --brand-strong:#0E4A38!important;
+  --brand-soft:#E2EEE8!important;
+  --root-green:#14614A!important;
+  --root-green-deep:#0E4A38!important;
+  --root-ivory:#F3F0E7!important;
+  --root-graphite:#101110!important;
+  --danger:#9A352B!important;
+  --danger-bg:#F8E9E6!important;
+  --warning:#8A641D!important;
+  --warning-bg:#FBF3DD!important;
+  --shadow-1:0 1px 2px rgba(16,17,16,.035),0 8px 22px rgba(16,17,16,.055)!important;
+  --shadow-2:0 2px 5px rgba(16,17,16,.05),0 15px 34px rgba(16,17,16,.075)!important;
+}
+html,body{background:#F3F0E7!important}
+body{background:#F3F0E7!important}
+
+/* Primary actions and interactive states use one exact Root Green. */
+.btn.primary,.chip.on,.check.done,.fab,.bottom-nav .nav-add{
+  background:#14614A!important;border-color:#14614A!important;color:#fff!important;
+}
+.btn.primary:hover,.fab:hover{background:#0E4A38!important;border-color:#0E4A38!important}
+.btn.primary{box-shadow:none!important}
+.chip{background:#FFFDF9!important;border-color:#C9C6BB!important;color:#5B5F5A!important}
+.chip.on{box-shadow:none!important}
+.icon-btn{background:#FFFDF9!important;border-color:#E3E1D8!important;color:#5B5F5A!important;box-shadow:var(--shadow-1)!important}
+.icon-btn:hover{background:#F7F5EF!important;border-color:#C9C6BB!important;color:#101110!important}
+.back-btn{color:#101110!important}
+.back-btn:hover{background:rgba(16,17,16,.055)!important}
+
+/* Screen hierarchy: neutral cards, restrained borders, no green ambience. */
+.group,.empty,.panel,.metric,.budget-card,.scenario-card,.notice,.stat-strip{
+  background:#FFFDF9!important;
+  border-color:#E3E1D8!important;
+  box-shadow:var(--shadow-1)!important;
+}
+.screen-title,.panel-title,.empty h3,.budget-card h3,.scenario-card h3{color:#101110!important}
+.screen-sub,.panel-sub,.empty p,.metric-label,.metric-foot,.group-label,.budget-card p,.scenario-card p{color:#5B5F5A!important}
+
+/* Dashboard header keeps the logo but drops botanical/sage ambience. */
+.dashboard-head.family-header{
+  background:#FFFDF9!important;
+  border:1px solid #E3E1D8!important;
+  box-shadow:var(--shadow-1)!important;
+}
+.dashboard-head.family-header::after{display:none!important}
+.family-header .app-menu-btn{
+  background:#FFFDF9!important;color:#5B5F5A!important;
+  border:1px solid #E3E1D8!important;box-shadow:var(--shadow-1)!important;
+}
+.family-header .app-menu-btn:hover{background:#F7F5EF!important;color:#101110!important}
+.family-header .brand-copy b>span{color:#101110!important}
+.family-header .brand-copy b>em{color:#14614A!important}
+.family-header .brand-copy .brand-tagline{color:#858981!important}
+
+/* Available balance is data, not decoration. */
+.balance-hero{
+  background:#FFFDF9!important;
+  color:#101110!important;
+  border:1px solid #E3E1D8!important;
+  box-shadow:var(--shadow-1)!important;
+}
+.balance-hero::after{display:none!important}
+.hero-label{color:#5B5F5A!important}
+.hero-balance{color:#101110!important}
+.hero-foot{color:#5B5F5A!important}
+.hero-foot b{color:#101110!important}
+.dashboard .notice,.dashboard .panel,.dashboard .stat-strip{
+  background:#FFFDF9!important;border:1px solid #E3E1D8!important;box-shadow:var(--shadow-1)!important;
+}
+
+/* Financial visualization: green means forecast/positive/selected, not background. */
+.spark path.line,.chart path.line{stroke:#14614A!important}
+.spark path.area,.chart path.area{fill:rgba(20,97,74,.085)!important}
+.cat-track,.plan-progress,.budget-progress,.budget-compare-track{background:#E7E5DE!important}
+.cat-track span,.plan-progress span,.budget-progress span,.budget-compare-track span{background:#14614A!important}
+.column-track{background:#ECEAE3!important}
+.column-track span{background:#A7C0B4!important}
+.column-track span.current{background:#14614A!important}
+.scenario-card.on{border-color:#14614A!important;box-shadow:0 0 0 2px rgba(20,97,74,.09),var(--shadow-1)!important}
+
+/* Navigation: same exact green for active tab and central action. */
+.bottom-nav{
+  background:rgba(255,253,249,.985)!important;
+  border-color:#E3E1D8!important;
+  box-shadow:0 12px 32px rgba(16,17,16,.11)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.bottom-nav .nav-add{
+  background:#14614A!important;
+  box-shadow:0 8px 20px rgba(20,97,74,.24)!important;
+}
+.bottom-nav>button{color:#858981!important}
+.bottom-nav>button.on{color:#14614A!important}
+.app-copyright{color:#9A9D97!important}
+
+/* Sheets and secondary surfaces follow the same tokens. */
+.sheet{background:#F3F0E7!important}
+.sheet-head{background:#F3F0E7!important}
+.txt,.select,.textarea{background:#FFFDF9!important;border-color:#C9C6BB!important}
+.txt:focus,.select:focus,.textarea:focus{border-color:#14614A!important;box-shadow:0 0 0 3px rgba(20,97,74,.10)!important}
+.row-icon.in{background:#E2EEE8!important;color:#14614A!important}
+
+/* Header consistency for bottom-nav destination screens. */
+.nav-screen-head .screen-head-left{gap:8px!important}
+.nav-screen-head .back-btn{margin-left:-8px!important}
+
+@media(max-width:620px){
+  .screen-head.nav-screen-head{align-items:center!important}
+  .nav-screen-head .screen-head-left{min-width:0!important}
+  .nav-screen-head .screen-title{font-size:30px!important;letter-spacing:-1.15px!important}
+}
+</style>
+
+</head>
+<body>
+<div id="root"><div class="loading">Đang mở Rootflow…</div></div>
+<noscript><div class="loading">Rootflow cần JavaScript để chạy.</div></noscript>
+
+<script src="vendor/react.production.min.js"></script>
+<script src="vendor/react-dom.production.min.js"></script>
+<script src="domain.js"></script>
+<script src="store.js"></script>
+<script src="selftest.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

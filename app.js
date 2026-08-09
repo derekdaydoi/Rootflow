@@ -175,7 +175,7 @@
   }
 
 
-  var CHART_COLORS = ['#ef7d5a', '#14614a', '#2c6f73', '#e5aa32', '#8b8d88', '#79a883', '#8c6ea8', '#cf6f6a'];
+  var CHART_COLORS = ['#14614A', '#527A6A', '#7C8F75', '#A28A52', '#8B6D5C', '#5F7184', '#8A6F87', '#9A5A52'];
 
   function RootflowGlyph(props) {
     var size = props && props.size || 52;
@@ -1554,7 +1554,9 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h('h1', { className: 'screen-title' }, 'Kế hoạch')),
+        h('div', { className: 'screen-head-left' },
+          h('button', { className: 'back-btn', onClick: props.onBack, 'aria-label': 'Quay lại' }, Icon('back', 22)),
+          h('h1', { className: 'screen-title' }, 'Kế hoạch')),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Thêm block'))),
@@ -1626,7 +1628,9 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h('h1', { className: 'screen-title' }, 'Kịch bản')),
+        h('div', { className: 'screen-head-left' },
+          h('button', { className: 'back-btn', onClick: props.onBack, 'aria-label': 'Quay lại' }, Icon('back', 22)),
+          h('h1', { className: 'screen-title' }, 'Kịch bản')),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Tạo kịch bản'))),
@@ -2121,7 +2125,7 @@
       });
     } else if (view === 'plan') {
       screen = h(PlanScreen, {
-        data: data, derived: derived, ym: planYm, onGo: goView,
+        data: data, derived: derived, ym: planYm, onGo: goView, onBack: function () { goView('home'); },
         onMonth: function (n) { setPlanYm(D.addMonthsToYm(planYm, n)); },
         onNew: function () { setSheet({ type: 'budget', budget: {}, month: planYm }); },
         onEdit: function (b) { setSheet({ type: 'budget', budget: b, month: planYm }); },
@@ -2129,7 +2133,7 @@
       });
     } else if (view === 'scenarios') {
       screen = h(ScenarioScreen, {
-        data: data, derived: derived,
+        data: data, derived: derived, onBack: function () { goView('home'); },
         onNew: openNewScenario,
         onEdit: function (scenario) { setSheet({ type: 'scenario', scenario: scenario }); },
         onDelete: deleteScenario, onApply: applyScenario,
