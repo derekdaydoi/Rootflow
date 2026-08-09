@@ -56,6 +56,7 @@
     check('Trả thẻ làm sạch dư nợ thẻ', b4.card, 0);
     var m4 = D.monthSummary(accounts, flows4, '2026-08');
     check('Trả thẻ không bị tính là chi lần hai', m4.expense, 5000000);
+    check('Trả thẻ được tính vào debt service', m4.debtService, 5000000);
 
     /* --- 5. Chuyển tiền giữa hai tài khoản khả dụng: tổng không đổi --- */
     var t5 = tot([f({ kind: 'transfer', accountId: 'bank', counterAccountId: 'cash', amount: 3000000 })]);
@@ -134,9 +135,44 @@
     check('Chặn chuyển tiền vào chính nó',
       D.validateFlow({ kind: 'transfer', accountId: 'bank', counterAccountId: 'bank', amount: 1, date: '2026-08-01' }, accMap),
       'Hai tài khoản phải khác nhau.');
-    check('Chặn trả gốc vào tài khoản không phải nợ',
+    check('Chặn trả khoản vay vào tài khoản không phải nợ',
       D.validateFlow({ kind: 'repay', accountId: 'bank', counterAccountId: 'cash', amount: 1, date: '2026-08-01' }, accMap),
       'Tài khoản đối ứng phải là thẻ tín dụng hoặc khoản vay.');
+
+    /* --- 16. Trả khoản vay tách gốc / chi phí vay --- */
+    var splitRepay = f({
+      kind: 'repay', accountId: 'bank', counterAccountId: 'loan',
+      amount: 4000000, principalAmount: 3200000, borrowingCost: 800000
+    });
+    var b16 = bal([splitRepay]), t16 = D.totals(accounts, b16);
+    var m16 = D.monthSummary(accounts, [splitRepay], '2026-08');
+    check('Split repay trừ đủ tổng tiền khỏi bank', b16.bank, 16000000);
+    check('Split repay chỉ giảm dư nợ bằng phần gốc', b16.loan, 96800000);
+    check('Split repay chỉ tính borrowing cost vào chi tiêu', m16.expense, 800000);
+    check('Split repay ghi đúng debt service', [m16.debtPrincipal, m16.borrowingCost, m16.debtService], [3200000, 800000, 4000000]);
+    check('Split repay chỉ làm giảm net worth bằng borrowing cost', t16.netWorth, 21000000 - 100000000 - 800000);
+
+    /* --- 17. Personal balance sheet + CAPEX --- */
+    var bsAccounts = [
+      { id: 'b', name: 'Bank', type: 'bank', openingBalance: 50000000, archived: false },
+      { id: 'r', name: 'Phải thu', type: 'receivable', openingBalance: 10000000, termClass: 'current', archived: false },
+      { id: 'inv', name: 'Đầu tư', type: 'investment', openingBalance: 20000000, termClass: 'long', archived: false },
+      { id: 'fa', name: 'Laptop', type: 'fixed_asset', openingBalance: 30000000, archived: false },
+      { id: 'cc', name: 'Thẻ', type: 'credit_card', openingBalance: 5000000, archived: false },
+      { id: 'ln', name: 'Vay', type: 'loan', openingBalance: 25000000, termClass: 'long', archived: false }
+    ];
+    var bsFlows = [{
+      id: 'capex', date: '2026-08-05', confirmed: true, skipped: false,
+      kind: 'transfer', accountId: 'b', counterAccountId: 'fa', amount: 5000000, category: '', note: ''
+    }];
+    var bsBal = D.balances(bsAccounts, bsFlows);
+    var bs = D.personalBalanceSheet(bsAccounts, bsFlows, bsBal, '2026-08');
+    check('Balance sheet giữ tổng tài sản khi CAPEX chỉ đổi dạng tài sản', bs.totalAssets, 110000000);
+    check('Balance sheet tính đúng tổng nợ', bs.totalLiabilities, 30000000);
+    check('Balance sheet tính đúng vốn chủ', bs.equity, 80000000);
+    check('NWC dùng tài sản và nợ ngắn hạn', bs.nwc, 50000000);
+    check('CAPEX nhận transfer vào tài sản sở hữu', bs.capex, 5000000);
+    check('Debt ratio đúng', Math.round(bs.debtRatio), 27);
 
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };

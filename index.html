@@ -1645,6 +1645,108 @@ button,input,select,textarea{font-family:var(--font-ui)!important;font-variant-n
 }
 </style>
 
+
+<style id="v360-personal-accounting">
+/* ================= V3.6.0 · personal accounting layer =================
+   Additive only: preserve V3.5 brand, typography and navigation structure. */
+
+/* Split loan repayment keeps the existing sheet rhythm: only two inputs + computed total. */
+.repay-split{
+  background:#FFFDF9;border:1px solid #E3E1D8;border-radius:22px;
+  padding:16px;margin-bottom:14px;box-shadow:0 4px 15px rgba(16,17,16,.04)
+}
+.repay-split-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.repay-part{display:grid;gap:7px;min-width:0}
+.repay-part>label{font-size:12px;font-weight:750;color:#5B5F5A}
+.repay-part-field{
+  min-height:50px;display:flex;align-items:center;gap:6px;
+  border:1px solid #C9C6BB;border-radius:14px;background:#FFFDF9;padding:0 12px
+}
+.repay-part-field:focus-within{border-color:#14614A;box-shadow:0 0 0 3px rgba(20,97,74,.10)}
+.repay-part-field input{
+  width:100%;min-width:0;border:0;outline:0;background:transparent;color:#101110;
+  font:700 15px/1 var(--font-ui);font-variant-numeric:tabular-nums lining-nums;text-align:right
+}
+.repay-part-field span{font-size:12px;font-weight:700;color:#858981}
+.repay-total-line{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin-top:13px;padding-top:12px;border-top:1px solid #E3E1D8
+}
+.repay-total-line span{font-size:12px;color:#5B5F5A;font-weight:700}
+.repay-total-line b{
+  font-family:var(--font-display);font-size:18px;letter-spacing:-.35px;color:#9A352B;
+  font-variant-numeric:tabular-nums lining-nums
+}
+
+/* Personal balance sheet: built from the existing neutral panel language. */
+.personal-bs-panel{margin-bottom:14px!important}
+.bs-equation{
+  display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);
+  gap:8px;align-items:stretch;margin-top:16px
+}
+.bs-pillar{
+  min-width:0;background:#F7F5EF;border:1px solid #E3E1D8;border-radius:17px;
+  padding:14px 12px;display:grid;align-content:start;gap:6px
+}
+.bs-pillar>span{font-size:11px;font-weight:800;color:#5B5F5A;text-transform:uppercase;letter-spacing:.35px}
+.bs-pillar>b{
+  font-family:var(--font-display);font-size:21px;line-height:1;font-weight:800;
+  letter-spacing:-.65px;color:#101110;white-space:nowrap
+}
+.bs-pillar>small{font-size:10px;line-height:1.35;color:#858981}
+.bs-pillar.asset{box-shadow:inset 0 3px 0 #14614A}
+.bs-pillar.liability{box-shadow:inset 0 3px 0 #9A352B}
+.bs-pillar.equity{box-shadow:inset 0 3px 0 #2563EB}
+.bs-eq-sign{display:grid;place-items:center;color:#858981;font-weight:800;font-size:17px}
+.bs-detail-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+  margin-top:10px
+}
+.bs-detail{
+  min-width:0;border:1px solid #E3E1D8;border-radius:14px;background:#FFFDF9;
+  padding:10px 11px;display:grid;gap:4px
+}
+.bs-detail span{font-size:10px;color:#858981;font-weight:700}
+.bs-detail b{font-size:13px;color:#101110;font-weight:800;white-space:nowrap}
+.bs-kpi-grid{
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;
+  margin-top:12px;padding-top:12px;border-top:1px solid #E3E1D8
+}
+.bs-kpi{
+  min-width:0;border-radius:14px;background:#F7F5EF;padding:11px 10px;
+  display:grid;gap:4px;border:1px solid transparent
+}
+.bs-kpi.warning{background:#FBF3DD;border-color:rgba(138,100,29,.16)}
+.bs-kpi span{font-size:10px;font-weight:800;color:#5B5F5A}
+.bs-kpi b{
+  font-family:var(--font-display);font-size:17px;line-height:1.05;font-weight:800;
+  letter-spacing:-.35px;color:#101110;white-space:nowrap
+}
+.bs-kpi small{font-size:9px;color:#858981;line-height:1.25}
+
+@media(max-width:900px){
+  .bs-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .personal-bs-panel{padding:18px!important}
+  .bs-equation{gap:5px}
+  .bs-pillar{padding:12px 9px;border-radius:15px}
+  .bs-pillar>b{font-size:18px}
+  .bs-pillar>span{font-size:9px}
+  .bs-pillar>small{font-size:8.5px}
+  .bs-eq-sign{font-size:14px}
+  .bs-detail-grid{grid-template-columns:1fr 1fr}
+  .bs-kpi-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:370px){
+  .repay-split-grid{grid-template-columns:1fr}
+  .bs-equation{grid-template-columns:1fr;gap:7px}
+  .bs-eq-sign{display:none}
+  .bs-pillar{grid-template-columns:1fr auto;align-items:center}
+  .bs-pillar>small{grid-column:1/-1}
+}
+</style>
+
 </head>
 <body>
 <div id="root"><div class="loading">Đang mở Rootflow…</div></div>

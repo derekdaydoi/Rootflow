@@ -64,7 +64,8 @@
 
   var TYPE_ICON = {
     cash: 'wallet', bank: 'card', ewallet: 'wallet',
-    credit_card: 'card', loan: 'loan', receivable: 'hand'
+    receivable: 'hand', investment: 'invest', fixed_asset: 'home',
+    credit_card: 'card', loan: 'loan'
   };
 
   /* ============================ SWIPE ============================ */
@@ -189,6 +190,7 @@
     'Đi lại': '#0284C7',
     'Nhà ở': '#7C3AED',
     'Hoá đơn': '#DC2626',
+    'Chi phí vay': '#B91C1C',
     'Mua sắm': '#EA580C',
     'Sức khoẻ': '#E11D48',
     'Học tập': '#4F46E5',
@@ -380,7 +382,7 @@
     (flows || []).forEach(function (f) {
       if (f.deletedAt || f.skipped || !f.confirmed || f.date < b.from || f.date > b.to) return;
       var meta = D.FLOW_KINDS[f.kind] || {};
-      var amt = Math.abs(Number(f.amount) || 0);
+      var amt = f.kind === 'repay' ? D.repayTotal(f) : Math.abs(Number(f.amount) || 0);
       out.count++;
       if (meta.pl === 'income') {
         out.income += amt;
@@ -391,6 +393,13 @@
         out.expense += amt;
         var c = f.category || 'Khác';
         out.byCategory[c] = (out.byCategory[c] || 0) + amt;
+      }
+      if (f.kind === 'repay') {
+        var cost = D.repayCost(f);
+        if (cost > 0) {
+          out.expense += cost;
+          out.byCategory['Chi phí vay'] = (out.byCategory['Chi phí vay'] || 0) + cost;
+        }
       }
     });
     out.categories = Object.keys(out.byCategory).map(function (name) {
@@ -428,9 +437,12 @@
     (flows || []).forEach(function (f) {
       if (f.deletedAt || f.skipped || !f.confirmed || f.date < bounds.from || f.date > bounds.to) return;
       var meta = D.FLOW_KINDS[f.kind] || {};
-      if (meta.pl !== 'expense') return;
+      var spend = 0;
+      if (meta.pl === 'expense') spend = Math.abs(Number(f.amount) || 0);
+      else if (f.kind === 'repay') spend = D.repayCost(f);
+      if (!(spend > 0)) return;
       var d = Number(String(f.date).slice(8, 10));
-      spendByDay[d] = (spendByDay[d] || 0) + Math.abs(Number(f.amount) || 0);
+      spendByDay[d] = (spendByDay[d] || 0) + spend;
     });
     var budget = (budgets || []).filter(function (b) { return b.month === ym; })
       .reduce(function (sum, b) { return sum + (Number(b.limit) || 0); }, 0);
@@ -521,6 +533,29 @@
         onChange: function (e) { props.onChange(D.parseMoney(e.target.value)); }
       }),
       h('span', { className: 'cur' }, 'đ'));
+  }
+
+  function RepaySplitInput(props) {
+    var total = Math.max(0, Number(props.principal) || 0) + Math.max(0, Number(props.cost) || 0);
+    function moneyBox(label, value, onChange) {
+      return h('div', { className: 'repay-part' },
+        h('label', null, label),
+        h('div', { className: 'repay-part-field' },
+          h('input', {
+            type: 'text', inputMode: 'numeric', autoComplete: 'off',
+            value: value ? D.groupDigits(String(value)) : '',
+            placeholder: '0',
+            onChange: function (e) { onChange(D.parseMoney(e.target.value)); }
+          }),
+          h('span', null, 'đ')));
+    }
+    return h('div', { className: 'repay-split' },
+      h('div', { className: 'repay-split-grid' },
+        moneyBox('Vốn / gốc', props.principal, props.onPrincipal),
+        moneyBox('Chi phí vay', props.cost, props.onCost)),
+      h('div', { className: 'repay-total-line' },
+        h('span', null, 'Tổng tiền ra'),
+        h('b', null, '−' + D.fmtVND(total) + ' đ')));
   }
 
   function Field(label, control, stack) {
@@ -678,6 +713,11 @@
         amount: 0, category: '', note: '', confirmed: false, skipped: false
       }, props.flow);
       if (initial.kind === 'interest_in' && !String(initial.category || '').trim()) initial.category = 'Lãi / lợi tức';
+      if (initial.kind === 'repay') {
+        if (initial.principalAmount === undefined) initial.principalAmount = Math.abs(Number(initial.amount) || 0);
+        if (initial.borrowingCost === undefined) initial.borrowingCost = 0;
+        initial.amount = Math.abs(Number(initial.principalAmount) || 0) + Math.abs(Number(initial.borrowingCost) || 0);
+      }
       return initial;
     });
     var [recur, setRecur] = useState(isNew ? 'none' : inferredFreq);
@@ -698,7 +738,22 @@
             else if (D.CATEGORIES.indexOf(n.category) >= 0) n.category = '';
           }
           if (meta.pl !== 'expense' && meta.pl !== 'income') n.category = '';
+          if (v === 'repay') {
+            if (n.principalAmount === undefined) n.principalAmount = Math.abs(Number(n.amount) || 0);
+            if (n.borrowingCost === undefined) n.borrowingCost = 0;
+            n.amount = Math.abs(Number(n.principalAmount) || 0) + Math.abs(Number(n.borrowingCost) || 0);
+          }
         }
+        return n;
+      });
+      setErr(null);
+    }
+
+    function setRepayPart(key, value) {
+      setF(function (prev) {
+        var n = Object.assign({}, prev);
+        n[key] = Math.max(0, Number(value) || 0);
+        n.amount = Math.max(0, Number(n.principalAmount) || 0) + Math.max(0, Number(n.borrowingCost) || 0);
         return n;
       });
       setErr(null);
@@ -754,7 +809,14 @@
     },
       err ? h('div', { className: 'sheet-error' }, err) : null,
 
-      h(MoneyInput, { value: f.amount, dir: dir, onChange: function (v) { set('amount', v); } }),
+      f.kind === 'repay'
+        ? h(RepaySplitInput, {
+            principal: f.principalAmount || 0,
+            cost: f.borrowingCost || 0,
+            onPrincipal: function (v) { setRepayPart('principalAmount', v); },
+            onCost: function (v) { setRepayPart('borrowingCost', v); }
+          })
+        : h(MoneyInput, { value: f.amount, dir: dir, onChange: function (v) { set('amount', v); } }),
 
       h('div', { className: 'sheet-block' },
         h('div', { className: 'sheet-field stack' },
@@ -866,9 +928,11 @@
       h('div', { className: 'sheet-note-line' },
         f.kind === 'expense' && accMap[f.accountId] && accMap[f.accountId].type === 'credit_card'
           ? 'Quẹt thẻ: tiền khả dụng chưa giảm, dư nợ thẻ tăng. Khi thanh toán sao kê hãy dùng loại Chuyển tiền từ ngân hàng sang thẻ.'
-          : meta.pl === null && f.kind !== 'transfer'
-            ? 'Đây là luân chuyển vốn, không tính vào thu hoặc chi trong tháng.'
-            : 'Ngày hôm nay hoặc quá khứ được ghi nhận ngay. Dòng ở tương lai nằm trong dự phóng và tự ghi nhận khi đến ngày.'));
+          : f.kind === 'repay'
+            ? 'Vốn / gốc làm giảm dư nợ. Chi phí vay làm giảm tài sản ròng và được tính vào chi tiêu tháng. Tổng tiền ra vẫn đi vào dự phóng thanh khoản.'
+            : meta.pl === null && f.kind !== 'transfer'
+              ? 'Đây là luân chuyển vốn, không tính vào thu hoặc chi trong tháng.'
+              : 'Ngày hôm nay hoặc quá khứ được ghi nhận ngay. Dòng ở tương lai nằm trong dự phóng và tự ghi nhận khi đến ngày.'));
   }
 
 
@@ -892,6 +956,8 @@
     var used = props.flows.filter(function (f) {
       return !f.deletedAt && (f.accountId === a.id || f.counterAccountId === a.id);
     }).length;
+    var accountGroup = D.groupOf(a.type);
+    var termValue = a.termClass || (a.type === 'receivable' ? 'current' : 'long');
 
     return h(Sheet, { title: isNew ? 'Thêm tài khoản' : 'Sửa tài khoản', onClose: props.onClose, onSave: save },
       err ? h('div', { className: 'sheet-error' }, err) : null,
@@ -907,13 +973,19 @@
         }, D.ACCOUNT_ORDER.map(function (t) {
           return h('option', { key: t, value: t }, D.ACCOUNT_TYPES[t].label);
         }))),
-        Field(D.groupOf(a.type) === 'liability' ? 'Đang nợ' : D.groupOf(a.type) === 'receivable' ? 'Đang cho nợ' : 'Số dư',
+        Field(accountGroup === 'liability' ? 'Đang nợ' : accountGroup === 'receivable' ? 'Đang cho nợ' : (accountGroup === 'investment' || accountGroup === 'fixed_asset') ? 'Giá trị hiện tại' : 'Số dư',
           h('input', {
             className: 'field', type: 'text', inputMode: 'numeric',
             value: a.openingBalance ? D.groupDigits(String(a.openingBalance)) : '',
             placeholder: '0',
             onChange: function (e) { set('openingBalance', D.parseMoney(e.target.value)); }
           })),
+        (a.type === 'loan' || a.type === 'receivable' || a.type === 'investment') ? Field('Kỳ hạn trên bảng cân đối', h('select', {
+          className: 'field', value: termValue,
+          onChange: function (e) { set('termClass', e.target.value); }
+        },
+          h('option', { value: 'current' }, 'Ngắn hạn · dưới 12 tháng'),
+          h('option', { value: 'long' }, 'Dài hạn · từ 12 tháng'))) : null,
         a.type === 'credit_card' ? Field('Hạn mức', h('input', {
           className: 'field', type: 'text', inputMode: 'numeric',
           value: a.creditLimit ? D.groupDigits(String(a.creditLimit)) : '',
@@ -922,9 +994,13 @@
         })) : null),
 
       h('div', { className: 'sheet-note-line' },
-        D.groupOf(a.type) === 'liability'
-          ? 'Nhập số đang nợ dưới dạng số dương. Rootflow tự trừ vào tài sản ròng.'
-          : 'Đây là số dư tại thời điểm bắt đầu dùng Rootflow, trước mọi dòng tiền đã ghi.'),
+        accountGroup === 'liability'
+          ? 'Nhập số đang nợ dưới dạng số dương. Rootflow tự trừ vào vốn chủ / tài sản ròng.'
+          : accountGroup === 'fixed_asset'
+            ? 'Tài sản sở hữu nằm trên bảng cân đối. Chuyển tiền từ tài khoản khả dụng sang tài sản này được ghi nhận là CAPEX.'
+            : accountGroup === 'investment'
+              ? 'Tài sản đầu tư nằm trên bảng cân đối và không được tính là chi tiêu khi chỉ luân chuyển vốn.'
+              : 'Đây là số dư tại thời điểm bắt đầu dùng Rootflow, trước mọi dòng tiền đã ghi.'),
 
       !isNew ? h('div', { className: 'sheet-block' },
         h('button', {
@@ -1199,7 +1275,7 @@
             x.pass ? null : h('span', { className: 'row-value' }, 'nhận ' + JSON.stringify(x.actual) + ', đúng phải là ' + JSON.stringify(x.expected))));
       })),
       h('div', { className: 'sheet-note-line' },
-        'Đây là các quy tắc kế toán mà Rootflow phải giữ đúng: quẹt thẻ chưa trừ tiền, vay không phải thu nhập, trả gốc không phải chi tiêu, chuyển tiền không đổi tổng.'));
+        'Đây là các quy tắc kế toán mà Rootflow phải giữ đúng: quẹt thẻ chưa trừ tiền, vay không phải thu nhập, vốn/gốc trả nợ không phải chi tiêu, chi phí vay là chi tiêu và chuyển tiền không đổi tổng tài sản.'));
   }
 
   /* ============================== DASHBOARD ============================== */
@@ -1218,6 +1294,7 @@
     var burn = useMemo(function () { return burnRateSeries(data.flows, data.budgets || [], ym); }, [data.flows, data.budgets, ym]);
     var budgetRows = useMemo(function () { return budgetCompareRows(data.budgets || [], data.flows, ym); }, [data.budgets, data.flows, ym]);
     var upcoming = useMemo(function () { return D.upcoming(data.flows, 30).slice(0, 4); }, [data.flows]);
+    var bs = useMemo(function () { return D.personalBalanceSheet(data.accounts, data.flows, d.bal, ym); }, [data.accounts, data.flows, d.bal, ym]);
     var mixState = useState('expense'), mixMode = mixState[0], setMixMode = mixState[1];
     var mixItems = mixMode === 'income' ? actual.incomeCategories : actual.categories;
     var next30Net = forecast30.end - forecast30.current;
@@ -1258,10 +1335,66 @@
         h('div', { className: 'stat-cell' }, h('span', null, 'Thu nhập tháng'), h('b', { className: 'pos' }, '+' + D.fmtVND(actual.income)), h('small', null, actual.count + ' giao dịch đã ghi nhận')),
         h('div', { className: 'stat-cell' }, h('span', null, 'Chi tiêu tháng'), h('b', { className: 'neg' }, '−' + D.fmtVND(actual.expense)), h('small', null, actual.income ? Math.round(actual.expense / actual.income * 100) + '% thu nhập' : 'Chưa có thu nhập'))),
 
+      h('section', { className: 'panel personal-bs-panel' },
+        h('div', { className: 'panel-head' },
+          h('div', null,
+            h('h2', { className: 'panel-title' }, 'Bảng cân đối cá nhân'),
+            h('div', { className: 'panel-sub' }, 'Tài sản = Nợ phải trả + Vốn chủ · ' + D.fmtDateFull(D.today()))),
+          h('button', { className: 'text-link', onClick: function () { props.onGo('accounts'); } }, 'Tài khoản →')),
+        h('div', { className: 'bs-equation' },
+          h('div', { className: 'bs-pillar asset' },
+            h('span', null, 'Tài sản'),
+            h('b', null, D.fmtShort(bs.totalAssets)),
+            h('small', null, 'Ngắn hạn ' + D.fmtShort(bs.currentAssets) + ' · Dài hạn ' + D.fmtShort(bs.nonCurrentAssets))),
+          h('div', { className: 'bs-eq-sign', 'aria-hidden': 'true' }, '='),
+          h('div', { className: 'bs-pillar liability' },
+            h('span', null, 'Nợ phải trả'),
+            h('b', null, D.fmtShort(bs.totalLiabilities)),
+            h('small', null, 'Ngắn hạn ' + D.fmtShort(bs.currentLiabilities) + ' · Dài hạn ' + D.fmtShort(bs.nonCurrentLiabilities))),
+          h('div', { className: 'bs-eq-sign', 'aria-hidden': 'true' }, '+'),
+          h('div', { className: 'bs-pillar equity' },
+            h('span', null, 'Vốn chủ / NW'),
+            h('b', { className: bs.equity < 0 ? 'neg' : 'pos' }, D.fmtShort(bs.equity)),
+            h('small', null, 'Tài sản ròng hiện tại'))),
+        h('div', { className: 'bs-detail-grid' },
+          h('div', { className: 'bs-detail' },
+            h('span', null, 'Tiền khả dụng'), h('b', null, D.fmtShort(bs.liquid))),
+          h('div', { className: 'bs-detail' },
+            h('span', null, 'Phải thu'), h('b', null, D.fmtShort(bs.receivable))),
+          h('div', { className: 'bs-detail' },
+            h('span', null, 'Tài sản đầu tư'), h('b', null, D.fmtShort(bs.investment))),
+          h('div', { className: 'bs-detail' },
+            h('span', null, 'Tài sản sở hữu'), h('b', null, D.fmtShort(bs.fixedAsset)))),
+        h('div', { className: 'bs-kpi-grid' },
+          h('div', { className: 'bs-kpi' },
+            h('span', null, 'NWC'),
+            h('b', { className: bs.nwc < 0 ? 'neg' : 'pos' }, (bs.nwc < 0 ? '−' : '') + D.fmtShort(Math.abs(bs.nwc))),
+            h('small', null, 'CA − CL')),
+          h('div', { className: cx('bs-kpi', bs.debtRatio >= 60 && 'warning') },
+            h('span', null, 'Debt ratio'),
+            h('b', null, Math.round(bs.debtRatio) + '%'),
+            h('small', null, 'Nợ / tài sản')),
+          h('div', { className: 'bs-kpi' },
+            h('span', null, 'Current ratio'),
+            h('b', null, bs.currentRatio === null ? '—' : bs.currentRatio.toFixed(2) + 'x'),
+            h('small', null, 'CA / CL')),
+          h('div', { className: cx('bs-kpi', bs.debtServiceRatio !== null && bs.debtServiceRatio > 40 && 'warning') },
+            h('span', null, 'Debt service'),
+            h('b', null, bs.debtServiceRatio === null ? '—' : Math.round(bs.debtServiceRatio) + '%'),
+            h('small', null, 'Gốc + chi phí vay / thu')),
+          h('div', { className: 'bs-kpi' },
+            h('span', null, 'OPEX tháng'),
+            h('b', null, D.fmtShort(bs.opex)),
+            h('small', null, 'Chi phí kinh tế')),
+          h('div', { className: 'bs-kpi' },
+            h('span', null, 'CAPEX tháng'),
+            h('b', null, D.fmtShort(bs.capex)),
+            h('small', null, 'Tăng tài sản sở hữu')))),
+
       h('section', { className: 'dashboard-grid wide' },
         h('div', { className: 'panel chart-panel' },
           h('div', { className: 'panel-head' },
-            h('div', null, h('h2', { className: 'panel-title' }, 'Dòng tiền 30 ngày'), h('div', { className: 'panel-sub' }, 'Quá khứ thực tế và vị thế hiện tại')),
+            h('div', null, h('h2', { className: 'panel-title' }, 'Số dư khả dụng — 30 ngày qua'), h('div', { className: 'panel-sub' }, 'Diễn biến tiền mặt thực tế')),
             h('button', { className: 'text-link', onClick: function () { props.onGo('forecast'); } }, 'Dự phóng →')),
           h(Chart, { points: history, floor: data.settings.reserveFloor })),
 
@@ -1313,7 +1446,7 @@
           h('button', { className: 'insight-card', onClick: function () { props.onGo('plan'); } },
             h('span', null, 'Safe to spend'), h('b', { className: d.fc.safeToSpend > 0 ? 'pos' : 'neg' }, D.fmtVND(d.fc.safeToSpend) + ' đ'), h('small', null, 'Trong ' + d.horizon + ' ngày')),
           h('button', { className: 'insight-card', onClick: function () { props.onGo('forecast'); } },
-            h('span', null, 'Dòng tiền 30 ngày'), h('b', { className: next30Net >= 0 ? 'pos' : 'neg' }, (next30Net >= 0 ? '+' : '−') + D.fmtVND(Math.abs(next30Net)) + ' đ'), h('small', null, 'Số dư cuối ' + D.fmtShort(forecast30.end))),
+            h('span', null, 'Biến động 30 ngày tới'), h('b', { className: next30Net >= 0 ? 'pos' : 'neg' }, (next30Net >= 0 ? '+' : '−') + D.fmtVND(Math.abs(next30Net)) + ' đ'), h('small', null, 'Số dư cuối ' + D.fmtShort(forecast30.end))),
           h('button', { className: cx('insight-card', d.fc.breaches && 'warning'), onClick: function () { props.onGo('scenarios'); } },
             h('span', null, 'Cảnh báo'), h('b', null, d.fc.breaches ? 'Số dư thấp' : 'Đang an toàn'), h('small', null, d.fc.breaches ? 'Đáy ' + D.fmtShort(d.fc.lowest) + ' vào ' + D.fmtDate(d.fc.lowestDate) : 'Không thủng ngưỡng dự phòng')))),
 
@@ -1338,8 +1471,10 @@
     var d = props.derived, data = props.data;
     var groups = [
       { key: 'liquid', label: 'Tiền khả dụng' },
-      { key: 'liability', label: 'Đang nợ' },
-      { key: 'receivable', label: 'Người khác nợ mình' }
+      { key: 'receivable', label: 'Phải thu' },
+      { key: 'investment', label: 'Tài sản đầu tư' },
+      { key: 'fixed_asset', label: 'Tài sản sở hữu' },
+      { key: 'liability', label: 'Nợ phải trả' }
     ];
     var archived = data.accounts.filter(function (a) { return a.archived; });
 
@@ -1356,13 +1491,13 @@
 
       h('div', { className: 'metrics' },
         h('div', { className: 'metric' },
-          h('div', { className: 'metric-label' }, 'Khả dụng'),
-          h('div', { className: 'metric-value pos' }, D.fmtShort(d.tot.liquid))),
+          h('div', { className: 'metric-label' }, 'Tổng tài sản'),
+          h('div', { className: 'metric-value pos' }, D.fmtShort(d.tot.assets))),
         h('div', { className: 'metric' },
-          h('div', { className: 'metric-label' }, 'Đang nợ'),
+          h('div', { className: 'metric-label' }, 'Nợ phải trả'),
           h('div', { className: 'metric-value' }, D.fmtShort(d.tot.liability))),
         h('div', { className: 'metric' },
-          h('div', { className: 'metric-label' }, 'Ròng'),
+          h('div', { className: 'metric-label' }, 'Vốn chủ / NW'),
           h('div', { className: cx('metric-value', d.tot.netWorth < 0 && 'neg') }, D.fmtShort(d.tot.netWorth)))),
 
       data.accounts.length === 0
@@ -1418,6 +1553,9 @@
     var shown = delta === 0 ? Math.abs(f.amount) : Math.abs(delta);
 
     var sub = [kindLabel];
+    if (f.kind === 'repay' && (f.principalAmount !== undefined || f.borrowingCost !== undefined)) {
+      sub.push('Gốc ' + D.fmtShort(D.repayPrincipal(f)) + ' · chi phí ' + D.fmtShort(D.repayCost(f)));
+    }
     if (acc) sub.push(counter ? acc.name + ' → ' + counter.name : acc.name);
     if (f.seriesId) sub.push(f.seriesFreq === 'weekly' ? 'Hằng tuần' : 'Hằng tháng');
     if (!f.confirmed) sub.push('Dự kiến');
@@ -1627,7 +1765,7 @@
           h('div', { className: 'metric', style: { boxShadow: 'none', background: 'var(--surface-2)' } },
             h('div', { className: 'metric-label' }, 'Nghĩa vụ nợ'),
             h('div', { className: 'metric-value' }, D.fmtShort(m.debtService)),
-            h('div', { className: 'metric-foot' }, 'gốc + lãi đã lên lịch')))),
+            h('div', { className: 'metric-foot' }, 'gốc ' + D.fmtShort(m.debtPrincipal) + ' · chi phí vay ' + D.fmtShort(m.borrowingCost))))),
 
       m.categories.length ? h('div', { className: 'panel' },
         h('div', { className: 'panel-head' },
@@ -2179,7 +2317,8 @@
       var tot = D.totals(data.accounts, bal);
       var fc = D.forecast(data.accounts, data.flows, horizon, data.settings.reserveFloor);
       var month = D.monthSummary(data.accounts, data.flows, ym);
-      return { accMap: accMap, bal: bal, tot: tot, fc: fc, month: month, ym: ym, horizon: horizon };
+      var bs = D.personalBalanceSheet(data.accounts, data.flows, bal, ym);
+      return { accMap: accMap, bal: bal, tot: tot, fc: fc, month: month, bs: bs, ym: ym, horizon: horizon };
     }, [data, horizon, ym]);
 
     /* ---------- cài đặt ---------- */

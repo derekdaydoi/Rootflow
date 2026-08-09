@@ -1,3 +1,16 @@
+# V3.6.0 — 2026-08-10
+
+- Preserved the V3.5 Root Green / white R-flow logo assets, display typography and navigation structure.
+- Loan repayment entry now uses a two-part split: `Vốn / gốc` + `Chi phí vay`; the total cash out is computed automatically.
+- Repayment accounting now reduces liability only by principal while recognizing borrowing cost as expense; legacy repay rows remain backward compatible.
+- Added personal balance-sheet account classes for investments and owned assets, plus current/long-term classification for NWC.
+- Dashboard now includes `Bảng cân đối cá nhân` with Assets, Liabilities, Equity / Net Worth, NWC, Debt ratio, Current ratio, Debt-service ratio, OPEX and CAPEX.
+- CAPEX is measured from confirmed transfers into owned-asset accounts; investment transfers remain capital allocation, not OPEX.
+- Historical/forward liquidity labels clarified to distinguish the last 30 days from the next 30 days.
+- Self-test suite expanded to 48 checks.
+- PWA cache bumped to `rootflow-v3.6.0-2026-08-10`.
+- Data schema remains v4; new fields are optional and backward compatible.
+
 # V3.5.0 — 2026-08-10
 
 - Final Rootflow visual direction applied to production UI: Warm Ivory neutral canvas + deep Root Green hero/action surfaces.

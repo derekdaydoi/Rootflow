@@ -126,15 +126,17 @@
   /* ========================== METADATA ========================== */
 
   var ACCOUNT_TYPES = {
-    cash:        { label: 'Tiền mặt',      group: 'liquid' },
-    bank:        { label: 'Ngân hàng',     group: 'liquid' },
-    ewallet:     { label: 'Ví điện tử',    group: 'liquid' },
-    credit_card: { label: 'Thẻ tín dụng',  group: 'liability' },
-    loan:        { label: 'Khoản vay',     group: 'liability' },
-    receivable:  { label: 'Người nợ mình', group: 'receivable' }
+    cash:        { label: 'Tiền mặt',        group: 'liquid' },
+    bank:        { label: 'Ngân hàng',       group: 'liquid' },
+    ewallet:     { label: 'Ví điện tử',      group: 'liquid' },
+    receivable:  { label: 'Người nợ mình',  group: 'receivable' },
+    investment:  { label: 'Tài sản đầu tư', group: 'investment' },
+    fixed_asset: { label: 'Tài sản sở hữu', group: 'fixed_asset' },
+    credit_card: { label: 'Thẻ tín dụng',   group: 'liability' },
+    loan:        { label: 'Khoản vay',       group: 'liability' }
   };
 
-  var ACCOUNT_ORDER = ['cash', 'bank', 'ewallet', 'credit_card', 'loan', 'receivable'];
+  var ACCOUNT_ORDER = ['cash', 'bank', 'ewallet', 'receivable', 'investment', 'fixed_asset', 'credit_card', 'loan'];
 
   /* pl: ảnh hưởng tới thu/chi trong kỳ. null = luân chuyển vốn, không phải thu/chi.
      counter: nhóm tài khoản đối ứng bắt buộc, null = không cần. */
@@ -143,7 +145,7 @@
     expense:      { label: 'Chi tiêu',   dir: -1, pl: 'expense', counter: null },
     transfer:     { label: 'Chuyển tiền', dir: 0, pl: null,      counter: 'any' },
     borrow:       { label: 'Vay tiền',   dir: 1,  pl: null,      counter: 'liability' },
-    repay:        { label: 'Trả gốc',    dir: -1, pl: null,      counter: 'liability' },
+    repay:        { label: 'Trả khoản vay', dir: -1, pl: null,   counter: 'liability' },
     lend:         { label: 'Cho vay',    dir: -1, pl: null,      counter: 'receivable' },
     collect:      { label: 'Thu nợ',     dir: 1,  pl: null,      counter: 'receivable' },
     interest_in:  { label: 'Lãi nhận',   dir: 1,  pl: 'income',  counter: null },
@@ -154,7 +156,7 @@
   var KIND_ORDER = ['expense', 'income', 'transfer', 'repay', 'borrow', 'lend', 'collect', 'fee', 'interest_out', 'interest_in'];
 
   var CATEGORIES = [
-    'Ăn uống', 'Cafe', 'Thể thao', 'Di chuyển', 'Đi lại', 'Nhà ở', 'Hoá đơn', 'Mua sắm',
+    'Ăn uống', 'Cafe', 'Thể thao', 'Di chuyển', 'Đi lại', 'Nhà ở', 'Hoá đơn', 'Chi phí vay', 'Mua sắm',
     'Sức khoẻ', 'Học tập', 'Giải trí', 'Yêu đương', 'Gia đình', 'Đầu tư', 'Trading', 'Business', 'Khác'
   ];
 
@@ -165,6 +167,32 @@
   function isLiquid(a) { return a && groupOf(a.type) === 'liquid'; }
   function isLiability(a) { return a && groupOf(a.type) === 'liability'; }
   function isReceivable(a) { return a && groupOf(a.type) === 'receivable'; }
+  function isInvestment(a) { return a && groupOf(a.type) === 'investment'; }
+  function isFixedAsset(a) { return a && groupOf(a.type) === 'fixed_asset'; }
+
+  /* Backward compatible repayment split.
+     Legacy repay rows only have amount => 100% principal, zero borrowing cost.
+     New rows carry principalAmount + borrowingCost and keep amount = total cash out. */
+  function repayPrincipal(f) {
+    if (!f || f.kind !== 'repay') return Math.abs(Number(f && f.amount) || 0);
+    if (f.principalAmount !== undefined && f.principalAmount !== null && f.principalAmount !== '') {
+      return Math.abs(Number(f.principalAmount) || 0);
+    }
+    return Math.abs(Number(f.amount) || 0);
+  }
+
+  function repayCost(f) {
+    if (!f || f.kind !== 'repay') return 0;
+    return Math.abs(Number(f.borrowingCost) || 0);
+  }
+
+  function repayTotal(f) {
+    if (!f || f.kind !== 'repay') return Math.abs(Number(f && f.amount) || 0);
+    if (f.principalAmount !== undefined || f.borrowingCost !== undefined) {
+      return repayPrincipal(f) + repayCost(f);
+    }
+    return Math.abs(Number(f.amount) || 0);
+  }
 
   function byId(accounts) {
     var m = {};
@@ -181,7 +209,7 @@
   function effects(f, accMap) {
     var a = accMap[f.accountId];
     if (!a) return [];
-    var amt = Math.abs(Number(f.amount) || 0);
+    var amt = f.kind === 'repay' ? repayTotal(f) : Math.abs(Number(f.amount) || 0);
     var b = f.counterAccountId ? accMap[f.counterAccountId] : null;
     var onCard = a.type === 'credit_card';
     var out = [];
@@ -211,7 +239,7 @@
 
       case 'repay':
         out.push({ accountId: a.id, delta: -amt });
-        if (b) out.push({ accountId: b.id, delta: -amt });
+        if (b) out.push({ accountId: b.id, delta: -repayPrincipal(f) });
         break;
 
       case 'lend':
@@ -265,7 +293,7 @@
   }
 
   function totals(accounts, bal) {
-    var t = { liquid: 0, liability: 0, receivable: 0 };
+    var t = { liquid: 0, liability: 0, receivable: 0, investment: 0, fixedAsset: 0 };
     for (var i = 0; i < accounts.length; i++) {
       var a = accounts[i];
       if (a.archived) continue;
@@ -273,9 +301,84 @@
       if (isLiquid(a)) t.liquid += v;
       else if (isLiability(a)) t.liability += v;
       else if (isReceivable(a)) t.receivable += v;
+      else if (isInvestment(a)) t.investment += v;
+      else if (isFixedAsset(a)) t.fixedAsset += v;
     }
-    t.netWorth = t.liquid + t.receivable - t.liability;
+    t.assets = t.liquid + t.receivable + t.investment + t.fixedAsset;
+    t.netWorth = t.assets - t.liability;
     return t;
+  }
+
+  function termClass(a) {
+    if (!a) return 'long';
+    if (isLiquid(a) || a.type === 'credit_card') return 'current';
+    if (a.type === 'receivable') return a.termClass === 'long' ? 'long' : 'current';
+    if (a.type === 'loan') return a.termClass === 'current' ? 'current' : 'long';
+    if (a.type === 'investment') return a.termClass === 'current' ? 'current' : 'long';
+    return 'long';
+  }
+
+  /* Personal balance sheet: accounting view on top of the same local-first ledger.
+     CAPEX is recognized when cash is transferred into a fixed-asset account.
+     OPEX is economic expense in monthSummary, including borrowing cost on split repayments. */
+  function personalBalanceSheet(accounts, flows, bal, ym) {
+    bal = bal || balances(accounts, flows);
+    ym = ym || monthOf(today());
+    var t = totals(accounts, bal);
+    var bs = {
+      liquid: t.liquid,
+      receivable: t.receivable,
+      investment: t.investment,
+      fixedAsset: t.fixedAsset,
+      totalAssets: t.assets,
+      currentAssets: 0,
+      nonCurrentAssets: 0,
+      currentLiabilities: 0,
+      nonCurrentLiabilities: 0,
+      totalLiabilities: t.liability,
+      equity: t.netWorth,
+      nwc: 0,
+      debtRatio: 0,
+      currentRatio: null,
+      debtToEquity: null,
+      opex: 0,
+      capex: 0,
+      debtService: 0,
+      debtServiceRatio: null
+    };
+
+    for (var i = 0; i < accounts.length; i++) {
+      var a = accounts[i];
+      if (a.archived) continue;
+      var v = Number(bal[a.id]) || 0;
+      if (isLiability(a)) {
+        if (termClass(a) === 'current') bs.currentLiabilities += v;
+        else bs.nonCurrentLiabilities += v;
+      } else {
+        if (termClass(a) === 'current') bs.currentAssets += v;
+        else bs.nonCurrentAssets += v;
+      }
+    }
+
+    var m = monthSummary(accounts, flows, ym);
+    bs.opex = m.expense;
+    bs.debtService = m.debtService;
+
+    var bounds = monthBounds(ym);
+    var accMap = byId(accounts);
+    live(flows).forEach(function (f) {
+      if (!f.confirmed || f.skipped || f.date < bounds.from || f.date > bounds.to) return;
+      if (f.kind !== 'transfer' || !f.counterAccountId) return;
+      var target = accMap[f.counterAccountId];
+      if (isFixedAsset(target)) bs.capex += Math.abs(Number(f.amount) || 0);
+    });
+
+    bs.nwc = bs.currentAssets - bs.currentLiabilities;
+    bs.debtRatio = bs.totalAssets > 0 ? bs.totalLiabilities / bs.totalAssets * 100 : 0;
+    bs.currentRatio = bs.currentLiabilities > 0 ? bs.currentAssets / bs.currentLiabilities : null;
+    bs.debtToEquity = bs.equity > 0 ? bs.totalLiabilities / bs.equity : null;
+    bs.debtServiceRatio = m.income > 0 ? bs.debtService / m.income * 100 : null;
+    return bs;
   }
 
   /* ============================ DỰ PHÓNG ============================
@@ -334,14 +437,15 @@
 
     var r = {
       ym: ym, income: 0, expense: 0, netCash: 0,
-      debtService: 0, lent: 0, collected: 0, borrowed: 0,
+      debtService: 0, debtPrincipal: 0, borrowingCost: 0,
+      lent: 0, collected: 0, borrowed: 0,
       byCategory: {}, count: inMonth.length, pending: 0, confirmed: 0
     };
 
     for (var i = 0; i < inMonth.length; i++) {
       var f = inMonth[i];
       var meta = FLOW_KINDS[f.kind] || {};
-      var amt = Math.abs(Number(f.amount) || 0);
+      var amt = f.kind === 'repay' ? repayTotal(f) : Math.abs(Number(f.amount) || 0);
 
       if (f.confirmed) r.confirmed++; else { r.pending++; continue; }
 
@@ -351,7 +455,26 @@
         var c = f.category || 'Khác';
         r.byCategory[c] = (r.byCategory[c] || 0) + amt;
       }
-      if (f.kind === 'repay' || f.kind === 'interest_out') r.debtService += amt;
+
+      if (f.kind === 'repay') {
+        var principal = repayPrincipal(f);
+        var cost = repayCost(f);
+        r.debtService += principal + cost;
+        r.debtPrincipal += principal;
+        r.borrowingCost += cost;
+        if (cost > 0) {
+          r.expense += cost;
+          r.byCategory['Chi phí vay'] = (r.byCategory['Chi phí vay'] || 0) + cost;
+        }
+      } else if (f.kind === 'interest_out') {
+        r.debtService += amt;
+        r.borrowingCost += amt;
+      }
+
+      if (f.kind === 'transfer' && f.counterAccountId && isLiability(accMap[f.counterAccountId])) {
+        r.debtService += amt;
+        r.debtPrincipal += amt;
+      }
       if (f.kind === 'lend') r.lent += amt;
       if (f.kind === 'collect') r.collected += amt;
       if (f.kind === 'borrow') r.borrowed += amt;
@@ -451,7 +574,10 @@
     ACCOUNT_TYPES: ACCOUNT_TYPES, ACCOUNT_ORDER: ACCOUNT_ORDER,
     FLOW_KINDS: FLOW_KINDS, KIND_ORDER: KIND_ORDER, CATEGORIES: CATEGORIES,
     groupOf: groupOf, isLiquid: isLiquid, isLiability: isLiability, isReceivable: isReceivable,
+    isInvestment: isInvestment, isFixedAsset: isFixedAsset, termClass: termClass,
+    repayPrincipal: repayPrincipal, repayCost: repayCost, repayTotal: repayTotal,
     byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,
+    personalBalanceSheet: personalBalanceSheet,
     forecast: forecast, monthSummary: monthSummary, overdue: overdue, upcoming: upcoming,
     expand: expand, validateFlow: validateFlow, validateAccount: validateAccount
   };

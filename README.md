@@ -1,23 +1,31 @@
-# Rootflow V3.5.0
+# Rootflow V3.6.0
 
-Rootflow is a local-first personal cash-flow operating system: **understand now → plan the rhythm → see what comes next**. V3.5 locks the final visual direction while keeping finance logic and schema v4 intact.
+Rootflow is a local-first personal financial operating system: **liquidity → operating performance → personal balance sheet**. V3.6 keeps the V3.5 logo, typography and navigation structure unchanged, then adds a personal-accounting layer on top of the existing cash-flow engine.
 
 **Release:** 2026-08-10  
-**Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.5.0-2026-08-10`
+**Data schema:** v4 (backward-compatible optional fields)  
+**PWA cache:** `rootflow-v3.6.0-2026-08-10`
 
-## V3.5 changes
+## V3.6 changes
 
-- Final app mark: Root Green `#14614A` rounded square + white R-flow + root dot.
-- UI foundation: Warm Ivory `#F3F0E7`, Graphite `#101110`, Surface `#FFFDF9`, Root Green `#14614A`, Deep Green `#0E4A38`.
-- Dashboard balance remains the single strong green hero surface; the rest of the app stays neutral and data-first.
-- Brand/display typography uses Manrope when available online, then falls back to Avenir Next/system; operational UI remains system-first.
-- All financial numbers use tabular numerals for stable alignment.
-- `Cơ cấu dòng tiền` now toggles between **Chi tiêu** and **Thu nhập** instead of showing expense composition only.
-- Expense categories and income sources use separate fixed high-contrast color mappings so the same category/source keeps the same color across months.
-- Income flow entry now supports an optional `Nguồn thu` using the existing `category` field; no migration is required. Existing income without a source is grouped as `Thu nhập khác`; `Lãi nhận` defaults to `Lãi / lợi tức`.
-- Kế hoạch, Kịch bản and Giao dịch retain the same Back/header/navigation pattern introduced in V3.3.
-- Finance engine, persistence and schema remain unchanged.
+- **Logo and typography unchanged from V3.5:** Root Green square + white R-flow/root dot, Manrope display layer + system operational UI.
+- Loan repayment input is simplified to two values only: **Vốn / gốc** and **Chi phí vay**. Rootflow automatically keeps total cash out = principal + borrowing cost.
+- Repayment accounting bridge:
+  - principal reduces cash and liability;
+  - borrowing cost reduces cash and is recognized as monthly expense;
+  - forecast uses the full cash out.
+- Dashboard adds a compact **Bảng cân đối cá nhân**:
+  - Tài sản = Nợ phải trả + Vốn chủ / Net Worth;
+  - current vs. non-current assets/liabilities;
+  - NWC, Debt ratio, Current ratio, Debt-service ratio, OPEX and CAPEX.
+- New optional account types: **Tài sản đầu tư** and **Tài sản sở hữu**.
+- `Kỳ hạn trên bảng cân đối` can classify loan / receivable / investment as current or long-term for NWC and current-ratio calculations.
+- CAPEX is recognized when cash is transferred into a **Tài sản sở hữu** account; capital allocation into investments stays off OPEX.
+- Existing legacy `repay` rows remain valid: when no split exists, 100% of the old amount is treated as principal with zero borrowing cost.
+- Dashboard terminology is clarified:
+  - historical chart → `Số dư khả dụng — 30 ngày qua`;
+  - forward metric → `Biến động 30 ngày tới`.
+- Self-test suite expanded to cover split repayment, personal balance sheet and CAPEX.
 
 ## Brand assets
 
