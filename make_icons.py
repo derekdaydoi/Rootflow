@@ -1,3 +1,4 @@
+# Raster export helper. Vector source: brand/rootflow-icon-master.svg
 from pathlib import Path
 from PIL import Image
 

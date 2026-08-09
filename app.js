@@ -181,7 +181,7 @@
     var size = props && props.size || 52;
     return h('img', {
       className: 'rootflow-glyph',
-      src: './brand/rootflow-symbol.png',
+      src: './brand/rootflow-symbol.svg',
       width: size, height: size,
       alt: '', 'aria-hidden': 'true', draggable: false
     });
@@ -1371,8 +1371,7 @@
         h('div', { className: 'screen-head-left' },
           h('button', { className: 'back-btn', onClick: props.onBack, 'aria-label': 'Quay lại' }, Icon('back', 22)),
           h('div', null,
-            h('h1', { className: 'screen-title' }, 'Dòng tiền'),
-            h('div', { className: 'screen-sub' }, filtered.length + ' dòng'))),
+            h('h1', { className: 'screen-title' }, 'Giao dịch'))),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Thêm'))),
@@ -1555,7 +1554,7 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kế hoạch'))),
+        h('div', { className: 'screen-head-left' }, h('h1', { className: 'screen-title' }, 'Kế hoạch')),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Thêm block'))),
@@ -1627,7 +1626,7 @@
 
     return h('div', { className: 'main-screen' },
       h('div', { className: 'screen-head nav-screen-head' },
-        h('div', { className: 'screen-head-left' }, h(BrandMark, { compact: true }), h('div', null, h('h1', { className: 'screen-title' }, 'Kịch bản'))),
+        h('div', { className: 'screen-head-left' }, h('h1', { className: 'screen-title' }, 'Kịch bản')),
         h('div', { className: 'screen-actions' },
           h('button', { className: 'icon-btn settings-btn', onClick: props.onSettings, 'aria-label': 'Cài đặt', title: 'Cài đặt' }, Icon('gear', 21)),
           h('button', { className: 'btn sm primary', onClick: props.onNew }, 'Tạo kịch bản'))),

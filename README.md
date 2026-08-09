@@ -1,12 +1,19 @@
-# Rootflow V3.1.0
+# Rootflow V3.2.0
 
-Root family visual system + Rootwork-style natural document scrolling + finance features from V2.6/V2.9.
+Root → Flow identity refresh + cleaner navigation headers. Finance engine and stored data remain unchanged.
 
-**Release:** 2026-08-07  
+**Release:** 2026-08-09  
 **Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.1.0-2026-08-07`
+**PWA cache:** `rootflow-v3.2.0-2026-08-09`
 
-V3.1.0 locks the final Rootflow identity and keeps the existing finance architecture intact: the finance engine and persistence model stay intact, while the Dashboard/header/Home Screen icon move to the final Root family direction: warm ivory, botanical green, sprout + flowing path, ROOT graphite + FLOW green, and `SEE WHAT COMES NEXT.`.
+### V3.2 changes
+- New vector `R` symbol: graphite root/anchor → deep green (`#14614A`) flow trajectory.
+- Dashboard keeps the full ROOTFLOW lockup; `ROOT` is graphite and `FLOW` uses the same deep green as the R flow stroke.
+- `Kế hoạch` and `Kịch bản` headers no longer repeat the Rootflow mark; they show the page title only.
+- Transaction screen is titled `Giao dịch` and its title area no longer shows a secondary row count.
+- PWA/Home Screen icons regenerated at 180/192/256/512/1024 from the same mark geometry.
+- Added editable vector assets: `brand/rootflow-symbol.svg`, `brand/rootflow-icon-master.svg`, `brand/rootflow-logo.svg`.
+- No changes to `domain.js`, schema v4, migrations, persistence, calculations, or existing user data.
 
 # Rootflow V2.6
 
@@ -61,7 +68,10 @@ Có sẵn icon cho: Ăn uống, Cafe, Di chuyển, Thể thao, Giải trí, **Y�
 | `sw.js` | Service worker / offline cache / update strategy |
 | `manifest.json` | PWA manifest |
 | `vendor/` | React 18 UMD local |
-| `brand/rootflow-logo-master.png` | High-resolution master logo generated independently (not cropped from mockup) |
+| `brand/rootflow-icon-master.svg` | Vector master for the app/PWA icon |
+| `brand/rootflow-symbol.svg` | Runtime vector mark used in the Dashboard header |
+| `brand/rootflow-logo.svg` | Editable horizontal ROOTFLOW vector lockup |
+| `brand/rootflow-logo-master.png` | 1024×1024 raster master for icon regeneration |
 | `icon-*.png` | PWA / iOS icon sizes |
 | `brand/` | High-resolution master + runtime logo exports |
 | `make_icons.py` | Regenerate all PWA/iOS PNG icons from the high-resolution master |

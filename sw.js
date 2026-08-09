@@ -1,6 +1,6 @@
 /* Rootflow — sw.js
    Cache version phải đổi ở mọi deploy để PWA Home Screen nhận code mới. */
-var CACHE = 'rootflow-v3.1.1-2026-08-07';
+var CACHE = 'rootflow-v3.2.0-2026-08-09';
 
 var ASSETS = [
   './',
@@ -17,7 +17,8 @@ var ASSETS = [
   './icon-256.png',
   './icon-512.png',
   './icon-1024.png',
-  './brand/rootflow-symbol.png'
+  './brand/rootflow-symbol.svg',
+  './brand/rootflow-logo.svg'
 ];
 
 self.addEventListener('install', function (e) {

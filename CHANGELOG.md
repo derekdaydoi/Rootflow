@@ -1,3 +1,14 @@
+# V3.2.0 — 2026-08-09
+
+- Replaced the botanical mark with the Root → Flow `R` identity.
+- Graphite anchor/root transitions into a deep green (`#14614A`) flow stroke.
+- Added vector masters for symbol, app icon and horizontal logo lockup.
+- Regenerated PWA/Home Screen icons at 180/192/256/512/1024.
+- Removed repeated compact logo from `Kế hoạch` and `Kịch bản` title bars.
+- Simplified the transaction page title to `Giao dịch`.
+- Preserved finance engine, schema v4, migrations and user data.
+- PWA cache bumped to `rootflow-v3.2.0-2026-08-09`.
+
 # V3.1.0 — 2026-08-07
 
 - Rebuilt Rootflow logo from a dedicated 1254×1254 high-resolution master; no mockup crop.

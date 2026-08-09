@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 14 100 100" role="img" aria-labelledby="title desc">
+  <title id="title">Rootflow symbol</title>
+  <desc id="desc">An anchored graphite root flows into a deep green forward stroke, subtly forming the letter R.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 88 C35 86 39 68 45 48 C49 34 55 27 68 27 H78 C89 27 96 34 96 44 C96 56 88 63 75 63 H61" stroke="#101110" stroke-width="10"/>
+    <path d="M61 63 C70 66 82 72 96 80" stroke="#14614A" stroke-width="10"/>
+  </g>
+  <circle cx="26" cy="88" r="6" fill="#101110"/>
+</svg>
