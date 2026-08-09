@@ -1,4 +1,4 @@
-/* Rootflow — app.js
+/* Rootflow V3.5.0 — app.js
    Toàn bộ giao diện. React qua React.createElement, không JSX, không bước build. */
 (function () {
   'use strict';
@@ -175,34 +175,56 @@
   }
 
 
-  var CHART_COLORS = ['#14614A', '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#EDC949', '#AF7AA1', '#D66B9A', '#9C755F', '#7A8793'];
+  /* High-contrast categorical palette. Brand green stays the anchor, but charts
+     deliberately use clearly separated hues so category recognition wins over
+     decorative brand consistency. */
+  var CHART_COLORS = ['#14614A', '#2563EB', '#D97706', '#7C3AED', '#DB2777', '#0891B2', '#DC2626', '#4F46E5', '#EA580C', '#0F766E', '#9333EA', '#E11D48', '#0284C7', '#65A30D', '#92400E', '#475569'];
 
-  /* Category colors are semantic and stable across months/screens.
-     Unlike brand UI, categorical charts intentionally use multiple hues so
-     adjacent expense groups remain distinguishable at a glance. */
+  /* Expense category colors are semantic and stable across months/screens. */
   var CATEGORY_COLORS = {
-    'Ăn uống': '#F28E2B',
-    'Cafe': '#9C755F',
-    'Thể thao': '#59A14F',
-    'Di chuyển': '#4E79A7',
-    'Đi lại': '#3F7CAC',
-    'Nhà ở': '#AF7AA1',
-    'Hoá đơn': '#EDC949',
-    'Mua sắm': '#D66B9A',
-    'Sức khoẻ': '#E15759',
-    'Học tập': '#76B7B2',
-    'Giải trí': '#6B66A3',
-    'Yêu đương': '#D85F7D',
-    'Gia đình': '#B07A4A',
-    'Đầu tư': '#14614A',
-    'Trading': '#1F7A8C',
-    'Business': '#586674',
-    'Khác': '#8A8D88',
-    'Còn lại': '#8A8D88'
+    'Ăn uống': '#14614A',
+    'Cafe': '#D97706',
+    'Thể thao': '#0891B2',
+    'Di chuyển': '#2563EB',
+    'Đi lại': '#0284C7',
+    'Nhà ở': '#7C3AED',
+    'Hoá đơn': '#DC2626',
+    'Mua sắm': '#EA580C',
+    'Sức khoẻ': '#E11D48',
+    'Học tập': '#4F46E5',
+    'Giải trí': '#9333EA',
+    'Yêu đương': '#DB2777',
+    'Gia đình': '#92400E',
+    'Đầu tư': '#0F766E',
+    'Trading': '#65A30D',
+    'Business': '#475569',
+    'Khác': '#94A3B8',
+    'Còn lại': '#94A3B8'
+  };
+
+  var INCOME_CATEGORIES = ['Lương', 'Lãi / lợi tức', 'Business', 'Đầu tư', 'Hoàn tiền', 'Thu nhập khác'];
+  var INCOME_COLORS = {
+    'Lương': '#14614A',
+    'Lãi / lợi tức': '#2563EB',
+    'Business': '#D97706',
+    'Đầu tư': '#7C3AED',
+    'Hoàn tiền': '#DB2777',
+    'Thu nhập khác': '#94A3B8',
+    'Còn lại': '#94A3B8'
   };
 
   function categoryColor(name, index) {
     return CATEGORY_COLORS[name] || CHART_COLORS[(index || 0) % CHART_COLORS.length];
+  }
+
+  function incomeColor(name, index) {
+    return INCOME_COLORS[name] || CHART_COLORS[(index || 0) % CHART_COLORS.length];
+  }
+
+  function incomeSourceName(f) {
+    if (String(f.category || '').trim()) return String(f.category).trim();
+    if (f.kind === 'interest_in') return 'Lãi / lợi tức';
+    return 'Thu nhập khác';
   }
 
   function RootflowGlyph(props) {
@@ -226,6 +248,7 @@
   function DonutChart(props) {
     var raw = (props.items || []).filter(function (x) { return x.amount > 0; });
     var items = raw.slice();
+    var colorFor = props.colorFor || categoryColor;
 
     /* Keep the donut readable on mobile: top 5 categories + one aggregated remainder.
        The detail screen still carries the full category list. */
@@ -238,17 +261,17 @@
     var total = items.reduce(function (sum, x) { return sum + x.amount; }, 0);
     var C = 2 * Math.PI * 42;
     var offset = 0;
-    var gap = items.length > 1 ? 1.35 : 0;
+    var gap = items.length > 1 ? 1.8 : 0;
     return h('div', { className: 'donut-wrap' },
       h('div', { className: 'donut-visual' },
-        h('svg', { viewBox: '0 0 100 100', role: 'img', 'aria-label': props.label || 'Phân bổ chi tiêu' },
-          h('circle', { cx: 50, cy: 50, r: 42, fill: 'none', stroke: '#E7E4DC', strokeWidth: 14 }),
+        h('svg', { viewBox: '0 0 100 100', role: 'img', 'aria-label': props.label || 'Cơ cấu dòng tiền' },
+          h('circle', { cx: 50, cy: 50, r: 42, fill: 'none', stroke: '#E7E4DC', strokeWidth: 15 }),
           items.map(function (x, i) {
             var len = total ? x.amount / total * C : 0;
             var visibleLen = Math.max(0, len - gap);
             var node = h('circle', {
               key: x.name, cx: 50, cy: 50, r: 42, fill: 'none',
-              stroke: categoryColor(x.name, i), strokeWidth: 14,
+              stroke: colorFor(x.name, i), strokeWidth: 15,
               strokeDasharray: visibleLen + ' ' + (C - visibleLen), strokeDashoffset: -offset,
               transform: 'rotate(-90 50 50)', strokeLinecap: 'butt'
             });
@@ -256,14 +279,14 @@
             return node;
           })),
         h('div', { className: 'donut-center' },
-          h('span', null, props.centerLabel || 'Tổng chi'),
+          h('span', null, props.centerLabel || 'Tổng'),
           h('b', null, D.fmtShort(total)),
           h('small', null, 'đ'))),
       h('div', { className: 'donut-legend' }, items.map(function (x, i) {
         return h('div', { className: 'legend-row', key: x.name },
-          h('i', { style: { background: categoryColor(x.name, i) } }),
+          h('i', { style: { background: colorFor(x.name, i) } }),
           h('span', null, x.name),
-          h('b', null, total ? Math.round(x.amount / total * 100) + '%' : '0%'));
+          h('b', null, D.fmtShort(x.amount) + ' · ' + (total ? Math.round(x.amount / total * 100) + '%' : '0%')));
       })));
   }
 
@@ -353,13 +376,17 @@
 
   function confirmedMonthStats(flows, ym) {
     var b = D.monthBounds(ym);
-    var out = { income: 0, expense: 0, byCategory: {}, count: 0 };
+    var out = { income: 0, expense: 0, byCategory: {}, byIncomeSource: {}, count: 0 };
     (flows || []).forEach(function (f) {
       if (f.deletedAt || f.skipped || !f.confirmed || f.date < b.from || f.date > b.to) return;
       var meta = D.FLOW_KINDS[f.kind] || {};
       var amt = Math.abs(Number(f.amount) || 0);
       out.count++;
-      if (meta.pl === 'income') out.income += amt;
+      if (meta.pl === 'income') {
+        out.income += amt;
+        var source = incomeSourceName(f);
+        out.byIncomeSource[source] = (out.byIncomeSource[source] || 0) + amt;
+      }
       if (meta.pl === 'expense') {
         out.expense += amt;
         var c = f.category || 'Khác';
@@ -368,6 +395,9 @@
     });
     out.categories = Object.keys(out.byCategory).map(function (name) {
       return { name: name, amount: out.byCategory[name] };
+    }).sort(function (a, b2) { return b2.amount - a.amount; });
+    out.incomeCategories = Object.keys(out.byIncomeSource).map(function (name) {
+      return { name: name, amount: out.byIncomeSource[name] };
     }).sort(function (a, b2) { return b2.amount - a.amount; });
     return out;
   }
@@ -643,10 +673,12 @@
     });
 
     var [f, setF] = useState(function () {
-      return Object.assign({
+      var initial = Object.assign({
         date: D.today(), kind: 'expense', accountId: '', counterAccountId: null,
         amount: 0, category: '', note: '', confirmed: false, skipped: false
       }, props.flow);
+      if (initial.kind === 'interest_in' && !String(initial.category || '').trim()) initial.category = 'Lãi / lợi tức';
+      return initial;
     });
     var [recur, setRecur] = useState(isNew ? 'none' : inferredFreq);
     var [count, setCount] = useState(isNew ? 6 : Math.max(1, futureSeriesRows.length || Number(props.flow.seriesCount) || 1));
@@ -660,7 +692,12 @@
         if (k === 'kind') {
           var meta = D.FLOW_KINDS[v];
           if (!meta.counter) n.counterAccountId = null;
-          if (meta.pl !== 'expense') n.category = '';
+          if (meta.pl === 'expense' && INCOME_CATEGORIES.indexOf(n.category) >= 0) n.category = '';
+          if (meta.pl === 'income') {
+            if (v === 'interest_in') n.category = 'Lãi / lợi tức';
+            else if (D.CATEGORIES.indexOf(n.category) >= 0) n.category = '';
+          }
+          if (meta.pl !== 'expense' && meta.pl !== 'income') n.category = '';
         }
         return n;
       });
@@ -761,12 +798,18 @@
             counterList.map(function (a) {
               return h('option', { key: a.id, value: a.id }, a.name);
             }))) : null,
-        meta.pl === 'expense' ? Field('Nhóm', h('select', {
+        meta.pl === 'expense' ? Field('Nhóm chi tiêu', h('select', {
           className: 'field', value: f.category || '',
           onChange: function (e) { set('category', e.target.value); }
         },
           h('option', { value: '' }, '— không phân nhóm —'),
           D.CATEGORIES.map(function (c) { return h('option', { key: c, value: c }, c); }))) : null,
+        meta.pl === 'income' ? Field('Nguồn thu', h('select', {
+          className: 'field', value: f.category || '',
+          onChange: function (e) { set('category', e.target.value); }
+        },
+          h('option', { value: '' }, '— thu nhập khác —'),
+          INCOME_CATEGORIES.map(function (c) { return h('option', { key: c, value: c }, c); }))) : null,
         h('div', { className: 'sheet-field stack' },
           h('label', null, 'Ghi chú'),
           h('textarea', {
@@ -1175,6 +1218,8 @@
     var burn = useMemo(function () { return burnRateSeries(data.flows, data.budgets || [], ym); }, [data.flows, data.budgets, ym]);
     var budgetRows = useMemo(function () { return budgetCompareRows(data.budgets || [], data.flows, ym); }, [data.budgets, data.flows, ym]);
     var upcoming = useMemo(function () { return D.upcoming(data.flows, 30).slice(0, 4); }, [data.flows]);
+    var mixState = useState('expense'), mixMode = mixState[0], setMixMode = mixState[1];
+    var mixItems = mixMode === 'income' ? actual.incomeCategories : actual.categories;
     var next30Net = forecast30.end - forecast30.current;
 
     var paceText = 'Chưa đặt ngân sách tháng';
@@ -1241,11 +1286,29 @@
           h(ColumnChart, { items: bars }))),
 
       h('section', { className: 'dashboard-grid' },
-        h('div', { className: 'panel' },
-          h('div', { className: 'panel-head' },
-            h('div', null, h('h2', { className: 'panel-title' }, 'Cơ cấu chi tiêu'), h('div', { className: 'panel-sub' }, D.fmtMonth(ym))),
+        h('div', { className: 'panel flow-mix-panel' },
+          h('div', { className: 'panel-head flow-mix-head' },
+            h('div', null,
+              h('h2', { className: 'panel-title' }, 'Cơ cấu dòng tiền'),
+              h('div', { className: 'panel-sub' }, D.fmtMonth(ym))),
             h('button', { className: 'text-link', onClick: function () { props.onGo('month'); } }, 'Chi tiết →')),
-          actual.categories.length ? h(DonutChart, { items: actual.categories, centerLabel: 'Tổng chi' }) : h('div', { className: 'mini-empty' }, 'Chưa có chi tiêu đã ghi nhận')),
+          h('div', { className: 'flow-mix-tabs', role: 'tablist', 'aria-label': 'Cơ cấu dòng tiền' },
+            h('button', {
+              type: 'button', role: 'tab', 'aria-selected': mixMode === 'expense',
+              className: cx('flow-mix-tab', mixMode === 'expense' && 'on'),
+              onClick: function () { setMixMode('expense'); }
+            }, 'Chi tiêu'),
+            h('button', {
+              type: 'button', role: 'tab', 'aria-selected': mixMode === 'income',
+              className: cx('flow-mix-tab', mixMode === 'income' && 'on'),
+              onClick: function () { setMixMode('income'); }
+            }, 'Thu nhập')),
+          mixItems.length ? h(DonutChart, {
+            items: mixItems,
+            centerLabel: mixMode === 'income' ? 'Tổng thu' : 'Tổng chi',
+            label: mixMode === 'income' ? 'Cơ cấu thu nhập' : 'Cơ cấu chi tiêu',
+            colorFor: mixMode === 'income' ? incomeColor : categoryColor
+          }) : h('div', { className: 'mini-empty' }, mixMode === 'income' ? 'Chưa có thu nhập đã ghi nhận' : 'Chưa có chi tiêu đã ghi nhận')),
         h('div', { className: 'insight-grid' },
           h('button', { className: 'insight-card', onClick: function () { props.onGo('plan'); } },
             h('span', null, 'Safe to spend'), h('b', { className: d.fc.safeToSpend > 0 ? 'pos' : 'neg' }, D.fmtVND(d.fc.safeToSpend) + ' đ'), h('small', null, 'Trong ' + d.horizon + ' ngày')),

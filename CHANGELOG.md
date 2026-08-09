@@ -1,3 +1,16 @@
+# V3.5.0 — 2026-08-10
+
+- Final Rootflow visual direction applied to production UI: Warm Ivory neutral canvas + deep Root Green hero/action surfaces.
+- New app mark: full Root Green rounded square, white R-flow stroke and a white root dot at the first foot of the path.
+- Regenerated SVG/PNG logo assets and all PWA/Home Screen icons from the same geometry.
+- Typography hierarchy updated: Manrope for brand/display when online, with Avenir Next/system fallback; operational UI stays system-first and all financial figures use tabular numerals.
+- Dashboard `Cơ cấu chi tiêu` becomes `Cơ cấu dòng tiền` with an interactive `Chi tiêu / Thu nhập` segmented switch.
+- Added stable, high-contrast categorical colors for expense composition and a separate stable income-source palette.
+- Income transactions can now optionally select a `Nguồn thu` (Lương, Lãi / lợi tức, Business, Đầu tư, Hoàn tiền, Thu nhập khác) using the existing `category` field; schema v4 is unchanged.
+- Cash-flow chart line/area/risk markers and card elevation refined for stronger readability.
+- PWA cache bumped to `rootflow-v3.5.0-2026-08-10`.
+- `domain.js`, `store.js` and `selftest.js` remain unchanged.
+
 # V3.4.0 — 2026-08-10
 
 - Dashboard balance hero restored as the primary brand-color surface: deep Root Green, white metric text, and deliberate elevation/shadow.

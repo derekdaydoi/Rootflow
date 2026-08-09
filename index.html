@@ -14,6 +14,9 @@
 <link rel="apple-touch-icon" href="icon-180.png" />
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
 <link rel="manifest" href="manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
 <title>Rootflow</title>
 <style>
 /* ============ token — giữ nguyên hệ của Rootwork để hai app cùng một họ ============ */
@@ -1434,6 +1437,211 @@ body{background:#F3F0E7!important}
   .screen-head.nav-screen-head{align-items:center!important}
   .nav-screen-head .screen-head-left{min-width:0!important}
   .nav-screen-head .screen-title{font-size:30px!important;letter-spacing:-1.15px!important}
+}
+</style>
+
+
+<style id="v350-final-direction">
+/* ================= V3.5.0 · final Rootflow direction =================
+   Brand outside, calm operating system inside. Manrope is an optional display
+   face; offline use falls back to Avenir Next / system without affecting UX. */
+:root{
+  --font-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  --font-display:"Manrope","Avenir Next",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  --bg:#F3F0E7!important;
+  --surface:#FFFDF9!important;
+  --surface-2:#F7F5EF!important;
+  --surface-3:#EFECE3!important;
+  --ink:#101110!important;
+  --muted:#5B5F5A!important;
+  --subtle:#858981!important;
+  --line:#E3E1D8!important;
+  --line-strong:#C9C6BB!important;
+  --brand:#14614A!important;
+  --brand-mark:#14614A!important;
+  --brand-strong:#0E4A38!important;
+  --brand-soft:#E2EEE8!important;
+  --danger:#9A352B!important;
+  --danger-bg:#F8ECE9!important;
+  --warning:#8A641D!important;
+  --warning-bg:#FBF3DD!important;
+  --shadow-1:0 2px 7px rgba(16,17,16,.045),0 11px 28px rgba(16,17,16,.065)!important;
+  --shadow-2:0 4px 12px rgba(16,17,16,.055),0 20px 44px rgba(16,17,16,.09)!important;
+}
+html,body{background:#F3F0E7!important}
+body{
+  font-family:var(--font-ui)!important;
+  font-variant-numeric:tabular-nums lining-nums;
+  background:#F3F0E7!important;
+}
+button,input,select,textarea{font-family:var(--font-ui)!important;font-variant-numeric:tabular-nums lining-nums}
+
+/* Display typography: personality where hierarchy matters; operational copy stays system. */
+.brand-copy b,.screen-title,.panel-title,.empty h3,.hero-balance,.metric-value,
+.stat-cell b,.insight-card b,.budget-card h3,.scenario-card h3,.sheet-title{
+  font-family:var(--font-display)!important;
+}
+.screen-title{font-weight:800!important;letter-spacing:-1.25px!important}
+.panel-title{font-weight:800!important;letter-spacing:-.55px!important}
+.hero-balance{font-weight:800!important;letter-spacing:-2.4px!important}
+.metric-value,.stat-cell b{font-weight:800!important}
+
+/* Header: compact green app mark + neutral shell. */
+.dashboard-head.family-header{
+  min-height:94px!important;
+  padding:16px 17px!important;
+  margin-bottom:20px!important;
+  border-radius:30px!important;
+  background:#FFFDF9!important;
+  border:1px solid #E3E1D8!important;
+  box-shadow:0 3px 9px rgba(16,17,16,.045),0 17px 36px rgba(16,17,16,.075)!important;
+  overflow:visible!important;
+}
+.dashboard-head.family-header::after{display:none!important}
+.family-header .brand-lockup{gap:12px!important}
+.family-header .rootflow-mark-wrap{
+  width:60px!important;height:60px!important;min-width:60px!important;
+  border-radius:18px!important;overflow:hidden!important;background:#14614A!important;
+  border:0!important;box-shadow:0 8px 20px rgba(20,97,74,.18)!important;
+}
+.family-header .rootflow-mark-wrap .rootflow-glyph{
+  width:60px!important;height:60px!important;max-width:none!important;object-fit:cover!important;
+  border-radius:18px!important;display:block!important;
+}
+.family-header .brand-copy{gap:7px!important}
+.family-header .brand-copy b{
+  font-family:var(--font-display)!important;font-size:29px!important;font-weight:800!important;
+  line-height:.92!important;letter-spacing:-1.55px!important;
+}
+.family-header .brand-copy b>span{color:#101110!important}
+.family-header .brand-copy b>em{color:#14614A!important}
+.family-header .brand-copy .brand-tagline{
+  font-family:var(--font-ui)!important;font-size:8.4px!important;font-weight:750!important;
+  letter-spacing:1.7px!important;color:#858981!important;line-height:1!important;
+}
+.family-header .app-menu-btn{
+  width:50px!important;height:50px!important;border-radius:16px!important;
+  background:#FFFDF9!important;border:1px solid #E3E1D8!important;color:#5B5F5A!important;
+  box-shadow:0 5px 15px rgba(16,17,16,.065)!important;
+}
+.family-header .app-menu-btn:hover{background:#F7F5EF!important;color:#101110!important}
+
+/* Dashboard hero: this is the one intentionally strong brand-color surface. */
+.balance-hero{
+  position:relative!important;overflow:hidden!important;
+  border-radius:27px!important;padding:26px 24px 23px!important;
+  background:linear-gradient(145deg,#176B50 0%,#14614A 48%,#0E4A38 100%)!important;
+  color:#FFFFFF!important;border:1px solid rgba(14,74,56,.60)!important;
+  box-shadow:0 6px 15px rgba(14,74,56,.12),0 22px 40px rgba(14,74,56,.22)!important;
+}
+.balance-hero::after{
+  display:block!important;content:""!important;position:absolute!important;
+  width:210px!important;height:210px!important;right:-82px!important;top:-112px!important;
+  border:1px solid rgba(255,255,255,.11)!important;border-radius:50%!important;background:transparent!important;
+}
+.hero-label{color:rgba(255,255,255,.76)!important;font-weight:650!important}
+.hero-balance{color:#FFFFFF!important;position:relative!important;z-index:1!important;text-shadow:none!important}
+.hero-foot{color:rgba(255,255,255,.76)!important;position:relative!important;z-index:1!important}
+.hero-foot b{color:#FFFFFF!important}
+
+/* Neutral cards: data first, decoration second. */
+.dashboard .panel,.dashboard .stat-strip,.dashboard .notice,
+.group,.empty,.metric,.budget-card,.scenario-card,.insight-card,.upcoming-panel{
+  background:#FFFDF9!important;border:1px solid #E3E1D8!important;
+  box-shadow:var(--shadow-1)!important;
+}
+.panel{border-radius:25px!important}
+.stat-strip{border-radius:21px!important}
+.stat-cell{padding:18px 20px!important}
+.stat-cell>span{color:#5B5F5A!important}
+.stat-cell b.pos{color:#14614A!important}
+.stat-cell b.neg{color:#9A352B!important}
+
+/* Cash-flow chart: stronger line, lighter area, clear risk markers. */
+.chart path.line{stroke:#14614A!important;stroke-width:3.2!important}
+.chart path.area{fill:rgba(20,97,74,.105)!important}
+.chart line.floor{stroke:#D97706!important;stroke-width:1.35!important;opacity:.72!important}
+.chart line.zero{stroke:#9A352B!important;stroke-width:1.15!important;opacity:.48!important}
+.chart circle.low{fill:#FFFDF9!important;stroke:#9A352B!important;stroke-width:3!important}
+.chart-keys i{border-top-width:3px!important}
+.chart-keys i.floor{border-top-color:#D97706!important}
+
+/* Cash-flow composition: expense/income share one panel with a segmented switch. */
+.flow-mix-panel{min-height:330px}
+.flow-mix-head{align-items:flex-start!important}
+.flow-mix-tabs{
+  display:inline-flex;gap:5px;padding:4px;margin:12px 0 16px;
+  background:#F7F5EF;border:1px solid #E3E1D8;border-radius:999px;
+}
+.flow-mix-tab{
+  border:0;background:transparent;color:#5B5F5A;min-height:38px;padding:0 15px;
+  border-radius:999px;font-size:13px;font-weight:750;cursor:pointer;
+  transition:background var(--dur) var(--ease),color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.flow-mix-tab.on{background:#14614A;color:#fff;box-shadow:0 5px 12px rgba(20,97,74,.17)}
+.flow-mix-tab:focus-visible{outline:3px solid rgba(20,97,74,.22);outline-offset:2px}
+.donut-wrap{grid-template-columns:minmax(132px,.82fr) minmax(158px,1.18fr)!important;gap:18px!important}
+.donut-visual{max-width:166px!important}
+.donut-center b{font-family:var(--font-display)!important;font-size:19px!important;font-weight:800!important}
+.donut-legend{gap:10px!important}
+.legend-row{grid-template-columns:10px minmax(0,1fr) auto!important;gap:8px!important;font-size:12px!important}
+.legend-row i{width:10px!important;height:10px!important;border-radius:50%!important;box-shadow:inset 0 0 0 1px rgba(16,17,16,.08)!important}
+.legend-row span{color:#5B5F5A!important}
+.legend-row b{color:#101110!important;font-size:11px!important;font-weight:750!important;white-space:nowrap}
+
+/* Primary interactions stay on one exact green. */
+.btn.primary,.chip.on,.check.done,.fab,.bottom-nav .nav-add,.kind-btn.on,.sheet-done{
+  background:#14614A!important;border-color:#14614A!important;color:#fff!important;
+}
+.btn.primary:hover,.fab:hover{background:#0E4A38!important;border-color:#0E4A38!important}
+.text-link,.amount.in,.pos{color:#14614A!important}
+.amount.out,.neg{color:#9A352B!important}
+
+/* Navigation family pattern shared by every destination screen. */
+.bottom-nav{
+  background:rgba(255,253,249,.985)!important;border:1px solid #E3E1D8!important;
+  border-radius:28px!important;box-shadow:0 15px 38px rgba(16,17,16,.13)!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+.bottom-nav .nav-add{background:linear-gradient(145deg,#176B50,#0E4A38)!important;box-shadow:0 9px 22px rgba(20,97,74,.25)!important}
+.bottom-nav>button{color:#858981!important}
+.bottom-nav>button.on{color:#14614A!important}
+.screen-head.nav-screen-head .back-btn{color:#101110!important}
+.icon-btn{background:#FFFDF9!important;border-color:#E3E1D8!important;box-shadow:var(--shadow-1)!important}
+
+/* Forms/sheets remain neutral so financial semantics stay legible. */
+.sheet,.sheet-head{background:#F3F0E7!important}
+.sheet-block{background:#FFFDF9!important;border:1px solid #E3E1D8!important;box-shadow:0 4px 15px rgba(16,17,16,.04)!important}
+.field,.txt,.select,.textarea{background:#FFFDF9!important;border-color:#C9C6BB!important}
+.field:focus,.txt:focus,.select:focus,.textarea:focus{border-color:#14614A!important;box-shadow:0 0 0 3px rgba(20,97,74,.10)!important}
+
+@media(max-width:620px){
+  .dashboard-head.family-header{min-height:88px!important;padding:14px!important;border-radius:25px!important}
+  .family-header .brand-lockup{gap:10px!important}
+  .family-header .rootflow-mark-wrap,.family-header .rootflow-mark-wrap .rootflow-glyph{
+    width:56px!important;height:56px!important;min-width:56px!important;border-radius:17px!important;
+  }
+  .family-header .brand-copy b{font-size:25px!important;letter-spacing:-1.2px!important}
+  .family-header .brand-copy .brand-tagline{display:block!important;font-size:7.2px!important;letter-spacing:1.15px!important}
+  .family-header .app-menu-btn{width:46px!important;height:46px!important;border-radius:15px!important}
+  .balance-hero{border-radius:24px!important;padding:23px 21px!important}
+  .hero-balance{font-size:clamp(36px,10vw,50px)!important}
+  .flow-mix-panel{min-height:0}
+}
+@media(max-width:390px){
+  .family-header .rootflow-mark-wrap,.family-header .rootflow-mark-wrap .rootflow-glyph{
+    width:52px!important;height:52px!important;min-width:52px!important;border-radius:16px!important;
+  }
+  .family-header .brand-copy b{font-size:22px!important;letter-spacing:-.92px!important}
+  .family-header .brand-copy .brand-tagline{font-size:6.2px!important;letter-spacing:.88px!important}
+  .donut-wrap{grid-template-columns:122px minmax(0,1fr)!important;gap:14px!important}
+  .donut-visual{max-width:122px!important}
+  .legend-row b{font-size:10px!important}
+}
+@media(max-width:350px){
+  .family-header .brand-copy .brand-tagline{display:none!important}
+  .donut-wrap{grid-template-columns:1fr!important}
+  .donut-visual{max-width:145px!important}
 }
 </style>
 

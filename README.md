@@ -1,31 +1,31 @@
-# Rootflow V3.4.0
+# Rootflow V3.5.0
 
-Root → Flow identity refresh + cleaner navigation headers. Finance engine and stored data remain unchanged.
+Rootflow is a local-first personal cash-flow operating system: **understand now → plan the rhythm → see what comes next**. V3.5 locks the final visual direction while keeping finance logic and schema v4 intact.
 
 **Release:** 2026-08-10  
 **Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.4.0-2026-08-10`
+**PWA cache:** `rootflow-v3.5.0-2026-08-10`
 
-### V3.4 changes
+## V3.5 changes
 
-- Balance hero is now the deliberate brand anchor: deep Root Green tonal surface, white metric text, stronger elevation/shadow.
-- Expense donut uses stable category colors, so a category keeps the same color across months.
-- Donut is capped at six readable segments (top five + `Còn lại`) and the legend always matches the chart.
-- Categorical colors are intentionally multi-hue for discrimination; brand UI remains Root Green + neutral.
-- Finance engine, schema v4, migrations, persistence and existing user data are unchanged.
+- Final app mark: Root Green `#14614A` rounded square + white R-flow + root dot.
+- UI foundation: Warm Ivory `#F3F0E7`, Graphite `#101110`, Surface `#FFFDF9`, Root Green `#14614A`, Deep Green `#0E4A38`.
+- Dashboard balance remains the single strong green hero surface; the rest of the app stays neutral and data-first.
+- Brand/display typography uses Manrope when available online, then falls back to Avenir Next/system; operational UI remains system-first.
+- All financial numbers use tabular numerals for stable alignment.
+- `Cơ cấu dòng tiền` now toggles between **Chi tiêu** and **Thu nhập** instead of showing expense composition only.
+- Expense categories and income sources use separate fixed high-contrast color mappings so the same category/source keeps the same color across months.
+- Income flow entry now supports an optional `Nguồn thu` using the existing `category` field; no migration is required. Existing income without a source is grouped as `Thu nhập khác`; `Lãi nhận` defaults to `Lãi / lợi tức`.
+- Kế hoạch, Kịch bản and Giao dịch retain the same Back/header/navigation pattern introduced in V3.3.
+- Finance engine, persistence and schema remain unchanged.
 
-### V3.3 changes
+## Brand assets
 
-- Chuẩn hoá Design Tokens V1 trên toàn app: Warm Ivory `#F3F0E7`, Graphite `#101110`, Root Green `#14614A`, neutral cards và semantic states.
-- Loại bỏ sage/olive gradients khỏi balance card và bottom navigation; Root Green chỉ dùng cho action, active state, forecast/positive emphasis.
-- Đồng bộ header của Kế hoạch, Kịch bản và Giao dịch: tất cả đều có nút Back về Tổng quan.
-- New vector `R` symbol: graphite root/anchor → deep green (`#14614A`) flow trajectory.
-- Dashboard keeps the full ROOTFLOW lockup; `ROOT` is graphite and `FLOW` uses the same deep green as the R flow stroke.
-- `Kế hoạch` and `Kịch bản` headers no longer repeat the Rootflow mark; they show the page title only.
-- Transaction screen is titled `Giao dịch` and its title area no longer shows a secondary row count.
-- PWA/Home Screen icons regenerated at 180/192/256/512/1024 from the same mark geometry.
-- Added editable vector assets: `brand/rootflow-symbol.svg`, `brand/rootflow-icon-master.svg`, `brand/rootflow-logo.svg`.
-- No changes to `domain.js`, schema v4, migrations, persistence, calculations, or existing user data.
+- `brand/rootflow-symbol.svg` — runtime/app mark vector.
+- `brand/rootflow-icon-master.svg` — editable square vector master.
+- `brand/rootflow-logo.svg` — horizontal lockup.
+- `brand/rootflow-mark-1024.png` — square raster master used by `make_icons.py`.
+- `icon-180/192/256/512/1024.png` — PWA / iOS icons.
 
 # Rootflow V2.6
 
