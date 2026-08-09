@@ -1,3 +1,11 @@
+# V3.4.0 — 2026-08-10
+
+- Dashboard balance hero restored as the primary brand-color surface: deep Root Green, white metric text, and deliberate elevation/shadow.
+- Expense donut now uses stable category-to-color mapping instead of order-dependent muted greens.
+- Donut keeps at most six visible segments (top five + Còn lại), matching the legend and improving mobile readability.
+- Added small segment gaps and stronger legend markers for category discrimination.
+- Finance engine, schema v4 and persistence unchanged.
+
 # V3.3.0 — 2026-08-10
 
 - Rootflow Design Tokens V1 applied across all screens.

@@ -175,7 +175,35 @@
   }
 
 
-  var CHART_COLORS = ['#14614A', '#527A6A', '#7C8F75', '#A28A52', '#8B6D5C', '#5F7184', '#8A6F87', '#9A5A52'];
+  var CHART_COLORS = ['#14614A', '#4E79A7', '#F28E2B', '#E15759', '#76B7B2', '#EDC949', '#AF7AA1', '#D66B9A', '#9C755F', '#7A8793'];
+
+  /* Category colors are semantic and stable across months/screens.
+     Unlike brand UI, categorical charts intentionally use multiple hues so
+     adjacent expense groups remain distinguishable at a glance. */
+  var CATEGORY_COLORS = {
+    'Ăn uống': '#F28E2B',
+    'Cafe': '#9C755F',
+    'Thể thao': '#59A14F',
+    'Di chuyển': '#4E79A7',
+    'Đi lại': '#3F7CAC',
+    'Nhà ở': '#AF7AA1',
+    'Hoá đơn': '#EDC949',
+    'Mua sắm': '#D66B9A',
+    'Sức khoẻ': '#E15759',
+    'Học tập': '#76B7B2',
+    'Giải trí': '#6B66A3',
+    'Yêu đương': '#D85F7D',
+    'Gia đình': '#B07A4A',
+    'Đầu tư': '#14614A',
+    'Trading': '#1F7A8C',
+    'Business': '#586674',
+    'Khác': '#8A8D88',
+    'Còn lại': '#8A8D88'
+  };
+
+  function categoryColor(name, index) {
+    return CATEGORY_COLORS[name] || CHART_COLORS[(index || 0) % CHART_COLORS.length];
+  }
 
   function RootflowGlyph(props) {
     var size = props && props.size || 52;
@@ -196,20 +224,32 @@
   }
 
   function DonutChart(props) {
-    var items = (props.items || []).filter(function (x) { return x.amount > 0; });
+    var raw = (props.items || []).filter(function (x) { return x.amount > 0; });
+    var items = raw.slice();
+
+    /* Keep the donut readable on mobile: top 5 categories + one aggregated remainder.
+       The detail screen still carries the full category list. */
+    if (items.length > 6) {
+      var top = items.slice(0, 5);
+      var rest = items.slice(5).reduce(function (sum, x) { return sum + x.amount; }, 0);
+      items = top.concat([{ name: 'Còn lại', amount: rest }]);
+    }
+
     var total = items.reduce(function (sum, x) { return sum + x.amount; }, 0);
     var C = 2 * Math.PI * 42;
     var offset = 0;
+    var gap = items.length > 1 ? 1.35 : 0;
     return h('div', { className: 'donut-wrap' },
       h('div', { className: 'donut-visual' },
         h('svg', { viewBox: '0 0 100 100', role: 'img', 'aria-label': props.label || 'Phân bổ chi tiêu' },
-          h('circle', { cx: 50, cy: 50, r: 42, fill: 'none', stroke: '#e8e7e1', strokeWidth: 13 }),
+          h('circle', { cx: 50, cy: 50, r: 42, fill: 'none', stroke: '#E7E4DC', strokeWidth: 14 }),
           items.map(function (x, i) {
             var len = total ? x.amount / total * C : 0;
+            var visibleLen = Math.max(0, len - gap);
             var node = h('circle', {
               key: x.name, cx: 50, cy: 50, r: 42, fill: 'none',
-              stroke: CHART_COLORS[i % CHART_COLORS.length], strokeWidth: 13,
-              strokeDasharray: len + ' ' + (C - len), strokeDashoffset: -offset,
+              stroke: categoryColor(x.name, i), strokeWidth: 14,
+              strokeDasharray: visibleLen + ' ' + (C - visibleLen), strokeDashoffset: -offset,
               transform: 'rotate(-90 50 50)', strokeLinecap: 'butt'
             });
             offset += len;
@@ -219,9 +259,9 @@
           h('span', null, props.centerLabel || 'Tổng chi'),
           h('b', null, D.fmtShort(total)),
           h('small', null, 'đ'))),
-      h('div', { className: 'donut-legend' }, items.slice(0, 6).map(function (x, i) {
+      h('div', { className: 'donut-legend' }, items.map(function (x, i) {
         return h('div', { className: 'legend-row', key: x.name },
-          h('i', { style: { background: CHART_COLORS[i % CHART_COLORS.length] } }),
+          h('i', { style: { background: categoryColor(x.name, i) } }),
           h('span', null, x.name),
           h('b', null, total ? Math.round(x.amount / total * 100) + '%' : '0%'));
       })));

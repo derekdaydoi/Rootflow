@@ -1,10 +1,18 @@
-# Rootflow V3.3.0
+# Rootflow V3.4.0
 
 Root → Flow identity refresh + cleaner navigation headers. Finance engine and stored data remain unchanged.
 
-**Release:** 2026-08-09  
+**Release:** 2026-08-10  
 **Data schema:** v4 (unchanged)  
-**PWA cache:** `rootflow-v3.3.0-2026-08-10`
+**PWA cache:** `rootflow-v3.4.0-2026-08-10`
+
+### V3.4 changes
+
+- Balance hero is now the deliberate brand anchor: deep Root Green tonal surface, white metric text, stronger elevation/shadow.
+- Expense donut uses stable category colors, so a category keeps the same color across months.
+- Donut is capped at six readable segments (top five + `Còn lại`) and the legend always matches the chart.
+- Categorical colors are intentionally multi-hue for discrimination; brand UI remains Root Green + neutral.
+- Finance engine, schema v4, migrations, persistence and existing user data are unchanged.
 
 ### V3.3 changes
 

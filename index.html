@@ -1371,21 +1371,28 @@ body{background:#F3F0E7!important}
 .family-header .brand-copy b>em{color:#14614A!important}
 .family-header .brand-copy .brand-tagline{color:#858981!important}
 
-/* Available balance is data, not decoration. */
+/* Available balance is the dashboard hero: concentrate brand color here, not across every card. */
 .balance-hero{
-  background:#FFFDF9!important;
-  color:#101110!important;
-  border:1px solid #E3E1D8!important;
-  box-shadow:var(--shadow-1)!important;
+  background:linear-gradient(145deg,#176B50 0%,#14614A 48%,#0E4A38 100%)!important;
+  color:#FFFFFF!important;
+  border:1px solid rgba(14,74,56,.68)!important;
+  box-shadow:0 3px 8px rgba(16,17,16,.08),0 18px 42px rgba(14,74,56,.22)!important;
 }
 .balance-hero::after{display:none!important}
-.hero-label{color:#5B5F5A!important}
-.hero-balance{color:#101110!important}
-.hero-foot{color:#5B5F5A!important}
-.hero-foot b{color:#101110!important}
+.hero-label{color:rgba(255,255,255,.76)!important}
+.hero-balance{color:#FFFFFF!important;text-shadow:0 1px 0 rgba(0,0,0,.05)}
+.hero-foot{color:rgba(255,255,255,.76)!important}
+.hero-foot b{color:#FFFFFF!important}
 .dashboard .notice,.dashboard .panel,.dashboard .stat-strip{
   background:#FFFDF9!important;border:1px solid #E3E1D8!important;box-shadow:var(--shadow-1)!important;
 }
+
+
+/* Categorical charts are functional color, not brand ambience. */
+.donut-visual svg{overflow:visible}
+.legend-row i{width:10px!important;height:10px!important;border-radius:3px!important;box-shadow:inset 0 0 0 1px rgba(16,17,16,.08)}
+.legend-row span{color:#5B5F5A!important}
+.legend-row b{color:#101110!important;font-weight:700}
 
 /* Financial visualization: green means forecast/positive/selected, not background. */
 .spark path.line,.chart path.line{stroke:#14614A!important}
