@@ -1,10 +1,17 @@
-# Rootflow V3.7.1
+# Rootflow V3.7.2
 
 Rootflow is a local-first personal financial operating system: **liquidity → operating performance → personal balance sheet**. V3.7 fixes the snapshot/ledger mismatch that appears when current loan balances are added on top of an older cash-flow history.
 
 **Release:** 2026-08-10  
 **Data schema:** v5  
-**PWA cache:** `rootflow-v3.7.1-2026-08-10`
+**PWA cache:** `rootflow-v3.7.2-2026-08-10`
+
+## V3.7.2 changes
+
+- Dashboard hero now represents **Tài sản ròng (Net Worth)**, with total assets and liabilities as context.
+- **Tiền khả dụng** moves to a dedicated **Thanh khoản** block with 30-day projected liquidity.
+- Historical liquidity chart label is normalized to `Tiền khả dụng — 30 ngày qua`.
+- No schema, accounting engine, transaction, account, logo, image, font, navigation, or base visual-system changes.
 
 ## V3.7.1 changes
 

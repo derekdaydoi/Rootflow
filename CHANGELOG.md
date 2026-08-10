@@ -1,3 +1,12 @@
+# V3.7.2 — 2026-08-10
+
+- Changed Dashboard primary KPI from liquid balance to **Tài sản ròng**.
+- Added a dedicated **Thanh khoản** panel for current available cash and 30-day projected liquidity.
+- Renamed the historical cash chart to `Tiền khả dụng — 30 ngày qua`.
+- Kept personal balance sheet subtitle exactly `Tài sản = Nợ phải trả + Vốn chủ`.
+- No accounting/schema/transaction/account changes. Brand assets, fonts, navigation, and base UI structure are unchanged.
+- PWA cache bumped to `rootflow-v3.7.2-2026-08-10`.
+
 # V3.7.1 — 2026-08-10
 
 - Locked Personal Balance Sheet subtitle to `Tài sản = Nợ phải trả + Vốn chủ`.
