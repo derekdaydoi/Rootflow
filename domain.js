@@ -170,19 +170,28 @@
   function isInvestment(a) { return a && groupOf(a.type) === 'investment'; }
   function isFixedAsset(a) { return a && groupOf(a.type) === 'fixed_asset'; }
 
-  /* openingBalance là số dư snapshot tại cuối balanceAsOf.
-     Chỉ các flow SAU ngày này mới được replay lên riêng tài khoản đó.
-     Điều này cho phép thêm một khoản vay với "dư nợ hiện tại" mà không
-     double-count các kỳ trả nợ lịch sử đã xảy ra trước snapshot. */
+  /* Baseline của account có hai cách hiểu:
+     - liquid (bank/cash/e-wallet): openingBalance là SỐ DƯ ĐẦU KỲ tại ngày bắt đầu
+       theo dõi. Flow cùng ngày và sau ngày đó phải được replay vào số dư hiện tại.
+     - account có vị thế hiện hữu (loan/receivable/investment/fixed asset):
+       openingBalance > 0 được hiểu là SNAPSHOT cuối ngày; chỉ flow sau ngày snapshot
+       mới replay để không double-count lịch sử. Nếu openingBalance = 0, account được
+       xem là bắt đầu từ 0 nên flow cùng ngày vẫn được replay. */
   function accountBalanceAsOf(a) {
     if (!a) return null;
     var d = String(a.balanceAsOf || '').slice(0, 10);
     return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
   }
 
+  function baselineIsOpening(a) {
+    return Boolean(a && (isLiquid(a) || Math.abs(Number(a.openingBalance) || 0) === 0));
+  }
+
   function effectAfterBaseline(f, a) {
     var asOf = accountBalanceAsOf(a);
-    return !asOf || String(f && f.date || '') > asOf;
+    if (!asOf) return true;
+    var date = String(f && f.date || '');
+    return baselineIsOpening(a) ? date >= asOf : date > asOf;
   }
 
   function isLegacyDebtPayment(f) {
@@ -294,7 +303,14 @@
     opts = opts || {};
     var accMap = byId(accounts);
     var out = {};
-    for (var i = 0; i < accounts.length; i++) out[accounts[i].id] = Number(accounts[i].openingBalance) || 0;
+    for (var i = 0; i < accounts.length; i++) {
+      var baseDate = accountBalanceAsOf(accounts[i]);
+      /* Khi dựng lịch sử trước ngày account bắt đầu được theo dõi/snapshot, không
+         được kéo openingBalance ngược về quá khứ. 0 ở đây nghĩa là chưa có dữ liệu
+         cho account đó trong ledger Rootflow tại thời điểm đang dựng. */
+      out[accounts[i].id] = opts.upto && baseDate && opts.upto < baseDate
+        ? 0 : (Number(accounts[i].openingBalance) || 0);
+    }
 
     var list = live(flows);
     for (var j = 0; j < list.length; j++) {
@@ -603,7 +619,7 @@
     groupOf: groupOf, isLiquid: isLiquid, isLiability: isLiability, isReceivable: isReceivable,
     isInvestment: isInvestment, isFixedAsset: isFixedAsset, termClass: termClass,
     repayPrincipal: repayPrincipal, repayCost: repayCost, repayTotal: repayTotal,
-    accountBalanceAsOf: accountBalanceAsOf, effectAfterBaseline: effectAfterBaseline,
+    accountBalanceAsOf: accountBalanceAsOf, baselineIsOpening: baselineIsOpening, effectAfterBaseline: effectAfterBaseline,
     isLegacyDebtPayment: isLegacyDebtPayment,
     byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,
     personalBalanceSheet: personalBalanceSheet,

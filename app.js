@@ -1,4 +1,4 @@
-/* Rootflow V3.5.0 — app.js
+/* Rootflow — app.js
    Toàn bộ giao diện. React qua React.createElement, không JSX, không bước build. */
 (function () {
   'use strict';
@@ -976,14 +976,14 @@
         }, D.ACCOUNT_ORDER.map(function (t) {
           return h('option', { key: t, value: t }, D.ACCOUNT_TYPES[t].label);
         }))),
-        Field(accountGroup === 'liability' ? 'Đang nợ' : accountGroup === 'receivable' ? 'Đang cho nợ' : (accountGroup === 'investment' || accountGroup === 'fixed_asset') ? 'Giá trị hiện tại' : 'Số dư',
+        Field(accountGroup === 'liquid' ? 'Số dư đầu kỳ' : accountGroup === 'liability' ? 'Đang nợ' : accountGroup === 'receivable' ? 'Đang cho nợ' : (accountGroup === 'investment' || accountGroup === 'fixed_asset') ? 'Giá trị hiện tại' : 'Số dư',
           h('input', {
             className: 'field', type: 'text', inputMode: 'numeric',
             value: a.openingBalance ? D.groupDigits(String(a.openingBalance)) : '',
             placeholder: '0',
             onChange: function (e) { set('openingBalance', D.parseMoney(e.target.value)); }
           })),
-        Field('Số dư tại ngày', h('input', {
+        Field(accountGroup === 'liquid' ? 'Ngày bắt đầu theo dõi' : 'Số dư tại ngày', h('input', {
           className: 'field', type: 'date', value: a.balanceAsOf || D.today(),
           onChange: function (e) { set('balanceAsOf', e.target.value); }
         })),
@@ -1000,14 +1000,22 @@
           onChange: function (e) { set('creditLimit', D.parseMoney(e.target.value)); }
         })) : null),
 
+      !isNew && accountGroup === 'liquid' && props.currentBalance !== undefined && props.currentBalance !== null
+        ? h('div', { className: 'sheet-note-line inset' }, 'Số dư hiện tại theo Rootflow: ' + D.fmtVND(props.currentBalance) + ' đ')
+        : null,
+
       h('div', { className: 'sheet-note-line' },
-        accountGroup === 'liability'
-          ? 'Nhập số đang nợ dưới dạng số dương tại ngày snapshot. Các khoản trả nợ từ trước hoặc đúng ngày snapshot sẽ không bị trừ thêm lần nữa.'
-          : accountGroup === 'fixed_asset'
-            ? 'Tài sản sở hữu nằm trên bảng cân đối. Chuyển tiền từ tài khoản khả dụng sang tài sản này được ghi nhận là CAPEX.'
-            : accountGroup === 'investment'
-              ? 'Tài sản đầu tư nằm trên bảng cân đối và không được tính là chi tiêu khi chỉ luân chuyển vốn.'
-              : 'Đây là số dư tại thời điểm bắt đầu dùng Rootflow, trước mọi dòng tiền đã ghi.'),
+        accountGroup === 'liquid'
+          ? 'Số dư đầu kỳ chỉ là mốc. Mọi dòng tiền từ ngày bắt đầu theo dõi, kể cả cùng ngày, sẽ làm thay đổi số dư hiện tại.'
+          : accountGroup === 'liability'
+            ? 'Nhập số đang nợ dưới dạng số dương tại ngày snapshot. Các khoản trả nợ từ trước hoặc đúng ngày snapshot sẽ không bị trừ thêm lần nữa.'
+            : accountGroup === 'fixed_asset'
+              ? 'Tài sản sở hữu nằm trên bảng cân đối. Nếu giá trị nhập là 0, giao dịch mua/chuyển vốn cùng ngày sẽ được ghi nhận; nếu nhập giá trị hiện tại, đó là snapshot.'
+              : accountGroup === 'investment'
+                ? 'Tài sản đầu tư nằm trên bảng cân đối. Giá trị hiện tại lớn hơn 0 được coi là snapshot; bắt đầu từ 0 thì dòng vốn cùng ngày được replay.'
+                : accountGroup === 'receivable'
+                  ? 'Dư phải thu hiện tại lớn hơn 0 được coi là snapshot; bắt đầu từ 0 thì khoản cho vay cùng ngày được replay.'
+                  : 'Số dư được tính từ mốc ban đầu và các dòng tiền phát sinh.'),
 
       !isNew ? h('div', { className: 'sheet-block' },
         h('button', {
@@ -2429,6 +2437,7 @@
     } else if (sheet && sheet.type === 'account') {
       sheetNode = h(AccountSheet, {
         key: sheet.account.id || 'new', account: sheet.account, flows: data.flows,
+        currentBalance: sheet.account.id ? derived.bal[sheet.account.id] : null,
         onClose: function () { setSheet(null); }, onSave: saveAccount, onDelete: deleteAccount
       });
     } else if (sheet && sheet.type === 'budget') {

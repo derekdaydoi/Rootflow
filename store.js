@@ -41,10 +41,10 @@
     data.scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
     data.settings = Object.assign({}, base.settings, data.settings || {});
 
-    /* V5: openingBalance trở thành snapshot có ngày gốc riêng cho từng account.
-       Với dữ liệu cũ, đặt baseline trước ngày account được tạo một ngày để
-       giữ nguyên 100% cách replay ledger trước đây. Account tạo mới từ V5
-       sẽ lưu balanceAsOf = hôm nay ngay trong form. */
+    /* Mỗi account có ngày baseline riêng. Liquid account hiểu openingBalance là
+       số dư đầu kỳ và replay từ chính ngày baseline; vị thế hiện hữu như khoản vay
+       dùng baseline như snapshot để tránh replay lịch sử hai lần. Với dữ liệu cũ
+       thiếu ngày baseline, đặt mốc trước ngày tạo một ngày để giữ cách replay cũ. */
     data.accounts = data.accounts.map(function (a) {
       a = Object.assign({}, a || {});
       if (!a.balanceAsOf) {
@@ -158,7 +158,7 @@
   }
 
   /* Xoá toàn bộ dữ liệu Rootflow trên origin hiện tại.
-     Bao gồm localStorage của bản đang chạy và IndexedDB của Rootflow V1 cũ. */
+     Bao gồm localStorage của bản đang chạy và IndexedDB Rootflow cũ. */
   function clearAll() {
     var localError = null;
     try {

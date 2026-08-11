@@ -1,0 +1,9 @@
+# Bản sao lưu cá nhân — không bao giờ commit
+rootflow-backup-*.json
+*.rootflow-backup.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

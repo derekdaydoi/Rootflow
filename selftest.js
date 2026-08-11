@@ -205,6 +205,26 @@
     check('Legacy debt payment vẫn tính vào debt service cash obligation', legacyMonth.debtService, 5340000);
     check('Legacy debt payment được flag là chưa phân bổ', legacyMonth.unallocatedDebtPayment, 5340000);
 
+
+    /* --- 20. Liquid opening balance phải chạy từ chính ngày bắt đầu --- */
+    var openingAccounts = [
+      { id: 'ob', name: 'Bank opening', type: 'bank', openingBalance: 7834000, balanceAsOf: '2026-08-11', archived: false },
+      { id: 'ol', name: 'Loan snapshot', type: 'loan', openingBalance: 20000000, balanceAsOf: '2026-08-11', archived: false },
+      { id: 'or', name: 'Receivable new', type: 'receivable', openingBalance: 0, balanceAsOf: '2026-08-11', archived: false }
+    ];
+    var openingFlows = [
+      { id: 'obi', date: '2026-08-11', confirmed: true, skipped: false, kind: 'income', accountId: 'ob', amount: 16000000, category: 'Lương', note: '' },
+      { id: 'obe', date: '2026-08-11', confirmed: true, skipped: false, kind: 'expense', accountId: 'ob', amount: 40000, category: 'Ăn uống', note: '' },
+      { id: 'obr', date: '2026-08-11', confirmed: true, skipped: false, kind: 'repay', accountId: 'ob', counterAccountId: 'ol', amount: 1000000, principalAmount: 800000, borrowingCost: 200000, category: '', note: '' },
+      { id: 'obl', date: '2026-08-11', confirmed: true, skipped: false, kind: 'lend', accountId: 'ob', counterAccountId: 'or', amount: 500000, category: '', note: '' }
+    ];
+    var openingBal = D.balances(openingAccounts, openingFlows);
+    check('Liquid replay flow cùng ngày bắt đầu theo dõi', openingBal.ob, 22294000);
+    check('Loan snapshot không replay repay cùng ngày', openingBal.ol, 20000000);
+    check('Account bắt đầu từ 0 replay flow cùng ngày', openingBal.or, 500000);
+    var beforeOpening = D.balances(openingAccounts, [], { upto: '2026-08-10' });
+    check('Lịch sử trước ngày bắt đầu không kéo opening balance ngược quá khứ', beforeOpening.ob, 0);
+
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };
   }
