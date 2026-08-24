@@ -1,55 +1,113 @@
 # Rootflow
 
-Rootflow là personal treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới; giao diện tập trung vào tiền khả dụng, điểm áp lực, buffer và các quyết định tài chính đời thường.
+Rootflow là personal treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới; giao diện ưu tiên trả lời những câu hỏi đời thường: **đang có bao nhiêu tiền, sắp phải trả gì, ngày nào căng nhất, cần giữ bao nhiêu cash và vì sao**.
 
-**Money in motion. Clarity in control.** Bộ nhận diện dùng source dot và ba flow bo tròn; opening splash vẽ từng flow khi app khởi động, đồng thời tôn trọng `prefers-reduced-motion`.
+**Money in motion. Clarity in control.** Bộ nhận diện, logo, source dot, ba flow bo tròn và opening splash được giữ nguyên. Opening animation vẫn tôn trọng `prefers-reduced-motion`.
 Ở chế độ standalone/Home Screen, viewport khóa pinch-zoom và chỉ giữ thao tác pan dọc; khi mở bằng trình duyệt thường, khả năng zoom vẫn được giữ nguyên.
+
+## Rootflow V3 — explainable treasury
+
+V3 là lớp bổ sung trên kiến trúc V2 hiện hữu, không rewrite framework hoặc phá visual system. Nó thêm:
+
+- **Tổng quan / Overview**: tiền hiện có, snapshot date, minimum cash required, recommended buffer, pressure date và phần giải thích phép tính.
+- **Lịch tiền / Cash Calendar**: cash bridge, nghĩa vụ 7/30 ngày, gốc/lãi/phí và nghĩa vụ tháng chưa có exact date.
+- **Nợ & Cho vay / Debt & Lending**: lending book và funding links giữa khoản vay với khoản phải thu.
+- **Kế hoạch / Plan**: giữ lại công cụ mô phỏng hiện hữu.
+- **Song ngữ VI/EN** cho trải nghiệm chính; Vietnamese là mặc định.
+- **Control obligation** cho rollover cost thẻ: hiển thị trong planning nhưng không giả thành ledger transaction.
 
 ## Nguyên tắc dữ liệu
 
 - Tài sản = Nợ phải trả + Vốn chủ.
 - Tài sản ròng = Tổng tài sản - Nợ phải trả.
-- Tài khoản tiền mặt/ngân hàng/ví dùng số dư đầu kỳ tại ngày bắt đầu theo dõi; giao dịch từ ngày đó làm thay đổi số dư hiện tại.
-- Khoản vay, phải thu, đầu tư và tài sản hiện hữu có thể được nhập theo số dư snapshot để tránh replay lịch sử trước thời điểm bắt đầu theo dõi.
-- Trả khoản vay tách vốn/gốc và chi phí vay: gốc giảm liability, chi phí vay đi vào expense, cash giảm bằng tổng hai phần.
-- Cho vay và thu hồi gốc là luân chuyển giữa tiền khả dụng và phải thu, không phải income/expense của principal.
-- Giao dịch hôm nay/quá khứ được ghi nhận actual; giao dịch tương lai nằm trong forecast.
-- Dòng tiền tương lai được phân `CERTAIN`, `EXPECTED`, `UNCERTAIN`; inflow chưa chắc chắn không được dùng để chứng minh trạng thái an toàn.
-- `liquidityBuffer = projectedLowPoint - hardFloor`; `operatingHeadroom = projectedLowPoint - operatingBuffer`.
-- `UNSAFE` khi thủng hard floor, `TIGHT` khi trên hard floor nhưng dưới operating buffer, còn lại là `SAFE`.
-- Vay và cho vay tạo contract/counterparty; ngày đáo hạn và ngày dự kiến thu được đưa vào cùng một timeline để phát hiện maturity mismatch.
-- Điều khoản vay/cho vay hỗ trợ không lãi, lãi suất đơn theo tháng hoặc một khoản lãi cố định; tài khoản và hợp đồng đã tạo có thể sửa lại.
-- Nguồn vốn `Kết hợp` được lưu như nguồn tổng hợp và không buộc liên kết thêm một khoản vay cụ thể.
-- Kế hoạch chi tiêu tháng đặt hạn mức theo nhóm, đối chiếu với chi phí actual và cảnh báo khi dùng từ 80% hoặc vượt kế hoạch.
+- Account hỗ trợ hai semantics rõ ràng:
+  - `opening_balance`: flow cùng ngày baseline được replay.
+  - `closing_snapshot`: mọi flow `date <= balanceAsOf` đã nằm trong snapshot và không được replay lần nữa.
+- Khoản vay, phải thu, đầu tư và tài sản hiện hữu có thể được nhập theo snapshot để tránh double count lịch sử.
+- `confirmed=true` nghĩa là **Actual / Đã xảy ra**. Một future flow `CERTAIN` chỉ là **Committed / Đã chốt lịch**, không tự biến thành actual chỉ vì đến ngày.
+- Trả khoản vay tách principal, interest và fee. Cash out = principal + interest + fee.
+- Cho vay và thu hồi gốc là luân chuyển giữa tiền khả dụng và phải thu; principal collection không phải income.
+- Interest-only receivable không giảm principal khi thu lãi.
+- Dòng tiền tương lai được phân `CERTAIN`, `EXPECTED`, `INFERRED`, `UNCERTAIN/UNKNOWN`; Expected inflow không được dùng để chứng minh conservative safety.
+- Statement thẻ là statement; debt conversion từ revolving sang installment là non-cash reclassification.
+- Rollover rate là control assumption và chỉ áp lên revolving principal.
+- Nghĩa vụ monthly nhưng chưa biết exact due date vẫn được tính vào planning mà không bị gán ngày giả.
+
+## Buffer và thanh khoản
+
+Rootflow V3 không yêu cầu user tự hiểu `hard floor` trước khi dùng app.
+
+Minimum cash requirement được giải thích theo cấu trúc:
+
+```text
+Minimum required cash
+= maximum cumulative funding gap on dated cashflows
++ undated monthly obligations
++ estimated rollover control cost
+```
+
+Nếu user có `operatingBuffer`, Rootflow cộng phần reserve này riêng để tạo `recommendedCashToKeep`.
+
+Rootflow hiển thị hai góc nhìn:
+
+- **Conservative**: chỉ dùng committed/CERTAIN inflow để chứng minh khả năng cover.
+- **Expected**: bổ sung expected inflow để user nhìn planning case, nhưng không dùng để nâng trạng thái an toàn bảo thủ.
 
 ## Cấu trúc
 
-- `index.html` — app shell
-- `styles.css` — hệ thống giao diện mobile-first, safe-area và responsive
-- `app.js` — UI
-- `domain.js` — finance engine
+Core V2 được giữ nguyên:
+
+- `index.html` — app shell + opening splash
+- `styles.css` — visual system hiện hữu
+- `app.js` — React UI hiện hữu
+- `domain.js` — finance engine gốc
 - `store.js` — local storage, migration, backup/restore
-- `selftest.js` — business-rule tests chạy được trong app
-- `tests/run-tests.js` — test tài chính và migration chạy bằng Node
+- `selftest.js` — in-app business-rule tests
+- `tests/run-tests.js` — regression suite hiện hữu
 - `sw.js` — PWA/offline cache
-- `manifest.json` — PWA manifest
-- `vendor/` — runtime local
 - `brand/`, `icon-*` — logo và PWA assets
 
-Rootflow không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh trong repository.
+V3 bổ sung theo kiểu additive:
+
+- `v3-domain.js` — snapshot-aware projection, explainable buffer, debt calendar, funding map
+- `v3-store.js` — tách Committed khỏi Actual, normalize legacy auto-posted flows
+- `v3-i18n.js` — bilingual copy layer
+- `v3-ui.js` — progressive UX panels trên UI hiện hữu
+- `v3.css` — chỉ style các component V3; không overwrite visual system cũ
+- `tests/run-v3-tests.js` — snapshot/buffer/funding regression tests
+- `tests/run-v3-store-tests.js` — committed-vs-actual persistence tests
+
+Rootflow vẫn không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh trong repository.
 
 ## Schema và migration
 
-Schema hiện tại là v6. Migration giữ nguyên `accounts`, `flows`, `budgets`, `scenarios`, thêm `counterparties`, `contracts`, ba mức buffer và confidence cho forecast. Planned flow cũ được giữ ở mức `EXPECTED` thay vì tự nâng thành confirmed. Backup cũ vẫn import được; dữ liệu từ schema mới hơn bị từ chối trước khi ghi đè.
+Store hiện tại dùng **schema v9**. V3 không bắt buộc bump schema vì các field bổ sung đều backward-tolerant và backup v9 hiện hữu vẫn import được.
+
+Các field quan trọng V3 có thể đọc khi tồn tại:
+
+```text
+account.balanceSemantics
+flow.cashflowPhase
+flow.alreadyReflectedInSnapshot
+flow.affectsProjectedCash
+flow.forecastCashImpact
+settings.snapshotDate
+settings.forecastStartDate
+settings.ignoreHistoricalFlowsForProjection
+```
+
+Backup từ schema mới hơn app vẫn bị từ chối trước khi ghi đè, giữ migration guard hiện hữu.
 
 ## Kiểm tra
 
 ```sh
 node tests/run-tests.js
+node tests/run-v3-tests.js
+node tests/run-v3-store-tests.js
 ```
 
-Suite bao phủ vay, cho vay, thu gốc/lãi, trả gốc/chi phí vay, maturity mismatch, buffer status, decision simulation, input tiền rút gọn và migration guard.
+CI trên branch/PR chạy cả ba suite.
 
 ## Dữ liệu
 
-Dữ liệu được lưu local trên thiết bị/browser. Nên xuất backup trước khi xoá Website Data, gỡ PWA hoặc đổi browser profile.
+Dữ liệu được lưu local trên thiết bị/browser. Không commit backup tài chính thật vào repository public. Nên xuất backup trước khi xoá Website Data, gỡ PWA hoặc đổi browser profile.

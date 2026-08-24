@@ -1,0 +1,24 @@
+name: Rootflow V3 tests
+
+on:
+  push:
+    branches:
+      - rootflow-v3-explainable-treasury
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Existing financial tests
+        run: node tests/run-tests.js
+      - name: V3 snapshot and buffer regressions
+        run: node tests/run-v3-tests.js
+      - name: V3 committed versus actual regressions
+        run: node tests/run-v3-store-tests.js
+      - name: V3 compatibility regressions
+        run: node tests/run-v3-compat-tests.js
