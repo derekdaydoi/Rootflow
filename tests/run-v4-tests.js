@@ -60,8 +60,10 @@ assert(calendar.some(r => r.type === 'control'), 'rollover control obligation sh
 
 const business = D.v4BusinessSummary(data);
 assert.strictEqual(business.recurringLendingIncome, 12);
-assert.strictEqual(business.knownFundingCostMonthly, 1.44, 'known funding cost = 0.2 + 0.6 + 0.64 rollover');
-assert.strictEqual(business.netMonthlyProfitEstimate, 10.56);
+/* Rootflow stores currency as integer units. The synthetic sub-unit monthly
+   costs (0.2, 0.6, 0.64) therefore round to 0 + 1 + 1 = 2. */
+assert.strictEqual(business.knownFundingCostMonthly, 2, 'funding cost must use integer currency rounding consistently');
+assert.strictEqual(business.netMonthlyProfitEstimate, 10);
 assert.strictEqual(business.profitable, true);
 assert(business.netMonthlyProfitEstimate < 100, 'salary must not be counted as business profit');
 
