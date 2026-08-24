@@ -3,6 +3,7 @@
 Rootflow là personal treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới; giao diện tập trung vào tiền khả dụng, điểm áp lực, buffer và các quyết định tài chính đời thường.
 
 **Money in motion. Clarity in control.** Bộ nhận diện dùng source dot và ba flow bo tròn; opening splash vẽ từng flow khi app khởi động, đồng thời tôn trọng `prefers-reduced-motion`.
+Ở chế độ standalone/Home Screen, viewport khóa pinch-zoom và chỉ giữ thao tác pan dọc; khi mở bằng trình duyệt thường, khả năng zoom vẫn được giữ nguyên.
 
 ## Nguyên tắc dữ liệu
 

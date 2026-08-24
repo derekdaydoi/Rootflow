@@ -2,7 +2,15 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+  <script>
+    (function () {
+      var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+      if (!standalone) return;
+      document.documentElement.classList.add('standalone-pwa');
+      document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content');
+    })();
+  </script>
   <meta name="theme-color" content="#F5F6F2">
   <meta name="color-scheme" content="light">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -35,6 +43,7 @@
       </svg>
       <div class="splash-wordmark"><span>root</span><strong>flow</strong></div>
       <div class="splash-subtitle">Money in motion. Clarity in control.</div>
+      <div class="splash-copyright">© Copyright from <strong>@derekdaydoi</strong>.</div>
     </div>
   </div>
   <div id="root"><div class="boot">Đang mở Rootflow…</div></div>
@@ -53,7 +62,7 @@
       window.setTimeout(function () {
         document.body.classList.remove('splash-active');
         splash.remove();
-      }, reduced ? 650 : 2700);
+      }, reduced ? 700 : 3150);
     })();
   </script>
 </body>
