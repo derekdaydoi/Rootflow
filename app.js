@@ -157,6 +157,15 @@
   }
 
   function TextInput(props) {
+    if (props.type === 'date') {
+      var parts = String(props.value || '').split('-');
+      var display = parts.length === 3 && parts[0] && parts[1] && parts[2]
+        ? parts[2] + '.' + parts[1] + '.' + parts[0] : 'dd.mm.yyyy';
+      return h('span', { className: 'date-control' },
+        h('span', { className: 'date-display', 'aria-hidden': 'true' }, display),
+        h(Icon, { name: 'calendar', className: 'date-icon' }),
+        h('input', Object.assign({}, props, { className: 'date-native' })));
+    }
     return h('input', Object.assign({ className: 'input', type: 'text' }, props));
   }
 
@@ -427,7 +436,7 @@
       h('div', { className: 'content' },
         h('div', { className: 'eyebrow' }, 'Bạn đang cân nhắc điều gì?'),
         h('div', { className: 'decision-options', style: { marginTop: 10 } }, DECISIONS.map(function (item) {
-          return h('button', { key: item[0], type: 'button', className: 'decision-option ' + (form.kind === item[0] ? 'on' : ''), onClick: function () { set('kind', item[0]); } }, h(Icon, { name: item[1] }), item[2]);
+          return h('button', { key: item[0], type: 'button', className: 'decision-option ' + (form.kind === item[0] ? 'on' : ''), onClick: function () { set('kind', item[0]); } }, h(Icon, { name: item[1] }), h('span', null, item[2]));
         })),
         h('div', { className: 'decision-form' },
           h(Field, { label: 'Số tiền' }, h(MoneyInput, { value: form.amount, onChange: function (v) { set('amount', v); }, placeholder: '30M' })),
