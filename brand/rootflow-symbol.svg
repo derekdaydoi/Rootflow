@@ -1,10 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-labelledby="title desc">
-  <title id="title">Rootflow symbol</title>
-  <desc id="desc">A white anchored R-flow line with a root dot on Rootflow green.</desc>
-  <rect width="1000" height="1000" rx="220" fill="#14614A"/>
-  <g fill="none" stroke="#FFFFFF" stroke-width="74" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M254 733 C330 602 353 387 490 286 C580 220 766 210 822 333 C873 446 795 568 650 574 L500 574"/>
-    <path d="M520 574 C624 596 724 665 814 744"/>
+  <title id="title">Rootflow app symbol</title>
+  <desc id="desc">The Rootflow source-and-flow mark on a warm light tile.</desc>
+  <defs>
+    <radialGradient id="tile" cx="45%" cy="32%" r="82%"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EEF3ED"/></radialGradient>
+    <linearGradient id="green" x1="260" y1="760" x2="790" y2="245" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0F4F35"/><stop offset="1" stop-color="#1C8A58"/></linearGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="#F5F6F2"/>
+  <rect x="34" y="34" width="932" height="932" rx="224" fill="url(#tile)"/>
+  <rect x="34" y="34" width="932" height="932" rx="224" fill="none" stroke="#DDE7DF" stroke-width="16"/>
+  <circle cx="260" cy="500" r="46" fill="url(#green)"/>
+  <g fill="none" stroke="url(#green)" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M430 318C430 253 483 200 548 200H792"/>
+    <path d="M430 528C430 463 483 410 548 410H728"/>
+    <path d="M430 738C430 673 483 620 548 620H658"/>
   </g>
-  <circle cx="219" cy="782" r="57" fill="#FFFFFF"/>
 </svg>

@@ -88,6 +88,12 @@
     }, h('path', { d: ICONS[name] || ICONS.other }));
   }
 
+  function BrandTitle() {
+    return h('span', { className: 'brand-title-lockup' },
+      h('img', { src: 'brand/rootflow-mark.svg', alt: '', 'aria-hidden': 'true' }),
+      h('span', { className: 'brand-title-word' }, h('span', null, 'root'), h('strong', null, 'flow')));
+  }
+
   function IconButton(props) {
     return h('button', {
       type: 'button', className: 'icon-button', onClick: props.onClick,
@@ -326,7 +332,7 @@
     var model = d.liquidity;
     if (!d.liquidAccounts.length) {
       return h('main', { className: 'page' },
-        h(AppBar, { title: 'Rootflow', brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
+        h(AppBar, { title: h(BrandTitle), brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
         h('div', { className: 'content' },
           h('div', { className: 'eyebrow' }, 'Personal Treasury'),
           h('h2', { style: { margin: '7px 0 4px', fontSize: 25, lineHeight: 1.2 } }, 'Biết tiền của bạn có an toàn hay không.'),
@@ -339,7 +345,7 @@
     var monthlyBudgets = budgetRows(props.data, D.monthOf(D.today()));
     var activeBudgets = monthlyBudgets.filter(function (row) { return row.limit > 0; });
     return h('main', { className: 'page' },
-      h(AppBar, { title: 'Rootflow', brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
+      h(AppBar, { title: h(BrandTitle), brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
       h('div', { className: 'content' },
         h('section', { className: 'hero' },
           h('div', { className: 'hero-top' },

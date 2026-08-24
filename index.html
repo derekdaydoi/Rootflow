@@ -8,14 +8,35 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Rootflow">
-  <meta name="description" content="Personal treasury system chạy local-first trên thiết bị của bạn.">
+  <meta name="description" content="Rootflow — Money in motion. Clarity in control.">
   <title>Rootflow — Personal Treasury</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="splash-active">
+  <div id="opening-splash" class="opening-splash" aria-hidden="true">
+    <div class="splash-halo"></div>
+    <div class="splash-lockup">
+      <svg class="splash-mark" viewBox="0 0 128 128" role="presentation">
+        <defs>
+          <linearGradient id="splash-green" x1="18" y1="104" x2="106" y2="18" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#0F4F35"></stop>
+            <stop offset="1" stop-color="#1C8A58"></stop>
+          </linearGradient>
+        </defs>
+        <circle class="splash-source" cx="21" cy="64" r="7" fill="url(#splash-green)"></circle>
+        <g fill="none" stroke="url(#splash-green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+          <path class="splash-flow splash-flow-one" pathLength="1" d="M46 35C46 25.6 53.6 18 63 18H101"></path>
+          <path class="splash-flow splash-flow-two" pathLength="1" d="M46 68C46 58.6 53.6 51 63 51H91"></path>
+          <path class="splash-flow splash-flow-three" pathLength="1" d="M46 101C46 91.6 53.6 84 63 84H80"></path>
+        </g>
+      </svg>
+      <div class="splash-wordmark"><span>root</span><strong>flow</strong></div>
+      <div class="splash-subtitle">Money in motion. Clarity in control.</div>
+    </div>
+  </div>
   <div id="root"><div class="boot">Đang mở Rootflow…</div></div>
   <noscript><div class="boot">Rootflow cần JavaScript để chạy.</div></noscript>
   <script src="vendor/react.production.min.js"></script>
@@ -24,5 +45,16 @@
   <script src="store.js"></script>
   <script src="selftest.js"></script>
   <script src="app.js"></script>
+  <script>
+    (function () {
+      var splash = document.getElementById('opening-splash');
+      if (!splash) return;
+      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.setTimeout(function () {
+        document.body.classList.remove('splash-active');
+        splash.remove();
+      }, reduced ? 650 : 2700);
+    })();
+  </script>
 </body>
 </html>

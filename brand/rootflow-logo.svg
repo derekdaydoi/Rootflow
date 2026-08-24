@@ -1,14 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 240" role="img" aria-labelledby="title desc">
   <title id="title">Rootflow logo</title>
-  <desc id="desc">Rootflow lockup with green app mark, ROOT in graphite and FLOW in green.</desc>
-  <g transform="translate(10 10) scale(.2)">
-    <rect width="1000" height="1000" rx="220" fill="#14614A"/>
-    <g fill="none" stroke="#FFFFFF" stroke-width="74" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M254 733 C330 602 353 387 490 286 C580 220 766 210 822 333 C873 446 795 568 650 574 L500 574"/>
-      <path d="M520 574 C624 596 724 665 814 744"/>
-    </g>
-    <circle cx="219" cy="782" r="57" fill="#FFFFFF"/>
+  <desc id="desc">Rootflow source-and-flow mark, wordmark, and the line Money in motion. Clarity in control.</desc>
+  <defs><linearGradient id="green" x1="28" y1="195" x2="190" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0F4F35"/><stop offset="1" stop-color="#1C8A58"/></linearGradient></defs>
+  <g transform="translate(18 18) scale(1.55)">
+    <circle cx="21" cy="64" r="7" fill="url(#green)"/>
+    <g fill="none" stroke="url(#green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M46 35C46 25.6 53.6 18 63 18H101"/><path d="M46 68C46 58.6 53.6 51 63 51H91"/><path d="M46 101C46 91.6 53.6 84 63 84H80"/></g>
   </g>
-  <text x="245" y="128" font-family="Manrope, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="82" font-weight="800" letter-spacing="-5"><tspan fill="#101110">ROOT</tspan><tspan fill="#14614A">FLOW</tspan></text>
-  <text x="250" y="165" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="4.4" fill="#858981">SEE WHAT COMES NEXT.</text>
+  <text x="220" y="120" font-family="Manrope, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="88" font-weight="780" letter-spacing="-5"><tspan fill="#161B18">root</tspan><tspan fill="#176B45">flow</tspan></text>
+  <text x="225" y="164" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="18" font-weight="560" letter-spacing="1.5" fill="#69716C">Money in motion. Clarity in control.</text>
 </svg>

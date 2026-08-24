@@ -1,7 +1,7 @@
 {
   "name": "Rootflow",
   "short_name": "Rootflow",
-  "description": "Personal treasury system: vị thế, dòng tiền và buffer thanh khoản.",
+  "description": "Money in motion. Clarity in control. Personal treasury chạy local-first.",
   "start_url": "./",
   "scope": "./",
   "id": "./",
