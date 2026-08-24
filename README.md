@@ -15,6 +15,9 @@ Rootflow là personal treasury system chạy local-first trên trình duyệt/PW
 - `liquidityBuffer = projectedLowPoint - hardFloor`; `operatingHeadroom = projectedLowPoint - operatingBuffer`.
 - `UNSAFE` khi thủng hard floor, `TIGHT` khi trên hard floor nhưng dưới operating buffer, còn lại là `SAFE`.
 - Vay và cho vay tạo contract/counterparty; ngày đáo hạn và ngày dự kiến thu được đưa vào cùng một timeline để phát hiện maturity mismatch.
+- Điều khoản vay/cho vay hỗ trợ không lãi, lãi suất đơn theo tháng hoặc một khoản lãi cố định; tài khoản và hợp đồng đã tạo có thể sửa lại.
+- Nguồn vốn `Kết hợp` được lưu như nguồn tổng hợp và không buộc liên kết thêm một khoản vay cụ thể.
+- Kế hoạch chi tiêu tháng đặt hạn mức theo nhóm, đối chiếu với chi phí actual và cảnh báo khi dùng từ 80% hoặc vượt kế hoạch.
 
 ## Cấu trúc
 

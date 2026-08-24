@@ -14,7 +14,7 @@
     plus: 'M12 5v14M5 12h14',
     position: 'M4 20V10m6 10V4m6 16v-7m4 7H2',
     decide: 'M12 3a7 7 0 0 0-4 12.74V19h8v-3.26A7 7 0 0 0 12 3Zm-4 16h8m-7 3h6',
-    settings: 'M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04H5.3v-3h.14A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88L6.6 7.98l2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 11.7 4.7v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.04h.14v3h-.14A1.7 1.7 0 0 0 19.4 15Z',
+    settings: 'M4 7h10m4 0h2M14 7a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM4 17h2m4 0h10M6 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z',
     back: 'm15 18-6-6 6-6',
     close: 'M6 6l12 12M18 6 6 18',
     info: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Zm0-11v6m0-10h.01',
@@ -40,8 +40,44 @@
     save: 'M5 3h12l2 2v16H5zM8 3v6h8V3M8 21v-7h8v7',
     upload: 'M12 16V4m0 0 5 5m-5-5L7 9M4 20h16',
     download: 'M12 4v12m0 0 5-5m-5 5-5-5M4 20h16',
-    check: 'm5 12 4 4L19 6'
+    check: 'm5 12 4 4L19 6',
+    shopping: 'M6 7h15l-2 8H8L6 3H3m6 16a1 1 0 1 0 0 .01M18 19a1 1 0 1 0 0 .01',
+    coffee: 'M5 8h12v6a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5Zm12 2h2a2 2 0 0 1 0 4h-2M8 3v2m4-2v2',
+    heart: 'M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z',
+    house: 'M3 11 12 3l9 8M5 10v11h14V10M9 21v-7h6v7',
+    fuel: 'M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M5 9h11M3 21h15m-2-13 3 3v6a2 2 0 0 0 2 2',
+    sport: 'M7 4c2 2 3 5 3 8s-1 6-3 8M17 4c-2 2-3 5-3 8s1 6 3 8M4 8h16M4 16h16',
+    food: 'M7 3v8m-3-8v5a3 3 0 0 0 6 0V3M7 11v10M17 3v18m0-18c-3 2-3 8 0 10h3',
+    ai: 'M8 3h8M8 21h8M3 8v8M21 8v8M7 7h10v10H7zM10 13l2-4 2 4m-3-.5h2M16 9v4',
+    phone: 'M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm3 17h4',
+    study: 'm3 10 9-5 9 5-9 5-9-5Zm4 3v4c3 2 7 2 10 0v-4M21 10v6',
+    health: 'M12 21S4 16 4 9a4 4 0 0 1 7-2.6L12 8l1-1.6A4 4 0 0 1 20 9c0 7-8 12-8 12Zm-4-9h2l1-2 2 4 1-2h2',
+    family: 'M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM3 21v-3a5 5 0 0 1 10 0v3m1-6a4 4 0 0 1 7 3v3',
+    entertainment: 'M4 6h16v12H4zM9 10l6 3-6 3Z',
+    travel: 'M3 12h18M8 21l4-9 4 9M8 3l4 9 4-9',
+    subscription: 'M4 7h16v12H4zM7 4h10M8 11h8m-8 4h5',
+    gift: 'M3 9h18v12H3zM12 9v12M3 13h18M12 9H8.5a2.5 2.5 0 1 1 3.5-2.3Zm0 0h3.5A2.5 2.5 0 1 0 12 6.7Z'
   };
+
+  var BUDGET_CATEGORIES = [
+    { id: 'food', label: 'Ăn uống', icon: 'food' },
+    { id: 'coffee', label: 'Cafe', icon: 'coffee' },
+    { id: 'shopping', label: 'Mua sắm', icon: 'shopping' },
+    { id: 'housing', label: 'Nhà cửa & dịch vụ', icon: 'house' },
+    { id: 'transport', label: 'Xăng xe & đi lại', icon: 'fuel' },
+    { id: 'love', label: 'Yêu đương', icon: 'heart' },
+    { id: 'sport', label: 'Thể thao', icon: 'sport' },
+    { id: 'ai', label: 'AI & phần mềm', icon: 'ai' },
+    { id: 'telecom', label: 'Viễn thông', icon: 'phone' },
+    { id: 'study', label: 'Học tập', icon: 'study' },
+    { id: 'health', label: 'Sức khỏe', icon: 'health' },
+    { id: 'family', label: 'Gia đình', icon: 'family' },
+    { id: 'entertainment', label: 'Giải trí', icon: 'entertainment' },
+    { id: 'travel', label: 'Du lịch', icon: 'travel' },
+    { id: 'subscription', label: 'Đăng ký định kỳ', icon: 'subscription' },
+    { id: 'gift', label: 'Quà tặng', icon: 'gift' },
+    { id: 'other', label: 'Khác', icon: 'other' }
+  ];
 
   function Icon(props) {
     var name = props.name || 'other';
@@ -76,6 +112,60 @@
   function confidenceLabel(flow) {
     var key = D.confidenceOf(flow);
     return key === 'CERTAIN' ? 'Confirmed' : key === 'EXPECTED' ? 'Expected' : 'Uncertain';
+  }
+
+  function normalizeText(value) {
+    return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').trim();
+  }
+
+  function categoryId(value) {
+    var text = normalizeText(value);
+    var exact = BUDGET_CATEGORIES.filter(function (item) { return item.id === text || normalizeText(item.label) === text; })[0];
+    if (exact) return exact.id;
+    if (/(^| )(an|com|pho|bun|food|nha hang)( |$)/.test(text)) return 'food';
+    if (/cafe|coffee|tra sua/.test(text)) return 'coffee';
+    if (/mua sam|shopping|quan ao|sieu thi/.test(text)) return 'shopping';
+    if (/nha|dien|nuoc|dich vu|thue/.test(text)) return 'housing';
+    if (/xang|xe|grab|taxi|di lai/.test(text)) return 'transport';
+    if (/yeu|hen ho/.test(text)) return 'love';
+    if (/the thao|gym|sport/.test(text)) return 'sport';
+    if (/ai|phan mem|software/.test(text)) return 'ai';
+    if (/vien thong|dien thoai|internet|sim/.test(text)) return 'telecom';
+    if (/hoc|sach|khoa/.test(text)) return 'study';
+    if (/suc khoe|thuoc|benh|kham/.test(text)) return 'health';
+    if (/gia dinh|con cai|bo me/.test(text)) return 'family';
+    if (/giai tri|phim|game/.test(text)) return 'entertainment';
+    if (/du lich|khach san|ve may bay/.test(text)) return 'travel';
+    if (/dang ky|subscription|netflix/.test(text)) return 'subscription';
+    if (/qua|gift/.test(text)) return 'gift';
+    return 'other';
+  }
+
+  function categoryMeta(value) {
+    var id = categoryId(value);
+    return BUDGET_CATEGORIES.filter(function (item) { return item.id === id; })[0] || BUDGET_CATEGORIES[BUDGET_CATEGORIES.length - 1];
+  }
+
+  function budgetRows(data, ym) {
+    var bounds = D.monthBounds(ym);
+    return BUDGET_CATEGORIES.map(function (category) {
+      var budget = data.budgets.filter(function (row) { return row.month === ym && categoryId(row.category) === category.id; })[0];
+      var spent = data.flows.filter(function (flow) {
+        return flow && !flow.deletedAt && !flow.skipped && flow.confirmed && flow.date >= bounds.from && flow.date <= bounds.to
+          && (flow.kind === 'expense' || flow.kind === 'fee' || flow.kind === 'interest_out')
+          && categoryId(flow.category || flow.title || flow.note) === category.id;
+      }).reduce(function (sum, flow) { return sum + Math.abs(Number(flow.amount) || 0); }, 0);
+      return { category: category, budget: budget, limit: Math.max(0, Number(budget && budget.limit) || 0), spent: spent };
+    });
+  }
+
+  function plannedContractInterest(contract) {
+    var principal = Math.max(0, Number(contract && contract.originalPrincipal) || 0);
+    if (!contract || contract.interestMode === 'none') return 0;
+    if (contract.interestMode === 'fixed') return Math.max(0, Number(contract.fixedInterest) || 0);
+    var rate = Math.max(0, Number(contract.interestRate) || 0);
+    var days = contract.maturityDate ? Math.max(0, D.diffDays(contract.startDate, contract.maturityDate)) : 30;
+    return Math.round(principal * rate / 100 * days / 30);
   }
 
   function flowAmount(flow, accounts) {
@@ -246,6 +336,8 @@
     var status = model.status;
     var pressure = d.pressureFlows;
     var gap = Math.max(0, -model.liquidityBuffer);
+    var monthlyBudgets = budgetRows(props.data, D.monthOf(D.today()));
+    var activeBudgets = monthlyBudgets.filter(function (row) { return row.limit > 0; });
     return h('main', { className: 'page' },
       h(AppBar, { title: 'Rootflow', brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
       h('div', { className: 'content' },
@@ -284,6 +376,20 @@
             h('button', { type: 'button', className: 'text-button', onClick: props.onFlow }, 'Xem tất cả')),
           d.upcoming.length ? h('div', { className: 'flow-list' }, d.upcoming.slice(0, 5).map(function (flow) { return h(FlowRow, { key: flow.id, flow: flow, accounts: props.data.accounts }); }))
             : h('p', { className: 'section-copy', style: { marginTop: 8 } }, 'Chưa có nghĩa vụ hay khoản thu nào trong 30 ngày tới.')),
+        h('section', { className: 'section' },
+          h('div', { className: 'section-head-row' },
+            h('div', null, h('h2', { className: 'section-heading', style: { margin: 0 } }, 'Kế hoạch chi tiêu tháng'), h('p', { className: 'section-copy budget-section-copy' }, D.fmtMonth(D.monthOf(D.today())))),
+            h('button', { type: 'button', className: 'text-button', onClick: props.onBudgets }, activeBudgets.length ? 'Quản lý' : 'Thiết lập')),
+          activeBudgets.length ? h('div', { className: 'budget-preview-grid' }, activeBudgets.slice(0, 4).map(function (row) {
+            var pct = row.limit ? Math.min(100, row.spent / row.limit * 100) : 0;
+            return h('button', { type: 'button', className: 'budget-preview ' + (row.spent > row.limit ? 'over' : row.spent >= row.limit * .8 ? 'warning' : ''), key: row.category.id, onClick: props.onBudgets },
+              h('div', { className: 'budget-icon' }, h(Icon, { name: row.category.icon })),
+              h('div', { className: 'budget-preview-copy' }, h('strong', null, row.category.label), h('span', null, compactMoney(row.spent) + ' / ' + compactMoney(row.limit))),
+              h('div', { className: 'budget-progress' }, h('i', { style: { width: pct + '%' } })));
+          })) : h('button', { type: 'button', className: 'budget-empty-cta', onClick: props.onBudgets },
+            h('div', { className: 'budget-empty-icons' }, ['food', 'coffee', 'shopping', 'fuel'].map(function (name) { return h('span', { key: name }, h(Icon, { name: name })); })),
+            h('strong', null, 'Đặt hạn mức theo từng nhóm'),
+            h('span', null, 'Theo dõi ăn uống, cafe, mua sắm, nhà cửa và các chi phí định kỳ.'))),
         h('section', { className: 'section' },
           h('button', { type: 'button', className: 'secondary-button', onClick: props.onRisk }, 'Mở Buffer & Risk'),
           h('div', { className: 'net-card' }, h('div', { className: 'net-card-row' },
@@ -455,25 +561,73 @@
   }
 
   function AccountForm(props) {
-    var state = React.useState({ name: '', type: 'bank', openingBalance: '', balanceAsOf: D.today() });
+    var account = props.account || null;
+    var contract = props.contract || null;
+    var contractType = account && (account.type === 'loan' || account.type === 'receivable');
+    var state = React.useState({
+      name: account ? account.name : '', type: account ? account.type : 'bank',
+      openingBalance: account && account.openingBalance ? D.groupDigits(account.openingBalance) : '',
+      balanceAsOf: account && account.balanceAsOf ? account.balanceAsOf : D.today(),
+      counterparty: contract ? contract.counterpartyName : '',
+      originalPrincipal: contract && contract.originalPrincipal ? D.groupDigits(contract.originalPrincipal) : contractType && props.currentBalance ? D.groupDigits(props.currentBalance) : '',
+      maturityDate: contract && contract.maturityDate ? contract.maturityDate : '',
+      interestMode: contract ? (contract.interestMode || (contract.fixedInterest ? 'fixed' : contract.interestRate ? 'rate' : 'none')) : 'none',
+      interestRate: contract && contract.interestRate ? String(contract.interestRate) : '',
+      fixedInterest: contract && contract.fixedInterest ? D.groupDigits(contract.fixedInterest) : ''
+    });
     var form = state[0], setForm = state[1];
     var errState = React.useState(''), error = errState[0], setError = errState[1];
     function set(key, value) { setForm(function (prev) { var next = Object.assign({}, prev); next[key] = value; return next; }); setError(''); }
     function save() {
-      var account = { id: S.uid(), name: form.name.trim(), type: form.type, openingBalance: D.parseMoney(form.openingBalance), balanceAsOf: form.balanceAsOf, archived: false, createdAt: S.now(), updatedAt: S.now() };
-      var invalid = D.validateAccount(account);
+      var nextAccount = {
+        id: account ? account.id : S.uid(), name: form.name.trim(), type: form.type,
+        openingBalance: D.parseMoney(form.openingBalance), balanceAsOf: form.balanceAsOf,
+        archived: account ? !!account.archived : false, createdAt: account ? account.createdAt : S.now(), updatedAt: S.now()
+      };
+      var invalid = D.validateAccount(nextAccount);
       if (invalid) return setError(invalid);
-      props.onSave(account);
+      var supportsContract = form.type === 'loan' || form.type === 'receivable';
+      var principal = D.parseMoney(form.originalPrincipal);
+      var shouldSaveContract = supportsContract && (contract || form.counterparty.trim() || principal > 0);
+      if (shouldSaveContract && !form.counterparty.trim()) return setError('Nhập tên đối tác của khoản vay hoặc phải thu.');
+      if (shouldSaveContract && !(principal > 0)) return setError('Nhập số tiền gốc lớn hơn 0.');
+      var contractPatch = shouldSaveContract ? {
+        id: contract ? contract.id : S.uid(),
+        type: form.type === 'loan' ? 'payable' : 'receivable',
+        counterpartyId: contract ? contract.counterpartyId : null,
+        counterpartyName: form.counterparty.trim(), accountId: nextAccount.id,
+        originalPrincipal: principal,
+        startDate: contract ? contract.startDate : form.balanceAsOf,
+        maturityDate: form.maturityDate || null,
+        interestMode: form.interestMode,
+        interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0,
+        fixedInterest: form.interestMode === 'fixed' ? D.parseMoney(form.fixedInterest) : 0,
+        interestFrequency: 'monthly', status: contract ? contract.status : 'active',
+        fundingSource: contract ? contract.fundingSource : 'own',
+        fundingContractId: contract ? contract.fundingContractId : null,
+        note: contract ? contract.note : '', createdAt: contract ? contract.createdAt : S.now(), updatedAt: S.now()
+      } : null;
+      props.onSave(nextAccount, contractPatch, contract);
     }
+    var showContract = form.type === 'loan' || form.type === 'receivable';
     return h(React.Fragment, null,
-      h('p', { className: 'sheet-intro' }, 'Nhập số dư đúng tại ngày bắt đầu theo dõi. Dữ liệu chỉ lưu trên thiết bị này.'),
+      h('p', { className: 'sheet-intro' }, account ? 'Sửa tên, số dư đối chiếu và thông tin nghĩa vụ. Thay đổi sẽ cập nhật dữ liệu liên quan.' : 'Nhập số dư đúng tại ngày bắt đầu theo dõi. Dữ liệu chỉ lưu trên thiết bị này.'),
       h(Field, { label: 'Tên tài khoản' }, h(TextInput, { value: form.name, onChange: function (e) { set('name', e.target.value); }, placeholder: 'Ví dụ: VCB chính' })),
       h(Field, { label: 'Loại' }, h(Select, { value: form.type, onChange: function (v) { set('type', v); } },
         D.ACCOUNT_ORDER.map(function (type) { return h('option', { key: type, value: type }, D.ACCOUNT_TYPES[type].label); }))),
-      h(Field, { label: 'Số dư hiện tại' }, h(MoneyInput, { value: form.openingBalance, onChange: function (v) { set('openingBalance', v); }, placeholder: '67M' })),
-      h(Field, { label: 'Ngày số dư' }, h(TextInput, { type: 'date', value: form.balanceAsOf, onChange: function (e) { set('balanceAsOf', e.target.value); } })),
+      h(Field, { label: 'Số dư tại ngày đối chiếu', help: showContract ? 'Số tiền gốc của hợp đồng được sửa ở phần bên dưới.' : 'Các giao dịch sau ngày này sẽ được cộng/trừ để ra số dư hiện tại.' }, h(MoneyInput, { value: form.openingBalance, onChange: function (v) { set('openingBalance', v); }, placeholder: '67M' })),
+      h(Field, { label: 'Ngày đối chiếu' }, h(TextInput, { type: 'date', value: form.balanceAsOf, onChange: function (e) { set('balanceAsOf', e.target.value); } })),
+      showContract ? h('div', { className: 'form-divider' },
+        h('h3', null, form.type === 'loan' ? 'Chi tiết khoản vay' : 'Chi tiết khoản phải thu'),
+        h(Field, { label: form.type === 'loan' ? 'Người cho vay' : 'Người vay' }, h(TextInput, { value: form.counterparty, onChange: function (e) { set('counterparty', e.target.value); }, placeholder: 'Tên đối tác' })),
+        h(Field, { label: 'Số tiền gốc' }, h(MoneyInput, { value: form.originalPrincipal, onChange: function (v) { set('originalPrincipal', v); }, placeholder: '100M' })),
+        h(Field, { label: 'Ngày đáo hạn / dự kiến thu' }, h(TextInput, { type: 'date', value: form.maturityDate, onChange: function (e) { set('maturityDate', e.target.value); } })),
+        h(Field, { label: 'Điều khoản lãi' }, h(Select, { value: form.interestMode, onChange: function (v) { set('interestMode', v); } },
+          h('option', { value: 'none' }, 'Không tính lãi'), h('option', { value: 'rate' }, 'Lãi suất theo tháng'), h('option', { value: 'fixed' }, 'Tiền lãi cố định'))),
+        form.interestMode === 'rate' ? h(Field, { label: 'Lãi suất đơn / tháng' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })) : null,
+        form.interestMode === 'fixed' ? h(Field, { label: 'Tiền lãi cố định' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })) : null) : null,
       error ? h('div', { className: 'field-error' }, error) : null,
-      h('button', { type: 'button', className: 'primary-button', onClick: save }, 'Lưu tài khoản'));
+      h('button', { type: 'button', className: 'primary-button', onClick: save }, account ? 'Lưu thay đổi' : 'Lưu tài khoản'));
   }
 
   var EVENT_TYPES = [
@@ -492,7 +646,7 @@
     var state = React.useState({
       amount: '', principal: '', interest: '', accountId: liquid[0] ? liquid[0].id : '', counterAccountId: '',
       counterparty: '', date: D.today(), dueDate: D.addDays(D.today(), 30), expectedDate: D.addDays(D.today(), 30),
-      confidence: props.type === 'lend' ? 'EXPECTED' : 'CERTAIN', interestRate: '', fundingSource: 'own', fundingContractId: '',
+      confidence: props.type === 'lend' ? 'EXPECTED' : 'CERTAIN', interestMode: 'rate', interestRate: '', fixedInterest: '', fundingSource: 'own', fundingContractId: '',
       category: '', note: '', assetName: '', targetAccountId: props.type === 'collect' && receivables[0] ? receivables[0].id : props.type === 'repay' && liabilities[0] ? liabilities[0].id : ''
     });
     var form = state[0], setForm = state[1];
@@ -503,13 +657,14 @@
     function date(label, key) { return h(Field, { label: label }, h(TextInput, { type: 'date', value: form[key], onChange: function (e) { set(key, e.target.value); } })); }
     function submit() {
       if (!liquid.length) return setError('Thêm ít nhất một tài khoản tiền trước.');
-      var principal = D.parseMoney(form.principal), interest = D.parseMoney(form.interest), amount = D.parseMoney(form.amount);
+      var principal = D.parseMoney(form.principal), interest = D.parseMoney(form.interest), amount = D.parseMoney(form.amount), fixedInterest = D.parseMoney(form.fixedInterest);
       if (props.type === 'collect' || props.type === 'repay') amount = principal + interest;
       if (!(amount > 0)) return setError('Nhập số tiền lớn hơn 0.');
       if ((props.type === 'borrow' || props.type === 'lend') && !form.counterparty.trim()) return setError('Nhập tên đối tác.');
+      if (props.type === 'lend' && form.fundingSource === 'borrowed' && !form.fundingContractId) return setError('Chọn khoản vay dùng làm nguồn vốn.');
       if ((props.type === 'collect' || props.type === 'repay') && !form.targetAccountId) return setError('Chọn khoản cần xử lý.');
       if (props.type === 'buy_asset' && !form.assetName.trim()) return setError('Nhập tên tài sản.');
-      props.onSave(props.type, Object.assign({}, form, { amountValue: amount, principalValue: principal, interestValue: interest }));
+      props.onSave(props.type, Object.assign({}, form, { amountValue: amount, principalValue: principal, interestValue: interest, fixedInterestValue: fixedInterest }));
     }
     var body = [];
     if (props.type === 'borrow' || props.type === 'lend') {
@@ -517,10 +672,13 @@
       body.push(money('Số tiền', 'amount', props.type === 'borrow' ? '100M' : '80M'));
       body.push(liquidSelect(props.type === 'borrow' ? 'Tài khoản nhận tiền' : 'Tài khoản nguồn'));
       body.push(h('div', { className: 'form-grid', key: 'dates' }, date(props.type === 'borrow' ? 'Ngày vay' : 'Ngày cho vay', 'date'), date(props.type === 'borrow' ? 'Ngày đến hạn' : 'Ngày dự kiến thu', props.type === 'borrow' ? 'dueDate' : 'expectedDate')));
-      body.push(h(Field, { label: 'Lãi suất / tháng (không bắt buộc)', key: 'rate' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })));
+      body.push(h(Field, { label: 'Điều khoản lãi', key: 'interest-mode' }, h(Select, { value: form.interestMode, onChange: function (v) { set('interestMode', v); } },
+        h('option', { value: 'none' }, 'Không tính lãi'), h('option', { value: 'rate' }, 'Lãi suất theo tháng'), h('option', { value: 'fixed' }, 'Tiền lãi cố định'))));
+      if (form.interestMode === 'rate') body.push(h(Field, { label: 'Lãi suất đơn / tháng', key: 'rate' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })));
+      if (form.interestMode === 'fixed') body.push(h(Field, { label: 'Tiền lãi cố định', key: 'fixed-interest' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })));
       if (props.type === 'lend') {
-        body.push(h(Field, { label: 'Nguồn vốn', key: 'funding' }, h(Select, { value: form.fundingSource, onChange: function (v) { set('fundingSource', v); } }, h('option', { value: 'own' }, 'Tiền của tôi'), h('option', { value: 'borrowed' }, 'Vay từ người khác'), h('option', { value: 'mixed' }, 'Kết hợp'))));
-        if (form.fundingSource !== 'own') body.push(h(Field, { label: 'Liên kết khoản vay', key: 'link' }, h(Select, { value: form.fundingContractId, onChange: function (v) { set('fundingContractId', v); } }, h('option', { value: '' }, 'Chọn khoản vay'), payableContracts.map(function (c) { return h('option', { value: c.id, key: c.id }, c.counterpartyName + ' · ' + compactMoney(c.originalPrincipal)); }))));
+        body.push(h(Field, { label: 'Nguồn vốn', key: 'funding', help: form.fundingSource === 'mixed' ? 'Kết hợp được ghi nhận như một nguồn tổng hợp; Rootflow không hỏi liên kết khoản vay.' : null }, h(Select, { value: form.fundingSource, onChange: function (v) { setForm(function (prev) { return Object.assign({}, prev, { fundingSource: v, fundingContractId: v === 'borrowed' ? prev.fundingContractId : '' }); }); setError(''); } }, h('option', { value: 'own' }, 'Tiền của tôi'), h('option', { value: 'borrowed' }, 'Vay từ người khác'), h('option', { value: 'mixed' }, 'Kết hợp'))));
+        if (form.fundingSource === 'borrowed') body.push(h(Field, { label: 'Liên kết khoản vay', key: 'link' }, h(Select, { value: form.fundingContractId, onChange: function (v) { set('fundingContractId', v); } }, h('option', { value: '' }, 'Chọn khoản vay'), payableContracts.map(function (c) { return h('option', { value: c.id, key: c.id }, c.counterpartyName + ' · ' + compactMoney(c.originalPrincipal)); }))));
       }
     } else if (props.type === 'collect' || props.type === 'repay') {
       var targets = props.type === 'collect' ? receivables : liabilities;
@@ -533,7 +691,8 @@
       body.push(money('Số tiền', 'amount', '25M'));
       body.push(liquidSelect(props.type === 'income' ? 'Tài khoản nhận' : 'Tài khoản nguồn'));
       if (props.type === 'transfer') body.push(h(Field, { label: 'Tài khoản đích', key: 'counter' }, h(Select, { value: form.counterAccountId, onChange: function (v) { set('counterAccountId', v); } }, h('option', { value: '' }, 'Chọn tài khoản'), liquid.filter(function (a) { return a.id !== form.accountId; }).map(function (a) { return h('option', { value: a.id, key: a.id }, a.name); }))));
-      if (props.type === 'income' || props.type === 'expense' || props.type === 'other') body.push(h(Field, { label: 'Nội dung', key: 'cat' }, h(TextInput, { value: form.category, onChange: function (e) { set('category', e.target.value); }, placeholder: props.type === 'income' ? 'Lương, thưởng…' : props.type === 'expense' ? 'Nhà ở, ăn uống…' : 'Mô tả giao dịch' })));
+      if (props.type === 'expense') body.push(h(Field, { label: 'Nhóm chi tiêu', key: 'cat' }, h(Select, { value: form.category, onChange: function (v) { set('category', v); } }, h('option', { value: '' }, 'Chọn nhóm'), BUDGET_CATEGORIES.map(function (item) { return h('option', { value: item.id, key: item.id }, item.label); }))));
+      if (props.type === 'income' || props.type === 'other') body.push(h(Field, { label: 'Nội dung', key: 'cat' }, h(TextInput, { value: form.category, onChange: function (e) { set('category', e.target.value); }, placeholder: props.type === 'income' ? 'Lương, thưởng…' : 'Mô tả giao dịch' })));
       body.push(date('Ngày', 'date'));
     }
     if (props.type === 'borrow' || props.type === 'lend') body.push(h(Field, { label: 'Độ chắc chắn của dòng hoàn trả', key: 'confidence' }, h(Select, { value: form.confidence, onChange: function (v) { set('confidence', v); } }, h('option', { value: 'CERTAIN' }, 'Confirmed — đã cam kết'), h('option', { value: 'EXPECTED' }, 'Expected — dự kiến'), h('option', { value: 'UNCERTAIN' }, 'Uncertain — chưa chắc chắn'))));
@@ -555,6 +714,63 @@
           }))));
   }
 
+  function BudgetForm(props) {
+    var existing = props.budget || null;
+    var state = React.useState(existing && existing.limit ? D.groupDigits(existing.limit) : ''), limit = state[0], setLimit = state[1];
+    function save() {
+      props.onSave({
+        id: existing ? existing.id : S.uid(), month: props.month,
+        name: props.category.label, category: props.category.id, icon: props.category.icon,
+        limit: Math.max(0, D.parseMoney(limit)),
+        createdAt: existing ? existing.createdAt : S.now(), updatedAt: S.now()
+      });
+    }
+    return h(React.Fragment, null,
+      h('div', { className: 'budget-form-heading' }, h('div', { className: 'budget-icon large' }, h(Icon, { name: props.category.icon })),
+        h('div', null, h('strong', null, props.category.label), h('span', null, D.fmtMonth(props.month)))),
+      h(Field, { label: 'Hạn mức tháng', help: 'Đây là ngưỡng quản trị, không làm thay đổi số dư hay ledger.' }, h(MoneyInput, { value: limit, onChange: setLimit, placeholder: '5M' })),
+      h('button', { type: 'button', className: 'primary-button', onClick: save }, existing ? 'Lưu hạn mức mới' : 'Đặt hạn mức'),
+      existing ? h('button', { type: 'button', className: 'danger-button budget-delete', onClick: function () { props.onDelete(existing.id); } }, 'Xóa hạn mức nhóm này') : null);
+  }
+
+  function BudgetScreen(props) {
+    var monthState = React.useState(D.monthOf(D.today())), ym = monthState[0], setYm = monthState[1];
+    var rows = budgetRows(props.data, ym);
+    var totalLimit = rows.reduce(function (sum, row) { return sum + row.limit; }, 0);
+    var totalSpent = rows.reduce(function (sum, row) { return sum + row.spent; }, 0);
+    var remaining = totalLimit - totalSpent;
+    var pct = totalLimit ? Math.min(100, totalSpent / totalLimit * 100) : 0;
+    var overCount = rows.filter(function (row) { return row.limit > 0 && row.spent > row.limit; }).length;
+    var unplanned = rows.reduce(function (sum, row) { return sum + (row.limit ? 0 : row.spent); }, 0);
+    return h('main', { className: 'page' },
+      h(AppBar, { title: 'Kế hoạch tháng', subtitle: 'Quản trị chi tiêu theo nhóm', onBack: props.onBack }),
+      h('div', { className: 'content' },
+        h('div', { className: 'month-control budget-month' },
+          h(IconButton, { icon: 'back', label: 'Tháng trước', onClick: function () { setYm(D.addMonthsToYm(ym, -1)); } }),
+          h('strong', null, D.fmtMonth(ym)),
+          h(IconButton, { icon: 'chevron', label: 'Tháng sau', onClick: function () { setYm(D.addMonthsToYm(ym, 1)); } })),
+        h('section', { className: 'budget-summary' },
+          h('div', { className: 'budget-summary-head' }, h('div', null, h('span', null, 'Đã chi / kế hoạch'), h('strong', null, compactMoney(totalSpent) + ' / ' + compactMoney(totalLimit))),
+            h('div', { className: 'budget-remaining ' + (remaining < 0 ? 'negative' : '') }, h('span', null, remaining < 0 ? 'Vượt' : 'Còn lại'), h('strong', null, compactMoney(Math.abs(remaining))))),
+          h('div', { className: 'budget-progress summary ' + (remaining < 0 ? 'over' : pct >= 80 ? 'warning' : '') }, h('i', { style: { width: pct + '%' } })),
+          h('p', null, totalLimit ? (overCount ? overCount + ' nhóm đã vượt hạn mức. Ưu tiên điều chỉnh trước khi tăng ngân sách tổng.' : pct >= 80 ? 'Bạn đã dùng từ 80% ngân sách. Kiểm tra các khoản còn lại của tháng.' : 'Ngân sách đang trong vùng kiểm soát.') : 'Chạm vào từng nhóm bên dưới để bắt đầu lập kế hoạch.')),
+        unplanned > 0 ? h('div', { className: 'data-note budget-note' }, 'Có ' + compactMoney(unplanned) + ' chi tiêu thuộc nhóm chưa đặt hạn mức. Hãy đặt kế hoạch để số liệu tổng có ý nghĩa.') : null,
+        h('section', { className: 'section budget-section' },
+          h('h2', { className: 'section-heading' }, 'Nhóm chi tiêu'),
+          h('div', { className: 'budget-grid' }, rows.map(function (row) {
+            var rowPct = row.limit ? Math.min(100, row.spent / row.limit * 100) : 0;
+            var rowClass = row.limit && row.spent > row.limit ? 'over' : row.limit && row.spent >= row.limit * .8 ? 'warning' : '';
+            return h('button', { type: 'button', className: 'budget-card ' + rowClass, key: row.category.id, onClick: function () { props.onEdit(row.category, ym, row.budget); } },
+              h('div', { className: 'budget-card-top' }, h('div', { className: 'budget-icon' }, h(Icon, { name: row.category.icon })), h(Icon, { name: 'chevron', className: 'budget-chevron' })),
+              h('strong', { className: 'budget-card-name' }, row.category.label),
+              h('span', { className: 'budget-card-amount' }, row.limit ? compactMoney(row.spent) + ' / ' + compactMoney(row.limit) : row.spent ? compactMoney(row.spent) + ' đã chi' : 'Đặt ngân sách'),
+              h('div', { className: 'budget-progress' }, h('i', { style: { width: rowPct + '%' } })));
+          }))),
+        h('div', { className: 'advice-card' }, h(Icon, { name: 'shield' }), h('div', null,
+          h('strong', null, 'Nguyên tắc quản trị'),
+          h('span', null, 'Giữ chi phí cố định trong một nhóm riêng, đặt cảnh báo ở 80%, và không dùng khoản thu Expected để nới hạn mức tháng.')))));
+  }
+
   function Settings(props) {
     var s = props.data.settings;
     var state = React.useState({ hardFloor: s.hardFloor ? D.groupDigits(s.hardFloor) : '', operatingBuffer: s.operatingBuffer ? D.groupDigits(s.operatingBuffer) : '', comfortBuffer: s.comfortBuffer ? D.groupDigits(s.comfortBuffer) : '', horizonDays: s.horizonDays || 90 });
@@ -572,8 +788,17 @@
         h(Field, { label: 'Kỳ dự phóng (ngày)' }, h(TextInput, { type: 'number', min: 30, max: 365, value: form.horizonDays, onChange: function (e) { set('horizonDays', e.target.value); } })),
         h('button', { type: 'button', className: 'primary-button', onClick: save }, 'Lưu ngưỡng')),
       h('div', { className: 'settings-group section' }, h('h3', null, 'Tài khoản'),
-        h('div', { className: 'account-list' }, props.data.accounts.filter(function (a) { return !a.archived; }).map(function (a) { return h('div', { className: 'setting-row', key: a.id }, h('div', { className: 'row-label' }, h('strong', null, a.name), h('span', null, D.ACCOUNT_TYPES[a.type] ? D.ACCOUNT_TYPES[a.type].label : a.type)), h('span', { className: 'row-value' }, compactMoney(props.balances[a.id] || 0))); })),
+        h('div', { className: 'account-list' }, props.data.accounts.filter(function (a) { return !a.archived; }).map(function (a) {
+          return h('button', { type: 'button', className: 'account-edit-row', key: a.id, onClick: function () { props.onEditAccount(a); } },
+            h('div', { className: 'flow-icon' }, h(Icon, { name: D.isLiability(a) ? 'borrow' : D.isReceivable(a) ? 'people' : D.isLiquid(a) ? 'wallet' : 'asset' })),
+            h('div', { className: 'row-label' }, h('strong', { title: a.name }, a.name), h('span', null, D.ACCOUNT_TYPES[a.type] ? D.ACCOUNT_TYPES[a.type].label : a.type)),
+            h('span', { className: 'row-value' }, compactMoney(props.balances[a.id] || 0)), h(Icon, { name: 'chevron' }));
+        })),
         h('button', { type: 'button', className: 'secondary-button', style: { marginTop: 10 }, onClick: props.onAddAccount }, 'Thêm tài khoản')),
+      h('div', { className: 'settings-group section' }, h('h3', null, 'Quản trị chi tiêu'),
+        h('button', { type: 'button', className: 'settings-link-row', onClick: props.onBudgets },
+          h('div', { className: 'flow-icon' }, h(Icon, { name: 'shopping' })),
+          h('div', { className: 'row-label' }, h('strong', null, 'Kế hoạch chi tiêu tháng'), h('span', null, 'Hạn mức, tiến độ và cảnh báo theo nhóm')), h(Icon, { name: 'chevron' }))),
       props.data.scenarios.length ? h('div', { className: 'settings-group section' }, h('h3', null, 'Kịch bản đã lưu'),
         h('div', { className: 'account-list' }, props.data.scenarios.slice().reverse().slice(0, 8).map(function (scenario) {
           return h('div', { className: 'setting-row', key: scenario.id }, h('div', { className: 'row-label' }, h('strong', null, scenario.name || 'Kịch bản'), h('span', null, scenario.date ? D.fmtDateFull(scenario.date) : 'Chưa đặt ngày')), h('span', { className: 'row-value' }, compactMoney(scenario.amount || 0)));
@@ -590,6 +815,8 @@
     var viewState = React.useState('home'), view = viewState[0], setView = viewState[1];
     var subState = React.useState(null), subview = subState[0], setSubview = subState[1];
     var overlayState = React.useState(null), overlay = overlayState[0], setOverlay = overlayState[1];
+    var accountState = React.useState(null), editingAccount = accountState[0], setEditingAccount = accountState[1];
+    var budgetState = React.useState(null), budgetEditor = budgetState[0], setBudgetEditor = budgetState[1];
     var toastState = React.useState(loaded.error || ''), toast = toastState[0], setToast = toastState[1];
 
     React.useEffect(function () { S.persist(); }, []);
@@ -616,7 +843,40 @@
 
     function go(next) { setView(next); setSubview(null); global.scrollTo({ top: 0, behavior: 'auto' }); }
     function closeOverlay() { setOverlay(null); }
-    function saveAccount(account) { commit(function (next) { next.accounts.push(account); }, 'Đã thêm tài khoản.'); setOverlay(null); }
+    function openAddAccount() { setEditingAccount(null); setOverlay('account'); }
+    function openEditAccount(account) { setEditingAccount(account); setOverlay('account'); }
+    function saveAccount(account, contractPatch) {
+      var isEdit = data.accounts.some(function (row) { return row.id === account.id; });
+      commit(function (next) {
+        var accountIndex = next.accounts.findIndex(function (row) { return row.id === account.id; });
+        if (accountIndex >= 0) next.accounts[accountIndex] = account;
+        else next.accounts.push(account);
+        if (!contractPatch) return;
+        var cp = counterparty(next, contractPatch.counterpartyName);
+        contractPatch.counterpartyId = cp.id;
+        var contractIndex = next.contracts.findIndex(function (row) { return row.id === contractPatch.id || row.accountId === account.id; });
+        if (contractIndex >= 0) next.contracts[contractIndex] = contractPatch;
+        else next.contracts.push(contractPatch);
+        var interest = plannedContractInterest(contractPatch);
+        next.flows.forEach(function (flow) {
+          if (flow.contractId !== contractPatch.id) return;
+          flow.counterpartyId = cp.id;
+          flow.counterpartyName = cp.name;
+          if ((contractPatch.type === 'payable' && flow.kind === 'borrow') || (contractPatch.type === 'receivable' && flow.kind === 'lend')) {
+            flow.amount = contractPatch.originalPrincipal;
+          }
+          if (!flow.confirmed && ((contractPatch.type === 'payable' && flow.kind === 'repay') || (contractPatch.type === 'receivable' && flow.kind === 'collect'))) {
+            flow.date = contractPatch.maturityDate || flow.date;
+            flow.principalAmount = contractPatch.originalPrincipal;
+            flow.amount = contractPatch.originalPrincipal + interest;
+            if (flow.kind === 'repay') flow.borrowingCost = interest;
+            if (flow.kind === 'collect') flow.interestAmount = interest;
+          }
+          flow.updatedAt = S.now();
+        });
+      }, isEdit ? 'Đã cập nhật tài khoản.' : 'Đã thêm tài khoản.');
+      setOverlay(null); setEditingAccount(null);
+    }
     function counterparty(next, name) {
       var normalized = String(name || '').trim();
       var found = next.counterparties.filter(function (p) { return p.name.toLowerCase() === normalized.toLowerCase(); })[0];
@@ -635,11 +895,12 @@
           var accountType = type === 'borrow' ? 'loan' : 'receivable';
           var account = { id: S.uid(), name: (type === 'borrow' ? 'Vay · ' : 'Phải thu · ') + cp.name, type: accountType, openingBalance: 0, balanceAsOf: form.date, archived: false, createdAt: S.now(), updatedAt: S.now() };
           next.accounts.push(account);
-          var contract = { id: S.uid(), type: type === 'borrow' ? 'payable' : 'receivable', counterpartyId: cp.id, counterpartyName: cp.name, accountId: account.id, originalPrincipal: form.amountValue, startDate: form.date, maturityDate: type === 'borrow' ? form.dueDate : form.expectedDate, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0, interestFrequency: 'monthly', status: 'active', fundingSource: form.fundingSource || 'own', fundingContractId: form.fundingContractId || null, note: form.note, createdAt: S.now(), updatedAt: S.now() };
+          var contract = { id: S.uid(), type: type === 'borrow' ? 'payable' : 'receivable', counterpartyId: cp.id, counterpartyName: cp.name, accountId: account.id, originalPrincipal: form.amountValue, startDate: form.date, maturityDate: type === 'borrow' ? form.dueDate : form.expectedDate, interestMode: form.interestMode || 'none', interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, fixedInterest: form.interestMode === 'fixed' ? form.fixedInterestValue : 0, interestFrequency: 'monthly', status: 'active', fundingSource: form.fundingSource || 'own', fundingContractId: form.fundingSource === 'borrowed' ? form.fundingContractId || null : null, note: form.note, createdAt: S.now(), updatedAt: S.now() };
           next.contracts.push(contract);
-          pushFlow(next, { kind: type, accountId: form.accountId, counterAccountId: account.id, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : form.confidence, contractId: contract.id, counterpartyId: cp.id, counterpartyName: cp.name, fundingSource: form.fundingSource, fundingContractId: form.fundingContractId || null, note: form.note });
+          var plannedInterest = plannedContractInterest(contract);
+          pushFlow(next, { kind: type, accountId: form.accountId, counterAccountId: account.id, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : form.confidence, contractId: contract.id, counterpartyId: cp.id, counterpartyName: cp.name, fundingSource: form.fundingSource, fundingContractId: contract.fundingContractId, note: form.note });
           var maturity = type === 'borrow' ? form.dueDate : form.expectedDate;
-          pushFlow(next, { kind: type === 'borrow' ? 'repay' : 'collect', accountId: form.accountId, counterAccountId: account.id, amount: form.amountValue, principalAmount: form.amountValue, borrowingCost: type === 'borrow' ? 0 : undefined, interestAmount: type === 'lend' ? 0 : undefined, date: maturity, confirmed: maturity <= D.today() && form.confidence === 'CERTAIN', confidence: form.confidence, contractId: contract.id, counterpartyId: cp.id, counterpartyName: cp.name, note: type === 'borrow' ? 'Đáo hạn khoản vay' : 'Dự kiến thu gốc' });
+          pushFlow(next, { kind: type === 'borrow' ? 'repay' : 'collect', accountId: form.accountId, counterAccountId: account.id, amount: form.amountValue + plannedInterest, principalAmount: form.amountValue, borrowingCost: type === 'borrow' ? plannedInterest : undefined, interestAmount: type === 'lend' ? plannedInterest : undefined, date: maturity, confirmed: maturity <= D.today() && form.confidence === 'CERTAIN', confidence: form.confidence, contractId: contract.id, counterpartyId: cp.id, counterpartyName: cp.name, note: type === 'borrow' ? 'Đáo hạn khoản vay' : 'Dự kiến thu gốc và lãi' });
         } else if (type === 'collect' || type === 'repay') {
           var contractMatch = next.contracts.filter(function (c) { return c.accountId === form.targetAccountId && c.status !== 'closed'; })[0];
           var name = contractMatch ? contractMatch.counterpartyName : '';
@@ -651,28 +912,41 @@
           pushFlow(next, { kind: 'transfer', accountId: form.accountId, counterAccountId: asset.id, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : 'EXPECTED', note: form.note || 'Mua ' + asset.name });
         } else {
           var kind = type === 'other' ? 'fee' : type;
-          pushFlow(next, { kind: kind, accountId: form.accountId, counterAccountId: type === 'transfer' ? form.counterAccountId : null, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : 'EXPECTED', category: form.category, note: form.note || form.category });
+          var category = type === 'expense' ? categoryId(form.category) : form.category;
+          pushFlow(next, { kind: kind, accountId: form.accountId, counterAccountId: type === 'transfer' ? form.counterAccountId : null, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : 'EXPECTED', category: category, title: type === 'expense' ? categoryMeta(category).label : '', note: form.note || (type === 'expense' ? categoryMeta(category).label : form.category) });
         }
       }, 'Đã ghi giao dịch.');
       setOverlay(null);
     }
     function saveSettings(settings) { commit(function (next) { next.settings = Object.assign({}, next.settings, settings); }, 'Đã cập nhật buffer.'); setOverlay(null); }
+    function openBudgets() { setOverlay(null); setSubview('budgets'); global.scrollTo(0, 0); }
+    function editBudget(category, month, budget) { setBudgetEditor({ category: category, month: month, budget: budget || null }); setOverlay('budget'); }
+    function saveBudget(budget) {
+      commit(function (next) {
+        var index = next.budgets.findIndex(function (row) { return row.id === budget.id || (row.month === budget.month && categoryId(row.category) === budget.category); });
+        if (index >= 0) next.budgets[index] = budget; else next.budgets.push(budget);
+      }, 'Đã cập nhật kế hoạch tháng.');
+      setOverlay(null); setBudgetEditor(null);
+    }
+    function deleteBudget(id) { commit(function (next) { next.budgets = next.budgets.filter(function (row) { return row.id !== id; }); }, 'Đã xóa hạn mức.'); setOverlay(null); setBudgetEditor(null); }
     function saveScenario(scenario) { commit(function (next) { next.scenarios.push(Object.assign({ id: S.uid(), createdAt: S.now(), updatedAt: S.now() }, scenario)); }, 'Đã lưu kịch bản.'); }
     function importBackup(file) { S.importFile(file, function (err, imported) { if (err) return setToast(err); var saved = S.save(imported); if (saved.ok) { setData(imported); setOverlay(null); setToast('Đã khôi phục bản sao lưu.'); } else setToast(saved.error); }); }
     function diagnostics() { var result = global.rootflowSelfTest(); setToast(result.failed ? result.failed + ' kiểm tra chưa đạt.' : 'Tất cả ' + result.total + ' kiểm tra nghiệp vụ đều đạt.'); }
 
     var screen;
     if (subview === 'risk') screen = h(BufferRisk, { derived: derived, onBack: function () { setSubview(null); }, onSettings: function () { setOverlay('settings'); } });
+    else if (subview === 'budgets') screen = h(BudgetScreen, { data: data, derived: derived, onBack: function () { setSubview(null); }, onEdit: editBudget });
     else if (view === 'flow') screen = h(FlowScreen, { data: data, derived: derived, onAdd: function () { setOverlay('composer'); }, onSettings: function () { setOverlay('settings'); } });
     else if (view === 'position') screen = h(PositionScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); } });
     else if (view === 'decide') screen = h(DecideScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onToast: setToast, onSaveScenario: saveScenario });
-    else screen = h(Home, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onAddAccount: function () { setOverlay('account'); }, onRisk: function () { setSubview('risk'); global.scrollTo(0, 0); }, onFlow: function () { go('flow'); } });
+    else screen = h(Home, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onAddAccount: openAddAccount, onBudgets: openBudgets, onRisk: function () { setSubview('risk'); global.scrollTo(0, 0); }, onFlow: function () { go('flow'); } });
 
     return h('div', { className: 'app' }, screen,
       h(BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } }),
       overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onSave: saveEvent }) : null,
-      overlay === 'account' ? h(Sheet, { title: 'Thêm tài khoản', onClose: closeOverlay }, h(AccountForm, { onSave: saveAccount })) : null,
-      overlay === 'settings' ? h(Sheet, { title: 'Cài đặt & dữ liệu', onClose: closeOverlay }, h(Settings, { data: data, balances: derived.balances, onSave: saveSettings, onAddAccount: function () { setOverlay('account'); }, onExport: function () { S.exportFile(data); }, onImport: importBackup, onTest: diagnostics })) : null,
+      overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: closeOverlay }, h(AccountForm, { account: editingAccount, contract: editingAccount ? data.contracts.filter(function (row) { return row.accountId === editingAccount.id; })[0] : null, currentBalance: editingAccount ? derived.balances[editingAccount.id] || 0 : 0, onSave: saveAccount })) : null,
+      overlay === 'budget' && budgetEditor ? h(Sheet, { title: 'Ngân sách · ' + budgetEditor.category.label, onClose: closeOverlay }, h(BudgetForm, { category: budgetEditor.category, month: budgetEditor.month, budget: budgetEditor.budget, onSave: saveBudget, onDelete: deleteBudget })) : null,
+      overlay === 'settings' ? h(Sheet, { title: 'Cài đặt & dữ liệu', onClose: closeOverlay }, h(Settings, { data: data, balances: derived.balances, onSave: saveSettings, onAddAccount: openAddAccount, onEditAccount: openEditAccount, onBudgets: openBudgets, onExport: function () { S.exportFile(data); }, onImport: importBackup, onTest: diagnostics })) : null,
       toast ? h('div', { className: 'toast', role: 'status' }, toast) : null);
   }
 

@@ -71,7 +71,7 @@
 
     data.budgets = data.budgets.map(function (b) {
       return Object.assign({
-        id: uid(), month: D.monthOf(D.today()), name: 'Danh mục', category: 'Khác',
+        id: uid(), month: D.monthOf(D.today()), name: 'Danh mục', category: 'other',
         limit: 0, icon: 'wallet', createdAt: now(), updatedAt: now()
       }, b || {});
     });
@@ -133,12 +133,17 @@
 
     data.contracts = data.contracts.map(function (c) {
       var type = c && c.type === 'payable' ? 'payable' : 'receivable';
-      return Object.assign({
+      var contract = Object.assign({
         id: uid(), type: type, counterpartyId: null, counterpartyName: '', accountId: '',
         originalPrincipal: 0, startDate: D.today(), maturityDate: null,
-        interestRate: 0, interestFrequency: 'monthly', status: 'active',
+        interestMode: 'none', interestRate: 0, fixedInterest: 0, interestFrequency: 'monthly', status: 'active',
         fundingSource: 'own', fundingContractId: null, note: '', createdAt: now(), updatedAt: now()
       }, c || {}, { type: type });
+      if (!c || !/^(none|rate|fixed)$/.test(c.interestMode)) contract.interestMode = contract.fixedInterest ? 'fixed' : contract.interestRate ? 'rate' : 'none';
+      contract.interestRate = Math.max(0, Number(contract.interestRate) || 0);
+      contract.fixedInterest = Math.max(0, Number(contract.fixedInterest) || 0);
+      if (contract.fundingSource !== 'borrowed') contract.fundingContractId = null;
+      return contract;
     });
 
     /* Chỉ nghĩa vụ CERTAIN mới được auto-post khi tới hạn. EXPECTED/UNCERTAIN

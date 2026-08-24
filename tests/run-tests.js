@@ -48,6 +48,7 @@ localStorage.setItem('rootflow.data', JSON.stringify({
   schemaVersion: 5,
   accounts: [],
   flows: [{ id: 'legacy-planned', kind: 'income', accountId: 'missing', amount: 1, date: '2099-01-01', confirmed: false }],
+  contracts: [{ id: 'legacy-contract', type: 'receivable', interestRate: 2, fundingSource: 'mixed', fundingContractId: 'stale-link' }],
   budgets: [{ id: 'budget-1', name: 'Nhà ở', limit: 100 }],
   scenarios: [{ id: 'scenario-1', name: 'Mua xe', amount: 1000 }],
   settings: { reserveFloor: 20000000, horizonDays: 90 }
@@ -61,7 +62,10 @@ assert.equal(migrated.data.flows[0].confidence, 'EXPECTED');
 assert.equal(migrated.data.budgets.length, 1);
 assert.equal(migrated.data.scenarios.length, 1);
 assert.deepEqual(Array.from(migrated.data.counterparties), []);
-assert.deepEqual(Array.from(migrated.data.contracts), []);
+assert.equal(migrated.data.contracts.length, 1);
+assert.equal(migrated.data.contracts[0].interestMode, 'rate');
+assert.equal(migrated.data.contracts[0].fixedInterest, 0);
+assert.equal(migrated.data.contracts[0].fundingContractId, null);
 
 memory.clear();
 localStorage.setItem('rootflow.data', JSON.stringify({ schemaVersion: 99, sentinel: 'keep' }));
