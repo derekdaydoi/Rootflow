@@ -553,12 +553,19 @@ button { color: inherit; }
 }
 .textarea { min-height: 84px; resize: vertical; }
 .input:focus, .select:focus, .textarea:focus { border-color: #78ad90; box-shadow: 0 0 0 3px rgba(23, 107, 69, .1); }
+.select:disabled { border-color: #d9ddda; background: #f2f4f2; color: #66716b; opacity: 1; cursor: not-allowed; }
 .input-money { font-weight: 650; }
 .field-help { margin-top: 5px; color: var(--secondary); font-size: 11px; line-height: 1.35; }
 .field-error { margin: 8px 0 0; color: var(--danger); font-size: 12px; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 10px; }
 .form-divider { margin: 20px -2px 0; padding-top: 18px; border-top: 1px solid var(--border); }
 .form-divider h3 { margin: 0 0 12px; font-size: 15px; }
+.account-current-card { margin-bottom: 14px; padding: 12px 13px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 3px 12px; border: 1px solid #cfe0d3; border-radius: 11px; background: var(--green-soft); }
+.account-current-card span { color: var(--secondary); font-size: 12px; font-weight: 600; }
+.account-current-card strong { color: var(--green-deep); font-size: 19px; font-variant-numeric: tabular-nums; }
+.account-current-card small { grid-column: 1 / -1; color: var(--secondary); font-size: 10.5px; line-height: 1.4; }
+.account-archive { margin-top: 10px; }
+.archive-help { margin: 6px 4px 0; color: var(--secondary); font-size: 10.5px; line-height: 1.4; text-align: center; }
 
 /* Safari/iOS renders localized date text with an intrinsic width that can
    escape its card. Keep the native picker as the tap target, but render a
@@ -763,6 +770,9 @@ button { color: inherit; }
 .account-edit-row > .icon, .settings-link-row > .icon { width: 18px; height: 18px; color: var(--secondary); }
 .account-edit-row .row-value { max-width: 86px; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .account-edit-row:active, .settings-link-row:active { background: var(--surface-soft); }
+.archived-accounts { margin-top: 18px; }
+.archived-accounts h4 { margin: 0 0 7px; color: var(--secondary); font-size: 12px; }
+.muted-list { margin-top: 0; opacity: .76; }
 .settings-link-row { grid-template-columns: 34px minmax(0, 1fr) 18px; overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
 
 .budget-section-copy { margin: 2px 0 0; font-size: 11px; }
@@ -839,6 +849,7 @@ button { color: inherit; }
 .budget-delete { margin-top: 10px; }
 
 .toast {
+  pointer-events: none;
   position: fixed;
   z-index: var(--z-toast);
   left: 50%;
