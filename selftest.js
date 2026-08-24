@@ -323,6 +323,15 @@
     var fixedMonthlyRows = D.contractSchedule(Object.assign({}, monthlyLoan, { interestMode: 'fixed', fixedInterest: 2000000, fixedInterestBasis: 'per_period' }));
     check('Lãi cố định mỗi tháng được giữ nguyên', fixedMonthlyRows.map(function (row) { return row.interestAmount; }), [2000000, 2000000, 2000000, 2000000]);
 
+    /* --- 31. Phí, unknown date và control assumptions --- */
+    var splitRepay = { kind: 'repay', amount: 11300000, principalAmount: 10000000, interestAmount: 1000000, feeAmount: 300000, borrowingCost: 1300000 };
+    check('Repayment total = gốc + lãi + phí', D.repayTotal(splitRepay), 11300000);
+    check('Borrowing cost = lãi + phí', D.repayCost(splitRepay), 1300000);
+    check('Lãi và phí không bị gộp primitive', [D.repayInterest(splitRepay), D.repayFee(splitRepay)], [1000000, 300000]);
+    check('Không invent lịch khi maturity unknown', D.contractSchedule(Object.assign({}, monthlyLoan, { maturityDate: null })), []);
+    var flatRows = D.contractSchedule(Object.assign({}, monthlyLoan, { actualInterestMethod: 'flat', interestBasis: 'original_principal' }));
+    check('Flat giữ lãi trên gốc ban đầu', flatRows.map(function (row) { return row.interestAmount; }), [2400000, 2400000, 2400000, 2400000]);
+
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };
   }

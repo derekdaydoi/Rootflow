@@ -496,6 +496,11 @@ button { color: inherit; }
 .interest-amount span, .interest-amount strong { display: block; }
 .interest-amount span { color: var(--secondary); font-size: 9px; text-transform: uppercase; }
 .interest-amount strong { margin-top: 1px; color: var(--danger); font-size: 13px; font-variant-numeric: tabular-nums; }
+.control-metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.control-metric { min-width: 0; min-height: 70px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; padding: 11px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.control-metric span { color: var(--secondary); font-size: 9.5px; line-height: 1.25; }
+.control-metric strong { overflow: hidden; color: var(--green-deep); font-size: 15px; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.control-metric strong.negative { color: var(--danger); }
 
 .risk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .risk-card { min-height: 112px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }

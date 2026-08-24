@@ -4,7 +4,7 @@
   'use strict';
 
   var KEY = 'rootflow.data';
-  var SCHEMA = 8;
+  var SCHEMA = 9;
   var TRASH_DAYS = 30;
   var WARN_BYTES = 3 * 1024 * 1024;
   var D = global.RootflowDomain;
@@ -27,6 +27,10 @@
       flows: [],
       counterparties: [],
       contracts: [],
+      statements: [],
+      nonCashEvents: [],
+      recurringIncomes: [],
+      controlAssumptions: { creditCardRolloverCostRateMonthly: 0 },
       budgets: [],
       scenarios: [],
       settings: { hardFloor: 0, operatingBuffer: 0, comfortBuffer: 0, reserveFloor: 0, horizonDays: 90 },
@@ -46,6 +50,11 @@
     data.flows = Array.isArray(data.flows) ? data.flows : [];
     data.counterparties = Array.isArray(data.counterparties) ? data.counterparties : [];
     data.contracts = Array.isArray(data.contracts) ? data.contracts : [];
+    data.statements = Array.isArray(data.statements) ? data.statements : [];
+    data.nonCashEvents = Array.isArray(data.nonCashEvents) ? data.nonCashEvents : [];
+    data.recurringIncomes = Array.isArray(data.recurringIncomes) ? data.recurringIncomes : [];
+    data.controlAssumptions = Object.assign({}, base.controlAssumptions, data.controlAssumptions || {});
+    data.controlAssumptions.creditCardRolloverCostRateMonthly = Math.max(0, Number(data.controlAssumptions.creditCardRolloverCostRateMonthly) || 0);
     data.budgets = Array.isArray(data.budgets) ? data.budgets : [];
     data.scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
     data.settings = Object.assign({}, base.settings, data.settings || {});
@@ -125,10 +134,21 @@
     data.flows.forEach(function (f) {
       if (!f) return;
       var confidence = String(f.confidence || '').toUpperCase();
-      if (!/^(CERTAIN|EXPECTED|UNCERTAIN)$/.test(confidence)) {
+      if (!/^(CERTAIN|EXPECTED|INFERRED|UNKNOWN|UNCERTAIN)$/.test(confidence)) {
         confidence = f.confirmed ? 'CERTAIN' : 'EXPECTED';
       }
       f.confidence = confidence;
+      if (f.kind === 'repay' || f.kind === 'collect') {
+        var principal = f.principalAmount !== undefined ? Math.max(0, Number(f.principalAmount) || 0) : Math.max(0, Number(f.amount) || 0);
+        var interest = f.interestAmount !== undefined ? Math.max(0, Number(f.interestAmount) || 0)
+          : f.kind === 'repay' ? Math.max(0, Number(f.borrowingCost) || 0) : 0;
+        var fee = Math.max(0, Number(f.feeAmount) || 0);
+        f.principalAmount = principal;
+        f.interestAmount = interest;
+        f.feeAmount = fee;
+        f.amount = principal + interest + fee;
+        if (f.kind === 'repay') f.borrowingCost = interest + fee;
+      }
     });
 
     data.counterparties = data.counterparties.map(function (p) {
@@ -139,28 +159,45 @@
       var type = c && c.type === 'payable' ? 'payable' : 'receivable';
       var contract = Object.assign({
         id: uid(), type: type, counterpartyId: null, counterpartyName: '', accountId: '',
-        originalPrincipal: 0, startDate: D.today(), firstPaymentDate: null, maturityDate: null,
+        originalPrincipal: 0, currentOutstanding: null, outstandingAsOf: null,
+        startDate: D.today(), firstPaymentDate: null, maturityDate: null,
         interestMode: 'none', interestRate: 0, fixedInterest: 0, fixedInterestBasis: 'per_period', interestFrequency: 'monthly',
+        actualInterestMethod: 'none', planningInterestMethod: null, interestBasis: 'outstanding_principal',
+        feeAmount: 0, feeFrequency: 'none', feePaid: false, feeDueDate: null,
         repaymentMode: 'principal_interest', principalDueDate: null, status: 'active',
-        settlementAccountId: '', fundingSource: 'own', fundingContractId: null, note: '', createdAt: now(), updatedAt: now()
+        settlementAccountId: '', fundingSource: 'own', fundingContractId: null, fundingAllocations: [],
+        fieldCertainty: {}, provenance: {}, note: '', createdAt: now(), updatedAt: now()
       }, c || {}, { type: type });
       if (!c || !/^(none|rate|fixed)$/.test(c.interestMode)) contract.interestMode = contract.fixedInterest ? 'fixed' : contract.interestRate ? 'rate' : 'none';
+      var methodUnknown = contract.actualInterestMethod === null && c && c.fieldCertainty && String(c.fieldCertainty.actualInterestMethod || '').toUpperCase() === 'UNKNOWN';
+      if (!methodUnknown && !/^(flat|reducing_balance|none|fixed_amount)$/.test(contract.actualInterestMethod)) {
+        contract.actualInterestMethod = contract.interestMode === 'fixed' ? 'fixed_amount' : contract.interestMode === 'rate'
+          ? (contract.repaymentMode === 'interest_only' ? 'flat' : 'reducing_balance') : 'none';
+      }
+      if (contract.planningInterestMethod && !/^(flat|reducing_balance|none|fixed_amount)$/.test(contract.planningInterestMethod)) contract.planningInterestMethod = null;
+      if (!/^(original_principal|outstanding_principal)$/.test(contract.interestBasis)) contract.interestBasis = contract.actualInterestMethod === 'flat' ? 'original_principal' : 'outstanding_principal';
       if (!/^(per_period|total)$/.test(contract.fixedInterestBasis)) contract.fixedInterestBasis = fromVersion < 8 ? 'total' : 'per_period';
       if (!/^(principal_interest|interest_only)$/.test(contract.repaymentMode)) contract.repaymentMode = 'principal_interest';
-      if (contract.type !== 'payable') contract.repaymentMode = 'principal_interest';
       if (!/^(monthly|at_maturity)$/.test(contract.interestFrequency)) contract.interestFrequency = 'monthly';
-      if (!contract.firstPaymentDate) {
+      if (!contract.firstPaymentDate && fromVersion < 9) {
         if (contract.repaymentMode === 'interest_only' && contract.principalDueDate && contract.maturityDate && contract.principalDueDate > contract.maturityDate) {
           contract.firstPaymentDate = contract.maturityDate;
           contract.maturityDate = contract.principalDueDate;
-        } else {
-          contract.firstPaymentDate = D.addMonths(contract.startDate || D.today(), 1);
         }
       }
       contract.principalDueDate = contract.repaymentMode === 'interest_only' ? contract.maturityDate : null;
       if (!/^(active|closed)$/.test(contract.status)) contract.status = 'active';
       contract.interestRate = Math.max(0, Number(contract.interestRate) || 0);
       contract.fixedInterest = Math.max(0, Number(contract.fixedInterest) || 0);
+      contract.currentOutstanding = contract.currentOutstanding === null || contract.currentOutstanding === undefined ? null : Math.max(0, Number(contract.currentOutstanding) || 0);
+      contract.outstandingAsOf = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.outstandingAsOf || '')) ? contract.outstandingAsOf : null;
+      contract.feeAmount = Math.max(0, Number(contract.feeAmount) || 0);
+      if (!/^(none|one_time|per_period)$/.test(contract.feeFrequency)) contract.feeFrequency = contract.feeAmount ? 'one_time' : 'none';
+      contract.feePaid = !!contract.feePaid;
+      contract.feeDueDate = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.feeDueDate || '')) ? contract.feeDueDate : null;
+      contract.fieldCertainty = contract.fieldCertainty && typeof contract.fieldCertainty === 'object' ? contract.fieldCertainty : {};
+      contract.provenance = contract.provenance && typeof contract.provenance === 'object' ? contract.provenance : {};
+      contract.fundingAllocations = Array.isArray(contract.fundingAllocations) ? contract.fundingAllocations.filter(function (row) { return row && Number(row.amount) > 0; }) : [];
       if (!contract.settlementAccountId) {
         var linkedFlow = data.flows.filter(function (f) {
           return f && f.contractId === contract.id && (f.kind === 'borrow' || f.kind === 'lend' || f.kind === 'repay' || f.kind === 'collect');
@@ -169,6 +206,30 @@
       }
       if (contract.fundingSource !== 'borrowed') contract.fundingContractId = null;
       return contract;
+    });
+
+    data.statements = data.statements.map(function (statement) {
+      return Object.assign({
+        id: uid(), creditCardAccountId: '', statementMonth: null, statementDate: null, dueDate: null,
+        previousBalance: null, spendingAmount: null, installmentAmount: null, paymentsAmount: null,
+        statementBalance: 0, minimumDue: null, totalDue: null, fieldCertainty: {}, note: '', createdAt: now(), updatedAt: now()
+      }, statement || {});
+    });
+    data.nonCashEvents = data.nonCashEvents.map(function (event) {
+      return Object.assign({
+        id: uid(), type: 'debt_conversion', accountId: '', contractId: null, amount: 0,
+        date: null, effectiveMonth: null, fromState: 'REVOLVING', toState: 'INSTALLMENT',
+        cashImpact: 0, confidence: 'CERTAIN', fieldCertainty: {}, note: '', createdAt: now(), updatedAt: now()
+      }, event || {}, { cashImpact: 0 });
+    });
+    data.recurringIncomes = data.recurringIncomes.map(function (income) {
+      var certainty = String(income && income.amountCertainty || income && income.certainty || 'EXPECTED').toUpperCase();
+      if (!/^(CERTAIN|EXPECTED|INFERRED|UNKNOWN)$/.test(certainty)) certainty = 'EXPECTED';
+      return Object.assign({
+        id: uid(), type: 'employment_income', name: 'Thu nhập định kỳ', expectedAmount: null,
+        frequency: 'monthly', paymentDay: null, amountCertainty: certainty, fieldCertainty: {},
+        archived: false, note: '', createdAt: now(), updatedAt: now()
+      }, income || {}, { amountCertainty: certainty });
     });
 
     /* V7+ đánh dấu lịch do Rootflow sinh ra để khi người dùng sửa hợp đồng chỉ
@@ -204,7 +265,7 @@
        còn xuất hiện như một khoản đang mở trong form trả/thu nợ. */
     data.contracts.forEach(function (contract) {
       var paid = D.contractPaymentTotals(contract, data.flows);
-      var principalLeft = Math.max(0, (Number(contract.originalPrincipal) || 0) - paid.principal);
+      var principalLeft = D.contractOutstandingPrincipal(contract, data.flows);
       var interestLeft = Math.max(0, plannedInterest(contract) - paid.interest);
       contract.status = principalLeft <= 0 && interestLeft <= 0 ? 'closed' : 'active';
     });
@@ -315,6 +376,10 @@
         flows: data.flows,
         counterparties: data.counterparties || [],
         contracts: data.contracts || [],
+        statements: data.statements || [],
+        nonCashEvents: data.nonCashEvents || [],
+        recurringIncomes: data.recurringIncomes || [],
+        controlAssumptions: data.controlAssumptions || {},
         budgets: data.budgets || [],
         scenarios: data.scenarios || [],
         settings: data.settings
