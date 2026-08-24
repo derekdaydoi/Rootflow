@@ -278,6 +278,65 @@
     return Math.max(0, (Number(contract && contract.originalPrincipal) || 0) - paid);
   }
 
+  /* Lịch hợp đồng là nguồn duy nhất cho cả UI và cashflow forecast.
+     - principal_interest: gốc chia đều theo kỳ, lãi tính trên dư gốc đầu kỳ.
+     - interest_only: mỗi kỳ chỉ trả lãi, toàn bộ gốc nằm ở kỳ cuối.
+     Lãi suất là %/tháng; kỳ lẻ cuối cùng được quy đổi theo số ngày / 30. */
+  function contractSchedule(contract) {
+    if (!contract) return [];
+    var principal = Math.max(0, Number(contract.originalPrincipal) || 0);
+    if (!(principal > 0)) return [];
+    var start = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.startDate || '')) ? contract.startDate : today();
+    var end = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.maturityDate || '')) ? contract.maturityDate : addMonths(start, 1);
+    var frequency = contract.interestFrequency === 'at_maturity' ? 'at_maturity' : 'monthly';
+    var dates = [];
+    if (frequency === 'at_maturity') dates.push(end);
+    else {
+      var first = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.firstPaymentDate || '')) ? contract.firstPaymentDate : addMonths(start, 1);
+      for (var i = 0; i < 600; i++) {
+        var date = addMonths(first, i);
+        if (date > end) break;
+        dates.push(date);
+      }
+      if (!dates.length || dates[dates.length - 1] < end) dates.push(end);
+    }
+    var mode = contract.type === 'payable' && contract.repaymentMode === 'interest_only' ? 'interest_only' : 'principal_interest';
+    var interestMode = /^(rate|fixed)$/.test(contract.interestMode) ? contract.interestMode : 'none';
+    var rate = Math.max(0, Number(contract.interestRate) || 0);
+    var fixed = Math.max(0, Number(contract.fixedInterest) || 0);
+    var balance = principal;
+    var basePrincipal = Math.floor(principal / dates.length);
+    return dates.map(function (date, index) {
+      var isLast = index === dates.length - 1;
+      var interest = 0;
+      if (interestMode === 'fixed') {
+        if (contract.fixedInterestBasis === 'total' && dates.length > 1) {
+          var fixedPerPeriod = Math.floor(fixed / dates.length);
+          interest = isLast ? fixed - fixedPerPeriod * (dates.length - 1) : fixedPerPeriod;
+        } else interest = fixed;
+      }
+      else if (interestMode === 'rate') {
+        var factor = 1;
+        var previous = index ? dates[index - 1] : start;
+        if (frequency === 'at_maturity') factor = Math.max(0, diffDays(start, date) / 30);
+        else if (date !== addMonths(previous, 1)) factor = Math.max(0, diffDays(previous, date) / 30);
+        interest = Math.round((mode === 'interest_only' ? principal : balance) * rate / 100 * factor);
+      }
+      var principalAmount = mode === 'interest_only' ? (isLast ? balance : 0)
+        : isLast ? balance : Math.min(balance, basePrincipal);
+      balance = Math.max(0, balance - principalAmount);
+      return {
+        index: index, date: date, principalAmount: principalAmount, interestAmount: interest,
+        amount: principalAmount + interest,
+        role: frequency === 'at_maturity' ? 'maturity' : mode === 'interest_only' && isLast ? 'principal' : 'installment'
+      };
+    });
+  }
+
+  function contractInterestTotal(contract) {
+    return contractSchedule(contract).reduce(function (sum, row) { return sum + row.interestAmount; }, 0);
+  }
+
   function byId(accounts) {
     var m = {};
     for (var i = 0; i < accounts.length; i++) m[accounts[i].id] = accounts[i];
@@ -812,6 +871,7 @@
     repayPrincipal: repayPrincipal, repayCost: repayCost, repayTotal: repayTotal,
     collectPrincipal: collectPrincipal, collectInterest: collectInterest, collectTotal: collectTotal,
     contractPaymentTotals: contractPaymentTotals, contractOutstandingPrincipal: contractOutstandingPrincipal,
+    contractSchedule: contractSchedule, contractInterestTotal: contractInterestTotal,
     accountBalanceAsOf: accountBalanceAsOf, baselineIsOpening: baselineIsOpening, effectAfterBaseline: effectAfterBaseline,
     isLegacyDebtPayment: isLegacyDebtPayment,
     byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,

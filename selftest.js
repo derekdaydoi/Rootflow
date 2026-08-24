@@ -303,6 +303,26 @@
     check('Interest-only giữ nguyên dư gốc hiện tại', D.contractOutstandingPrincipal(interestOnlyContract, interestOnlyFlows), 100000000);
     check('Lịch tự nhập được tính, lịch tự động không bị trừ hai lần', ioCommitted.principal, 20000000);
 
+    /* --- 30. Lịch vay hàng tháng đi vào cashflow đúng ngày --- */
+    var monthlyLoan = {
+      id: 'monthly', type: 'payable', originalPrincipal: 120000000,
+      startDate: '2026-08-15', firstPaymentDate: '2026-09-15', maturityDate: '2026-12-15',
+      interestMode: 'rate', interestRate: 2, interestFrequency: 'monthly', repaymentMode: 'principal_interest'
+    };
+    var monthlyRows = D.contractSchedule(monthlyLoan);
+    check('Khoản vay dựng đủ 4 kỳ hàng tháng', monthlyRows.map(function (row) { return row.date; }), ['2026-09-15', '2026-10-15', '2026-11-15', '2026-12-15']);
+    check('Gốc chia đều theo 4 kỳ', monthlyRows.map(function (row) { return row.principalAmount; }), [30000000, 30000000, 30000000, 30000000]);
+    check('Lãi giảm theo dư gốc đầu kỳ', monthlyRows.map(function (row) { return row.interestAmount; }), [2400000, 1800000, 1200000, 600000]);
+    check('Tổng lãi lịch gốc + lãi', D.contractInterestTotal(monthlyLoan), 6000000);
+    var monthlyIo = Object.assign({}, monthlyLoan, { repaymentMode: 'interest_only' });
+    var monthlyIoRows = D.contractSchedule(monthlyIo);
+    check('Chỉ lãi giữ gốc tới kỳ cuối', monthlyIoRows.map(function (row) { return row.principalAmount; }), [0, 0, 0, 120000000]);
+    check('Chỉ lãi hiển thị đúng lãi mỗi tháng', monthlyIoRows.map(function (row) { return row.interestAmount; }), [2400000, 2400000, 2400000, 2400000]);
+    var fixedTotalRows = D.contractSchedule(Object.assign({}, monthlyLoan, { interestMode: 'fixed', fixedInterest: 8000000, fixedInterestBasis: 'total' }));
+    check('Lãi cố định toàn kỳ được chia đúng từng tháng', fixedTotalRows.map(function (row) { return row.interestAmount; }), [2000000, 2000000, 2000000, 2000000]);
+    var fixedMonthlyRows = D.contractSchedule(Object.assign({}, monthlyLoan, { interestMode: 'fixed', fixedInterest: 2000000, fixedInterestBasis: 'per_period' }));
+    check('Lãi cố định mỗi tháng được giữ nguyên', fixedMonthlyRows.map(function (row) { return row.interestAmount; }), [2000000, 2000000, 2000000, 2000000]);
+
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };
   }

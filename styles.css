@@ -299,6 +299,7 @@ button { color: inherit; }
 .hero-amount.negative { color: var(--danger); }
 .hero-summary { max-width: 250px; margin-top: 6px; color: var(--secondary); font-size: 13px; line-height: 1.4; }
 .status-pill {
+  flex: 0 0 auto;
   min-height: 28px;
   padding: 5px 9px;
   border-radius: 999px;
@@ -309,7 +310,9 @@ button { color: inherit; }
   color: var(--green-deep);
   font-size: 11px;
   font-weight: 750;
+  line-height: 1;
   letter-spacing: .03em;
+  white-space: nowrap;
 }
 .status-pill.tight { background: var(--warning-soft); color: var(--warning); }
 .status-pill.unsafe { background: var(--danger-soft); color: var(--danger); }
@@ -323,6 +326,7 @@ button { color: inherit; }
 }
 .hero-meta span { display: block; color: var(--secondary); font-size: 11px; line-height: 1.25; }
 .hero-meta strong { display: block; margin-top: 3px; font-size: 13px; font-weight: 650; line-height: 1.25; }
+.hero-top > div:first-child, .pressure-head > div:first-child, .result-head > strong { min-width: 0; flex: 1; }
 
 .chart-card { margin-top: 10px; padding: 12px 10px 8px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
 .chart-title { padding: 0 4px 5px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -346,6 +350,7 @@ button { color: inherit; }
 .pressure-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .pressure-date { color: var(--green-deep); font-size: 17px; font-weight: 700; }
 .pressure-note { color: var(--secondary); font-size: 12px; }
+.summary-row > span:first-child { min-width: 0; flex: 1; }
 .pressure-row, .summary-row, .position-row, .result-row, .setting-row {
   min-width: 0;
   display: flex;
@@ -482,6 +487,15 @@ button { color: inherit; }
 .net-card-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .net-card strong { color: var(--green-deep); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .net-card p { margin: 2px 0 0; color: var(--secondary); font-size: 11px; }
+.loan-interest-section { margin-top: 20px; }
+.interest-schedule-card { overflow: hidden; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.interest-schedule-row { min-width: 0; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 9px; min-height: 62px; padding: 9px 11px; border-bottom: 1px solid var(--border); }
+.interest-schedule-row:last-child { border-bottom: 0; }
+.interest-date { color: var(--green-deep); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.interest-amount { text-align: right; white-space: nowrap; }
+.interest-amount span, .interest-amount strong { display: block; }
+.interest-amount span { color: var(--secondary); font-size: 9px; text-transform: uppercase; }
+.interest-amount strong { margin-top: 1px; color: var(--danger); font-size: 13px; font-variant-numeric: tabular-nums; }
 
 .risk-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .risk-card { min-height: 112px; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
@@ -564,6 +578,25 @@ button { color: inherit; }
 .account-current-card span { color: var(--secondary); font-size: 12px; font-weight: 600; }
 .account-current-card strong { color: var(--green-deep); font-size: 19px; font-variant-numeric: tabular-nums; }
 .account-current-card small { grid-column: 1 / -1; color: var(--secondary); font-size: 10.5px; line-height: 1.4; }
+.loan-schedule-preview { margin: 4px 0 16px; overflow: hidden; border: 1px solid #cfe0d3; border-radius: 13px; background: #fbfdfb; }
+.schedule-preview-head { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px; background: var(--green-soft); }
+.schedule-preview-head > div:first-child { min-width: 0; }
+.schedule-preview-head strong, .schedule-preview-head span { display: block; }
+.schedule-preview-head > div:first-child > strong { overflow: hidden; color: var(--green-deep); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.schedule-preview-head > div:first-child > span { margin-top: 2px; color: var(--secondary); font-size: 10px; }
+.schedule-interest-chip { padding: 6px 8px; border: 1px solid #c5dbc9; border-radius: 9px; background: var(--surface); text-align: right; white-space: nowrap; }
+.schedule-interest-chip span { color: var(--secondary); font-size: 8.5px; text-transform: uppercase; }
+.schedule-interest-chip strong { margin-top: 1px; color: var(--green-deep); font-size: 12px; font-variant-numeric: tabular-nums; }
+.schedule-preview-list { padding: 0 11px; }
+.schedule-preview-row { min-width: 0; display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 8px; min-height: 55px; border-bottom: 1px solid var(--border); }
+.schedule-preview-row:last-child { border-bottom: 0; }
+.schedule-date { color: var(--green-deep); font-size: 10px; font-weight: 700; white-space: nowrap; }
+.schedule-copy { min-width: 0; }
+.schedule-copy strong, .schedule-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.schedule-copy strong { font-size: 11px; }
+.schedule-copy span { margin-top: 2px; color: var(--secondary); font-size: 9.5px; }
+.schedule-total { font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.schedule-gap { padding: 3px 0; color: var(--muted); font-size: 10px; text-align: center; letter-spacing: 3px; }
 .account-archive { margin-top: 10px; }
 .archive-help { margin: 6px 4px 0; color: var(--secondary); font-size: 10.5px; line-height: 1.4; text-align: center; }
 
@@ -903,6 +936,8 @@ button { color: inherit; }
   .risk-grid { grid-template-columns: 1fr; }
   .risk-card.wide { grid-column: auto; }
   .form-grid { grid-template-columns: 1fr; }
+  .schedule-preview-head { grid-template-columns: 1fr; }
+  .schedule-interest-chip { justify-self: start; text-align: left; }
   .budget-preview-grid { grid-template-columns: 1fr; }
   .nav-button { font-size: 9px; }
 }

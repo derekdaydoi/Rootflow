@@ -166,12 +166,7 @@
   }
 
   function plannedContractInterest(contract) {
-    var principal = Math.max(0, Number(contract && contract.originalPrincipal) || 0);
-    if (!contract || contract.interestMode === 'none') return 0;
-    if (contract.interestMode === 'fixed') return Math.max(0, Number(contract.fixedInterest) || 0);
-    var rate = Math.max(0, Number(contract.interestRate) || 0);
-    var days = contract.maturityDate ? Math.max(0, D.diffDays(contract.startDate, contract.maturityDate)) : 30;
-    return Math.round(principal * rate / 100 * days / 30);
+    return D.contractInterestTotal(contract);
   }
 
   function contractCommittedTotals(contract, flows) {
@@ -208,8 +203,8 @@
     });
     if (!contract.maturityDate || !contract.settlementAccountId || contract.status === 'closed') return;
     var committed = contractCommittedTotals(contract, data.flows);
-    var principal = Math.max(0, (Number(contract.originalPrincipal) || 0) - committed.principal);
-    var interest = Math.max(0, plannedContractInterest(contract) - committed.interest);
+    var principalCredit = committed.principal;
+    var interestCredit = committed.interest;
     var kind = contract.type === 'payable' ? 'repay' : 'collect';
     var confidence = contract.confidence || 'EXPECTED';
     function add(role, date, principalAmount, interestAmount, note) {
@@ -226,13 +221,18 @@
         category: '', note: note, createdAt: S.now(), updatedAt: S.now()
       });
     }
-    if (contract.type === 'payable' && contract.repaymentMode === 'interest_only') {
-      add('interest', contract.maturityDate, 0, interest, 'Thanh toán lãi theo lịch');
-      add('principal', contract.principalDueDate, principal, 0, 'Trả gốc cuối kỳ');
-    } else {
-      add('maturity', contract.maturityDate, principal, interest,
-        contract.type === 'payable' ? 'Đáo hạn khoản vay' : 'Dự kiến thu gốc và lãi');
-    }
+    D.contractSchedule(contract).forEach(function (row) {
+      var principalUsed = Math.min(principalCredit, row.principalAmount);
+      var interestUsed = Math.min(interestCredit, row.interestAmount);
+      principalCredit -= principalUsed;
+      interestCredit -= interestUsed;
+      var principalAmount = row.principalAmount - principalUsed;
+      var interestAmount = row.interestAmount - interestUsed;
+      var note = row.role === 'principal' ? 'Lãi tháng + trả gốc cuối kỳ'
+        : row.role === 'installment' ? (kind === 'repay' ? 'Kỳ trả gốc và lãi' : 'Kỳ thu gốc và lãi')
+        : kind === 'repay' ? 'Đáo hạn khoản vay' : 'Dự kiến thu gốc và lãi';
+      add(row.role, row.date, principalAmount, interestAmount, note);
+    });
   }
 
   function flowAmount(flow, accounts) {
@@ -550,6 +550,9 @@
       ['people', 'Người khác nợ bạn', d.totals.receivable], ['asset', 'Tài sản khác', d.totals.fixedAsset]
     ];
     var owe = props.data.accounts.filter(function (a) { return !a.archived && D.isLiability(a); });
+    var interestSchedule = props.data.flows.filter(function (flow) {
+      return flow && !flow.deletedAt && !flow.skipped && !flow.confirmed && flow.kind === 'repay' && D.repayCost(flow) > 0 && flow.date >= D.today();
+    }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).slice(0, 6);
     return h('main', { className: 'page' },
       h(AppBar, { title: 'Position', subtitle: 'Vị thế tài chính hiện tại' }, h(IconButton, { icon: 'info', label: 'Giải thích vị thế', onClick: props.onSettings })),
       h('div', { className: 'content' },
@@ -564,6 +567,15 @@
           h('div', { className: 'position-total' }, h('span', null, 'BẠN ĐANG NỢ'), h('strong', { style: { color: 'var(--text)' } }, compactMoney(d.totals.liability))),
           owe.length ? owe.map(function (account) { return h('div', { className: 'position-row', key: account.id }, h('div', { className: 'position-label' }, h('div', { className: 'flow-icon' }, h(Icon, { name: account.type === 'credit_card' ? 'wallet' : 'borrow' })), h('span', { title: account.name }, account.name)), h('div', { className: 'position-value' }, compactMoney(d.balances[account.id] || 0))); }) : h('p', { className: 'section-copy' }, 'Không có khoản nợ đang hoạt động.'),
           h('div', { className: 'net-card' }, h('div', { className: 'net-card-row' }, h('div', null, h('div', { className: 'section-kicker' }, 'Giá trị ròng của bạn'), h('p', null, 'Tài sản − các khoản đang nợ')), h('strong', null, compactMoney(d.totals.netWorth))))),
+        interestSchedule.length ? h('section', { className: 'section loan-interest-section' },
+          h('div', { className: 'section-kicker' }, 'Cashflow nghĩa vụ'),
+          h('h2', { className: 'section-heading', style: { marginTop: 4 } }, 'Lịch trả lãi sắp tới'),
+          h('div', { className: 'interest-schedule-card' }, interestSchedule.map(function (flow) {
+            return h('div', { className: 'interest-schedule-row', key: flow.id },
+              h('div', { className: 'interest-date' }, D.fmtDate(flow.date)),
+              h('div', { className: 'row-label' }, h('strong', null, flow.counterpartyName || 'Khoản vay'), h('span', null, flow.note || 'Kỳ trả lãi')),
+              h('div', { className: 'interest-amount' }, h('span', null, 'Lãi'), h('strong', null, compactMoney(D.repayCost(flow)))));
+          }))) : null,
         h('button', { type: 'button', className: 'text-button', style: { width: '100%', marginTop: 10 }, onClick: props.onSettings }, 'Xem chi tiết kế toán')));
   }
 
@@ -629,6 +641,24 @@
         h('div', { className: 'button-row' }, h('button', { type: 'button', className: 'primary-button', onClick: saveScenario }, 'Lưu kịch bản'))));
   }
 
+  function ContractSchedulePreview(props) {
+    var rows = D.contractSchedule(props.contract);
+    if (!rows.length) return null;
+    var totalInterest = rows.reduce(function (sum, row) { return sum + row.interestAmount; }, 0);
+    var shown = rows.length <= 4 ? rows : rows.slice(0, 3).concat([null, rows[rows.length - 1]]);
+    return h('div', { className: 'loan-schedule-preview' },
+      h('div', { className: 'schedule-preview-head' },
+        h('div', null, h('strong', null, 'Lịch cashflow dự kiến'), h('span', null, rows.length + ' kỳ · tổng lãi ' + compactMoney(totalInterest))),
+        h('div', { className: 'schedule-interest-chip' }, h('span', null, 'Lãi kỳ đầu'), h('strong', null, compactMoney(rows[0].interestAmount)))),
+      h('div', { className: 'schedule-preview-list' }, shown.map(function (row, index) {
+        if (!row) return h('div', { className: 'schedule-gap', key: 'gap' }, '•••');
+        return h('div', { className: 'schedule-preview-row', key: row.date + '-' + index },
+          h('div', { className: 'schedule-date' }, D.fmtDate(row.date)),
+          h('div', { className: 'schedule-copy' }, h('strong', null, row.role === 'principal' ? 'Kỳ cuối + trả gốc' : 'Kỳ ' + (row.index + 1)), h('span', null, 'Gốc ' + compactMoney(row.principalAmount) + ' · Lãi ' + compactMoney(row.interestAmount))),
+          h('strong', { className: 'schedule-total' }, compactMoney(row.amount)));
+      })));
+  }
+
   function AccountForm(props) {
     var account = props.account || null;
     var contract = props.contract || null;
@@ -644,12 +674,14 @@
       counterparty: contract ? contract.counterpartyName : '',
       originalPrincipal: contract && contract.originalPrincipal ? D.groupDigits(contract.originalPrincipal) : contractType && props.currentBalance ? D.groupDigits(props.currentBalance) : '',
       startDate: contract && contract.startDate ? contract.startDate : account && account.balanceAsOf ? account.balanceAsOf : D.today(),
+      firstPaymentDate: contract && contract.firstPaymentDate ? contract.firstPaymentDate : D.addMonths(contract && contract.startDate ? contract.startDate : D.today(), 1),
       maturityDate: contract && contract.maturityDate ? contract.maturityDate : '',
+      interestFrequency: contract && contract.interestFrequency === 'at_maturity' ? 'at_maturity' : 'monthly',
       interestMode: contract ? (contract.interestMode || (contract.fixedInterest ? 'fixed' : contract.interestRate ? 'rate' : 'none')) : 'none',
       interestRate: contract && contract.interestRate ? String(contract.interestRate) : '',
       fixedInterest: contract && contract.fixedInterest ? D.groupDigits(contract.fixedInterest) : '',
+      fixedInterestBasis: contract && contract.fixedInterestBasis === 'total' ? 'total' : 'per_period',
       repaymentMode: contract && contract.repaymentMode ? contract.repaymentMode : 'principal_interest',
-      principalDueDate: contract && contract.principalDueDate ? contract.principalDueDate : '',
       settlementAccountId: contract && contract.settlementAccountId ? contract.settlementAccountId : liquidAccounts[0] ? liquidAccounts[0].id : ''
     });
     var form = state[0], setForm = state[1];
@@ -673,15 +705,16 @@
       if (shouldSaveContract && !form.counterparty.trim()) return setError('Nhập tên đối tác của khoản vay hoặc phải thu.');
       if (shouldSaveContract && !(principal > 0)) return setError('Nhập số tiền gốc lớn hơn 0.');
       if (shouldSaveContract && !form.settlementAccountId) return setError('Chọn tài khoản dùng để thanh toán hoặc nhận tiền.');
-      if (shouldSaveContract && form.maturityDate && form.maturityDate < form.startDate) return setError('Ngày đến hạn không được trước ngày bắt đầu.');
+      if (shouldSaveContract && !form.maturityDate) return setError('Chọn ngày tất toán để Rootflow đưa nghĩa vụ vào cashflow.');
+      if (shouldSaveContract && form.maturityDate < form.startDate) return setError('Ngày đến hạn không được trước ngày bắt đầu.');
+      if (shouldSaveContract && form.interestFrequency === 'monthly' && (!form.firstPaymentDate || form.firstPaymentDate <= form.startDate || form.firstPaymentDate > form.maturityDate)) return setError('Ngày trả kỳ đầu phải sau ngày bắt đầu và không vượt ngày tất toán.');
       var rate = Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0;
       var fixed = D.parseMoney(form.fixedInterest);
       if (shouldSaveContract && form.interestMode === 'rate' && !(rate > 0)) return setError('Nhập lãi suất lớn hơn 0.');
       if (shouldSaveContract && form.interestMode === 'fixed' && !(fixed > 0)) return setError('Nhập tiền lãi cố định lớn hơn 0.');
       if (shouldSaveContract && form.type === 'loan' && form.repaymentMode === 'interest_only') {
         if (form.interestMode === 'none') return setError('Chế độ chỉ lãi cần có điều khoản lãi.');
-        if (!form.maturityDate) return setError('Chọn ngày trả lãi.');
-        if (!form.principalDueDate || form.principalDueDate <= form.maturityDate) return setError('Ngày trả gốc cuối kỳ phải sau ngày trả lãi.');
+        if (!form.maturityDate) return setError('Chọn ngày tất toán gốc.');
       }
       var contractPatch = shouldSaveContract ? {
         id: contract ? contract.id : S.uid(),
@@ -689,13 +722,14 @@
         counterpartyId: contract ? contract.counterpartyId : null,
         counterpartyName: form.counterparty.trim(), accountId: nextAccount.id,
         originalPrincipal: principal,
-        startDate: form.startDate,
+        startDate: form.startDate, firstPaymentDate: form.interestFrequency === 'monthly' ? form.firstPaymentDate : null,
         maturityDate: form.maturityDate || null,
         interestMode: form.interestMode,
         interestRate: form.interestMode === 'rate' ? rate : 0,
         fixedInterest: form.interestMode === 'fixed' ? fixed : 0,
-        interestFrequency: 'monthly', repaymentMode: form.type === 'loan' ? form.repaymentMode : 'principal_interest',
-        principalDueDate: form.type === 'loan' && form.repaymentMode === 'interest_only' ? form.principalDueDate : null,
+        fixedInterestBasis: form.fixedInterestBasis,
+        interestFrequency: form.interestFrequency, repaymentMode: form.type === 'loan' ? form.repaymentMode : 'principal_interest',
+        principalDueDate: form.type === 'loan' && form.repaymentMode === 'interest_only' ? form.maturityDate : null,
         settlementAccountId: form.settlementAccountId,
         confidence: contract ? contract.confidence || 'EXPECTED' : 'EXPECTED', status: contract ? contract.status : 'active',
         fundingSource: contract ? contract.fundingSource : 'own',
@@ -705,6 +739,14 @@
       props.onSave(nextAccount, contractPatch, contract);
     }
     var showContract = form.type === 'loan' || form.type === 'receivable';
+    var previewContract = showContract ? {
+      type: form.type === 'loan' ? 'payable' : 'receivable', originalPrincipal: D.parseMoney(form.originalPrincipal) || D.parseMoney(form.openingBalance),
+      startDate: form.startDate, firstPaymentDate: form.firstPaymentDate, maturityDate: form.maturityDate,
+      interestMode: form.interestMode, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0,
+      fixedInterest: D.parseMoney(form.fixedInterest), interestFrequency: form.interestFrequency,
+      fixedInterestBasis: form.fixedInterestBasis,
+      repaymentMode: form.type === 'loan' ? form.repaymentMode : 'principal_interest'
+    } : null;
     return h(React.Fragment, null,
       h('p', { className: 'sheet-intro' }, account ? 'Bạn có thể sửa toàn bộ thông tin quản trị. Loại tài khoản được khóa sau khi tạo để không làm sai các giao dịch cũ.' : 'Nhập số dư đúng tại ngày bắt đầu theo dõi. Dữ liệu chỉ lưu trên thiết bị này.'),
       h(Field, { label: 'Tên tài khoản' }, h(TextInput, { value: form.name, onChange: function (e) { set('name', e.target.value); }, placeholder: 'Ví dụ: VCB chính' })),
@@ -721,14 +763,17 @@
         h(Field, { label: 'Số tiền gốc' }, h(MoneyInput, { value: form.originalPrincipal, onChange: function (v) { set('originalPrincipal', v); }, placeholder: '100M' })),
         h('div', { className: 'form-grid' },
           h(Field, { label: 'Ngày bắt đầu' }, h(TextInput, { type: 'date', value: form.startDate, onChange: function (e) { set('startDate', e.target.value); } })),
-          h(Field, { label: form.type === 'loan' ? 'Ngày trả / trả lãi' : 'Ngày dự kiến thu' }, h(TextInput, { type: 'date', value: form.maturityDate, onChange: function (e) { set('maturityDate', e.target.value); } }))),
+          h(Field, { label: 'Ngày tất toán' }, h(TextInput, { type: 'date', value: form.maturityDate, onChange: function (e) { set('maturityDate', e.target.value); } }))),
         h(Field, { label: form.type === 'loan' ? 'Tài khoản thanh toán' : 'Tài khoản nhận tiền' }, h(Select, { value: form.settlementAccountId, onChange: function (v) { set('settlementAccountId', v); } }, h('option', { value: '' }, 'Chọn tài khoản'), liquidAccounts.map(function (row) { return h('option', { key: row.id, value: row.id }, row.name); }))),
+        h(Field, { label: 'Chu kỳ thanh toán' }, h(Select, { value: form.interestFrequency, onChange: function (v) { set('interestFrequency', v); } }, h('option', { value: 'monthly' }, 'Hàng tháng'), h('option', { value: 'at_maturity' }, 'Một lần khi tất toán'))),
+        form.interestFrequency === 'monthly' ? h(Field, { label: 'Ngày trả kỳ đầu', help: 'Các kỳ sau giữ cùng ngày trong tháng; tháng ngắn sẽ tự kẹp về ngày cuối tháng.' }, h(TextInput, { type: 'date', value: form.firstPaymentDate, onChange: function (e) { set('firstPaymentDate', e.target.value); } })) : null,
         h(Field, { label: 'Điều khoản lãi' }, h(Select, { value: form.interestMode, onChange: function (v) { set('interestMode', v); } },
           h('option', { value: 'none' }, 'Không tính lãi'), h('option', { value: 'rate' }, 'Lãi suất theo tháng'), h('option', { value: 'fixed' }, 'Tiền lãi cố định'))),
         form.interestMode === 'rate' ? h(Field, { label: 'Lãi suất đơn / tháng' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })) : null,
-        form.interestMode === 'fixed' ? h(Field, { label: 'Tiền lãi cố định' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })) : null,
+        form.interestMode === 'fixed' && form.interestFrequency === 'monthly' ? h(Field, { label: 'Cách áp dụng tiền lãi' }, h(Select, { value: form.fixedInterestBasis, onChange: function (v) { set('fixedInterestBasis', v); } }, h('option', { value: 'per_period' }, 'Cố định mỗi tháng'), h('option', { value: 'total' }, 'Tổng cố định toàn kỳ'))) : null,
+        form.interestMode === 'fixed' ? h(Field, { label: form.fixedInterestBasis === 'total' || form.interestFrequency === 'at_maturity' ? 'Tổng tiền lãi cố định' : 'Tiền lãi cố định mỗi tháng' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })) : null,
         form.type === 'loan' ? h(Field, { label: 'Cách thanh toán theo lịch', help: form.repaymentMode === 'interest_only' ? 'Khoản trả lãi không làm giảm dư gốc. Rootflow sẽ giữ riêng một lịch trả gốc cuối kỳ.' : 'Một lịch thanh toán gồm cả phần gốc và phần lãi.' }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } }, h('option', { value: 'principal_interest' }, 'Trả gốc + lãi'), h('option', { value: 'interest_only' }, 'Chỉ trả lãi'))) : null,
-        form.type === 'loan' && form.repaymentMode === 'interest_only' ? h(Field, { label: 'Ngày trả gốc cuối kỳ' }, h(TextInput, { type: 'date', value: form.principalDueDate, onChange: function (e) { set('principalDueDate', e.target.value); } })) : null) : null,
+        previewContract ? h(ContractSchedulePreview, { contract: previewContract }) : null) : null,
       h(Field, { label: 'Ghi chú' }, h(TextInput, { value: form.note, onChange: function (e) { set('note', e.target.value); }, placeholder: 'Thông tin thêm (không bắt buộc)' })),
       error ? h('div', { className: 'field-error' }, error) : null,
       h('button', { type: 'button', className: 'primary-button', onClick: save }, account ? 'Lưu thay đổi' : 'Lưu tài khoản'),
@@ -754,9 +799,9 @@
     var initialContract = props.data.contracts.filter(function (c) { return c.accountId === initialTarget && c.status !== 'closed'; })[0];
     var state = React.useState({
       amount: '', principal: '', interest: '', accountId: liquid[0] ? liquid[0].id : '', counterAccountId: '',
-      counterparty: '', date: D.today(), dueDate: D.addDays(D.today(), 30), expectedDate: D.addDays(D.today(), 30),
-      confidence: props.type === 'lend' ? 'EXPECTED' : 'CERTAIN', interestMode: 'rate', interestRate: '', fixedInterest: '', fundingSource: 'own', fundingContractId: '',
-      repaymentMode: initialContract && initialContract.repaymentMode ? initialContract.repaymentMode : 'principal_interest', principalDueDate: D.addDays(D.today(), 60),
+      counterparty: '', date: D.today(), firstPaymentDate: D.addMonths(D.today(), 1), dueDate: D.addMonths(D.today(), 1), expectedDate: D.addDays(D.today(), 30),
+      confidence: props.type === 'lend' ? 'EXPECTED' : 'CERTAIN', interestMode: 'rate', interestRate: '', fixedInterest: '', fixedInterestBasis: 'per_period', fundingSource: 'own', fundingContractId: '',
+      interestFrequency: props.type === 'borrow' ? 'monthly' : 'at_maturity', repaymentMode: initialContract && initialContract.repaymentMode ? initialContract.repaymentMode : 'principal_interest',
       category: '', note: '', assetName: '', targetAccountId: initialTarget
     });
     var form = state[0], setForm = state[1];
@@ -775,11 +820,11 @@
       if (props.type === 'lend' && form.fundingSource === 'borrowed' && !form.fundingContractId) return setError('Chọn khoản vay dùng làm nguồn vốn.');
       if ((props.type === 'collect' || props.type === 'repay') && !form.targetAccountId) return setError('Chọn khoản cần xử lý.');
       if ((props.type === 'borrow' || props.type === 'lend') && (props.type === 'borrow' ? form.dueDate : form.expectedDate) < form.date) return setError('Ngày đến hạn không được trước ngày bắt đầu.');
+      if (props.type === 'borrow' && form.interestFrequency === 'monthly' && (!form.firstPaymentDate || form.firstPaymentDate <= form.date || form.firstPaymentDate > form.dueDate)) return setError('Ngày trả kỳ đầu phải sau ngày vay và không vượt ngày tất toán.');
       if ((props.type === 'borrow' || props.type === 'lend') && form.interestMode === 'rate' && !(Number(String(form.interestRate).replace(',', '.').replace('%', '')) > 0)) return setError('Nhập lãi suất lớn hơn 0.');
       if ((props.type === 'borrow' || props.type === 'lend') && form.interestMode === 'fixed' && !(fixedInterest > 0)) return setError('Nhập tiền lãi cố định lớn hơn 0.');
       if (props.type === 'borrow' && form.repaymentMode === 'interest_only') {
         if (form.interestMode === 'none') return setError('Chế độ chỉ lãi cần có điều khoản lãi.');
-        if (!form.principalDueDate || form.principalDueDate <= form.dueDate) return setError('Ngày trả gốc cuối kỳ phải sau ngày trả lãi.');
       }
       if (props.type === 'repay' && form.repaymentMode === 'interest_only' && !(interest > 0)) return setError('Nhập số tiền lãi cần trả.');
       var outstanding = Math.max(0, Number(accountBalances[form.targetAccountId]) || 0);
@@ -792,14 +837,24 @@
       body.push(h(Field, { label: props.type === 'borrow' ? 'Người cho vay' : 'Người vay', key: 'cp' }, h(TextInput, { value: form.counterparty, onChange: function (e) { set('counterparty', e.target.value); }, placeholder: props.type === 'borrow' ? 'Ví dụ: Anh B' : 'Ví dụ: Nguyễn A' })));
       body.push(money('Số tiền', 'amount', props.type === 'borrow' ? '100M' : '80M'));
       body.push(liquidSelect(props.type === 'borrow' ? 'Tài khoản nhận tiền' : 'Tài khoản nguồn'));
-      body.push(h('div', { className: 'form-grid', key: 'dates' }, date(props.type === 'borrow' ? 'Ngày vay' : 'Ngày cho vay', 'date'), date(props.type === 'borrow' ? 'Ngày đến hạn' : 'Ngày dự kiến thu', props.type === 'borrow' ? 'dueDate' : 'expectedDate')));
+      body.push(h('div', { className: 'form-grid', key: 'dates' }, date(props.type === 'borrow' ? 'Ngày vay' : 'Ngày cho vay', 'date'), date(props.type === 'borrow' ? 'Ngày tất toán' : 'Ngày dự kiến thu', props.type === 'borrow' ? 'dueDate' : 'expectedDate')));
+      if (props.type === 'borrow') {
+        body.push(h(Field, { label: 'Chu kỳ thanh toán', key: 'frequency' }, h(Select, { value: form.interestFrequency, onChange: function (v) { set('interestFrequency', v); } }, h('option', { value: 'monthly' }, 'Hàng tháng'), h('option', { value: 'at_maturity' }, 'Một lần khi tất toán'))));
+        if (form.interestFrequency === 'monthly') body.push(date('Ngày trả kỳ đầu', 'firstPaymentDate'));
+      }
       body.push(h(Field, { label: 'Điều khoản lãi', key: 'interest-mode' }, h(Select, { value: form.interestMode, onChange: function (v) { set('interestMode', v); } },
         h('option', { value: 'none' }, 'Không tính lãi'), h('option', { value: 'rate' }, 'Lãi suất theo tháng'), h('option', { value: 'fixed' }, 'Tiền lãi cố định'))));
       if (form.interestMode === 'rate') body.push(h(Field, { label: 'Lãi suất đơn / tháng', key: 'rate' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })));
-      if (form.interestMode === 'fixed') body.push(h(Field, { label: 'Tiền lãi cố định', key: 'fixed-interest' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })));
+      if (form.interestMode === 'fixed' && form.interestFrequency === 'monthly') body.push(h(Field, { label: 'Cách áp dụng tiền lãi', key: 'fixed-basis' }, h(Select, { value: form.fixedInterestBasis, onChange: function (v) { set('fixedInterestBasis', v); } }, h('option', { value: 'per_period' }, 'Cố định mỗi tháng'), h('option', { value: 'total' }, 'Tổng cố định toàn kỳ'))));
+      if (form.interestMode === 'fixed') body.push(h(Field, { label: form.fixedInterestBasis === 'total' || form.interestFrequency === 'at_maturity' ? 'Tổng tiền lãi cố định' : 'Tiền lãi cố định mỗi tháng', key: 'fixed-interest' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })));
       if (props.type === 'borrow') {
         body.push(h(Field, { label: 'Cách thanh toán theo lịch', key: 'repayment-mode', help: form.repaymentMode === 'interest_only' ? 'Trả lãi không làm giảm dư gốc; Rootflow sẽ tạo thêm lịch trả toàn bộ gốc cuối kỳ.' : 'Lịch đến hạn gồm cả gốc và lãi.' }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } }, h('option', { value: 'principal_interest' }, 'Trả gốc + lãi'), h('option', { value: 'interest_only' }, 'Chỉ trả lãi'))));
-        if (form.repaymentMode === 'interest_only') body.push(date('Ngày trả gốc cuối kỳ', 'principalDueDate'));
+        body.push(h(ContractSchedulePreview, { key: 'schedule-preview', contract: {
+          type: 'payable', originalPrincipal: D.parseMoney(form.amount), startDate: form.date,
+          firstPaymentDate: form.firstPaymentDate, maturityDate: form.dueDate,
+          interestMode: form.interestMode, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0,
+          fixedInterest: D.parseMoney(form.fixedInterest), fixedInterestBasis: form.fixedInterestBasis, interestFrequency: form.interestFrequency, repaymentMode: form.repaymentMode
+        } }));
       }
       if (props.type === 'lend') {
         body.push(h(Field, { label: 'Nguồn vốn', key: 'funding', help: form.fundingSource === 'mixed' ? 'Kết hợp được ghi nhận như một nguồn tổng hợp; Rootflow không hỏi liên kết khoản vay.' : null }, h(Select, { value: form.fundingSource, onChange: function (v) { setForm(function (prev) { return Object.assign({}, prev, { fundingSource: v, fundingContractId: v === 'borrowed' ? prev.fundingContractId : '' }); }); setError(''); } }, h('option', { value: 'own' }, 'Tiền của tôi'), h('option', { value: 'borrowed' }, 'Vay từ người khác'), h('option', { value: 'mixed' }, 'Kết hợp'))));
@@ -1034,7 +1089,7 @@
           var accountType = type === 'borrow' ? 'loan' : 'receivable';
           var account = { id: S.uid(), name: (type === 'borrow' ? 'Vay · ' : 'Phải thu · ') + cp.name, type: accountType, openingBalance: 0, balanceAsOf: form.date, archived: false, createdAt: S.now(), updatedAt: S.now() };
           next.accounts.push(account);
-          var contract = { id: S.uid(), type: type === 'borrow' ? 'payable' : 'receivable', counterpartyId: cp.id, counterpartyName: cp.name, accountId: account.id, originalPrincipal: form.amountValue, startDate: form.date, maturityDate: type === 'borrow' ? form.dueDate : form.expectedDate, interestMode: form.interestMode || 'none', interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, fixedInterest: form.interestMode === 'fixed' ? form.fixedInterestValue : 0, interestFrequency: 'monthly', repaymentMode: type === 'borrow' ? form.repaymentMode : 'principal_interest', principalDueDate: type === 'borrow' && form.repaymentMode === 'interest_only' ? form.principalDueDate : null, settlementAccountId: form.accountId, confidence: form.confidence, status: 'active', fundingSource: form.fundingSource || 'own', fundingContractId: form.fundingSource === 'borrowed' ? form.fundingContractId || null : null, note: form.note, createdAt: S.now(), updatedAt: S.now() };
+          var contract = { id: S.uid(), type: type === 'borrow' ? 'payable' : 'receivable', counterpartyId: cp.id, counterpartyName: cp.name, accountId: account.id, originalPrincipal: form.amountValue, startDate: form.date, firstPaymentDate: type === 'borrow' && form.interestFrequency === 'monthly' ? form.firstPaymentDate : null, maturityDate: type === 'borrow' ? form.dueDate : form.expectedDate, interestMode: form.interestMode || 'none', interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, fixedInterest: form.interestMode === 'fixed' ? form.fixedInterestValue : 0, fixedInterestBasis: form.fixedInterestBasis, interestFrequency: type === 'borrow' ? form.interestFrequency : 'at_maturity', repaymentMode: type === 'borrow' ? form.repaymentMode : 'principal_interest', principalDueDate: type === 'borrow' && form.repaymentMode === 'interest_only' ? form.dueDate : null, settlementAccountId: form.accountId, confidence: form.confidence, status: 'active', fundingSource: form.fundingSource || 'own', fundingContractId: form.fundingSource === 'borrowed' ? form.fundingContractId || null : null, note: form.note, createdAt: S.now(), updatedAt: S.now() };
           next.contracts.push(contract);
           pushFlow(next, { kind: type, accountId: form.accountId, counterAccountId: account.id, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : form.confidence, contractId: contract.id, counterpartyId: cp.id, counterpartyName: cp.name, fundingSource: form.fundingSource, fundingContractId: contract.fundingContractId, note: form.note });
           rebuildContractSchedule(next, contract);

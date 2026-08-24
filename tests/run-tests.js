@@ -58,7 +58,7 @@ localStorage.setItem('rootflow.data', JSON.stringify({
 }));
 const migrated = context.RootflowStore.load();
 assert.equal(migrated.error, null);
-assert.equal(migrated.data.schemaVersion, 7);
+assert.equal(migrated.data.schemaVersion, 8);
 assert.equal(migrated.data.settings.hardFloor, 20000000);
 assert.equal(migrated.data.settings.operatingBuffer, 20000000);
 assert.equal(migrated.data.flows[0].confidence, 'EXPECTED');
@@ -85,6 +85,16 @@ const matured = context.RootflowStore.load();
 assert.equal(matured.data.flows[0].confirmed, true);
 assert.equal(matured.data.flows[0].autoPosted, true);
 assert.equal(matured.data.contracts[0].status, 'closed');
+
+memory.clear();
+localStorage.setItem('rootflow.data', JSON.stringify({
+  schemaVersion: 7,
+  contracts: [{ id: 'legacy-io', type: 'payable', originalPrincipal: 100, startDate: '2026-08-01', maturityDate: '2026-09-01', principalDueDate: '2026-12-01', interestMode: 'rate', interestRate: 2, interestFrequency: 'monthly', repaymentMode: 'interest_only' }]
+}));
+const monthlyMigrated = context.RootflowStore.load();
+assert.equal(monthlyMigrated.data.schemaVersion, 8);
+assert.equal(monthlyMigrated.data.contracts[0].firstPaymentDate, '2026-09-01');
+assert.equal(monthlyMigrated.data.contracts[0].maturityDate, '2026-12-01');
 
 memory.clear();
 localStorage.setItem('rootflow.data', JSON.stringify({ schemaVersion: 99, sentinel: 'keep' }));

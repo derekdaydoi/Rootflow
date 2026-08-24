@@ -4,7 +4,7 @@
   'use strict';
 
   var KEY = 'rootflow.data';
-  var SCHEMA = 7;
+  var SCHEMA = 8;
   var TRASH_DAYS = 30;
   var WARN_BYTES = 3 * 1024 * 1024;
   var D = global.RootflowDomain;
@@ -17,12 +17,7 @@
   function now() { return new Date().toISOString(); }
 
   function plannedInterest(contract) {
-    var principal = Math.max(0, Number(contract && contract.originalPrincipal) || 0);
-    if (!contract || contract.interestMode === 'none') return 0;
-    if (contract.interestMode === 'fixed') return Math.max(0, Number(contract.fixedInterest) || 0);
-    var rate = Math.max(0, Number(contract.interestRate) || 0);
-    var days = contract.maturityDate ? Math.max(0, D.diffDays(contract.startDate, contract.maturityDate)) : 30;
-    return Math.round(principal * rate / 100 * days / 30);
+    return D.contractInterestTotal(contract);
   }
 
   function empty() {
@@ -144,15 +139,25 @@
       var type = c && c.type === 'payable' ? 'payable' : 'receivable';
       var contract = Object.assign({
         id: uid(), type: type, counterpartyId: null, counterpartyName: '', accountId: '',
-        originalPrincipal: 0, startDate: D.today(), maturityDate: null,
-        interestMode: 'none', interestRate: 0, fixedInterest: 0, interestFrequency: 'monthly',
+        originalPrincipal: 0, startDate: D.today(), firstPaymentDate: null, maturityDate: null,
+        interestMode: 'none', interestRate: 0, fixedInterest: 0, fixedInterestBasis: 'per_period', interestFrequency: 'monthly',
         repaymentMode: 'principal_interest', principalDueDate: null, status: 'active',
         settlementAccountId: '', fundingSource: 'own', fundingContractId: null, note: '', createdAt: now(), updatedAt: now()
       }, c || {}, { type: type });
       if (!c || !/^(none|rate|fixed)$/.test(c.interestMode)) contract.interestMode = contract.fixedInterest ? 'fixed' : contract.interestRate ? 'rate' : 'none';
+      if (!/^(per_period|total)$/.test(contract.fixedInterestBasis)) contract.fixedInterestBasis = fromVersion < 8 ? 'total' : 'per_period';
       if (!/^(principal_interest|interest_only)$/.test(contract.repaymentMode)) contract.repaymentMode = 'principal_interest';
       if (contract.type !== 'payable') contract.repaymentMode = 'principal_interest';
-      if (contract.repaymentMode !== 'interest_only') contract.principalDueDate = null;
+      if (!/^(monthly|at_maturity)$/.test(contract.interestFrequency)) contract.interestFrequency = 'monthly';
+      if (!contract.firstPaymentDate) {
+        if (contract.repaymentMode === 'interest_only' && contract.principalDueDate && contract.maturityDate && contract.principalDueDate > contract.maturityDate) {
+          contract.firstPaymentDate = contract.maturityDate;
+          contract.maturityDate = contract.principalDueDate;
+        } else {
+          contract.firstPaymentDate = D.addMonths(contract.startDate || D.today(), 1);
+        }
+      }
+      contract.principalDueDate = contract.repaymentMode === 'interest_only' ? contract.maturityDate : null;
       if (!/^(active|closed)$/.test(contract.status)) contract.status = 'active';
       contract.interestRate = Math.max(0, Number(contract.interestRate) || 0);
       contract.fixedInterest = Math.max(0, Number(contract.fixedInterest) || 0);
@@ -166,7 +171,7 @@
       return contract;
     });
 
-    /* V7 đánh dấu lịch do Rootflow sinh ra để khi người dùng sửa hợp đồng chỉ
+    /* V7+ đánh dấu lịch do Rootflow sinh ra để khi người dùng sửa hợp đồng chỉ
        dựng lại đúng lịch tự động, không đụng vào giao dịch tự nhập. */
     data.flows.forEach(function (f) {
       if (!f || !f.contractId || (f.kind !== 'repay' && f.kind !== 'collect')) return;
