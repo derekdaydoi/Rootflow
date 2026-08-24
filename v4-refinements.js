@@ -176,7 +176,11 @@
       hasBusiness: hasBusiness,
       lendingPrincipal: Math.max(0, Number(book.totalPrincipal) || 0),
       recurringLendingIncome: recurringIncome,
-      knownFundingCostMonthly: funding.contractualKnownTotal + funding.rollover,
+      /* This is the number shown beside the profit estimate, so it includes
+         planning interest and rollover control assumptions and reconciles to
+         netMonthlyProfitEstimate. Contractual-only cost is exposed separately. */
+      knownFundingCostMonthly: funding.planningTotal,
+      contractualKnownFundingCostMonthly: funding.contractualKnownTotal,
       planningFundingCostMonthly: funding.planningTotal,
       fundingInterestMonthly: funding.knownInterest,
       estimatedFundingInterestMonthly: funding.estimatedInterest,
