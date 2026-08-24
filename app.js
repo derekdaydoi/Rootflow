@@ -283,15 +283,33 @@
   }
 
   function FlowScreen(props) {
-    var d = props.derived;
     var today = D.today();
-    var live = props.data.flows.filter(function (f) { return !f.deletedAt && !f.skipped; }).slice().sort(function (a, b) {
+    var tabState = React.useState('timeline'), tab = tabState[0], setTab = tabState[1];
+    var ymState = React.useState(D.monthOf(today)), ym = ymState[0], setYm = ymState[1];
+    var selectedState = React.useState(today), selectedDate = selectedState[0], setSelectedDate = selectedState[1];
+    var filterState = React.useState('all'), filter = filterState[0], setFilter = filterState[1];
+    var bounds = D.monthBounds(ym);
+    var allLive = props.data.flows.filter(function (f) {
+      return !f.deletedAt && !f.skipped && (filter === 'all' || f.confirmed || D.confidenceOf(f) === 'CERTAIN');
+    }).slice().sort(function (a, b) {
       return String(a.date).localeCompare(String(b.date));
     });
-    var past = live.filter(function (f) { return f.confirmed && f.date < today; }).slice(-8);
-    var current = live.filter(function (f) { return f.date === today; });
-    var future = live.filter(function (f) { return !f.confirmed && f.date > today; }).slice(0, 18);
-    var month = D.monthSummary(props.data.accounts, props.data.flows, D.monthOf(today));
+    var live = allLive.filter(function (f) { return f.date >= bounds.from && f.date <= bounds.to; });
+    var past = allLive.filter(function (f) { return f.confirmed && f.date < today; }).slice(-8);
+    var current = allLive.filter(function (f) { return f.date === today; });
+    var future = allLive.filter(function (f) { return !f.confirmed && f.date > today; }).slice(0, 18);
+    var month = D.monthSummary(props.data.accounts, props.data.flows, ym);
+    var selectedFlows = live.filter(function (f) { return f.date === selectedDate; });
+    var parts = ym.split('-'), year = Number(parts[0]), monthNumber = Number(parts[1]);
+    var dayCount = new Date(year, monthNumber, 0).getDate();
+    var firstOffset = (new Date(year, monthNumber - 1, 1).getDay() + 6) % 7;
+    var calendarCells = [];
+    for (var blank = 0; blank < firstOffset; blank++) calendarCells.push(null);
+    for (var day = 1; day <= dayCount; day++) calendarCells.push(ym + '-' + String(day).padStart(2, '0'));
+    function changeMonth(step) {
+      var next = D.addMonthsToYm(ym, step);
+      setYm(next); setSelectedDate(next === D.monthOf(today) ? today : next + '-01');
+    }
     function timelineRow(flow, isToday) {
       var amount = flowAmount(flow, props.data.accounts);
       return h('div', { className: 'timeline-row', key: flow.id },
@@ -301,17 +319,34 @@
           h('div', { className: 'timeline-meta' }, flow.confirmed ? 'Actual' : confidenceLabel(flow))),
         h('div', { className: 'flow-amount ' + (amount < 0 ? 'negative' : 'positive') }, compactMoney(amount, true)));
     }
-    return h('main', { className: 'page' },
-      h(AppBar, { title: 'Flow', subtitle: 'Quá khứ · hiện tại · tương lai' }, h(IconButton, { icon: 'filter', label: 'Lọc dòng tiền', onClick: props.onSettings })),
-      h('div', { className: 'content' },
-        h('div', { className: 'segmented' }, h('button', { type: 'button', className: 'seg-button on' }, 'Timeline'), h('button', { type: 'button', className: 'seg-button' }, 'Calendar')),
-        h('div', { className: 'month-control' }, h(IconButton, { icon: 'back', label: 'Tháng trước', onClick: function () {} }), h('strong', null, D.fmtMonth(D.monthOf(today))), h(IconButton, { icon: 'chevron', label: 'Tháng sau', onClick: function () {} })),
-        live.length ? h('div', { className: 'timeline' },
-          past.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, 'Quá khứ'), past.map(function (f) { return timelineRow(f, false); })) : null,
+    function timelineView() {
+      if (!allLive.length) return h(EmptyState, { icon: 'flow', title: 'Chưa có dòng tiền', copy: 'Dùng nút + để ghi tiền vào, tiền ra, vay, cho vay hoặc nghĩa vụ sắp tới.', action: 'Thêm giao dịch', onAction: props.onAdd });
+      var isCurrentMonth = ym === D.monthOf(today);
+      return h('div', { className: 'timeline' },
+        past.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, isCurrentMonth ? 'Quá khứ' : 'Đã ghi nhận'), past.map(function (f) { return timelineRow(f, false); })) : null,
+        isCurrentMonth ? h(React.Fragment, null,
           h('div', { className: 'timeline-group' }, 'Hôm nay'),
-          current.length ? current.map(function (f) { return timelineRow(f, true); }) : h('div', { className: 'timeline-row' }, h('div', { className: 'flow-date' }, D.fmtDate(today)), h('div', { className: 'timeline-dot today' }), h('div', { className: 'timeline-copy' }, h('div', { className: 'timeline-title' }, 'Hôm nay'), h('div', { className: 'timeline-meta' }, 'Không có dòng tiền')), h('div')),
-          future.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, 'Tương lai'), future.map(function (f) { return timelineRow(f, false); })) : null)
-          : h(EmptyState, { icon: 'flow', title: 'Chưa có dòng tiền', copy: 'Dùng nút + để ghi tiền vào, tiền ra, vay, cho vay hoặc nghĩa vụ sắp tới.', action: 'Thêm giao dịch', onAction: props.onAdd }),
+          current.length ? current.map(function (f) { return timelineRow(f, true); }) : h('div', { className: 'timeline-row' }, h('div', { className: 'flow-date' }, D.fmtDate(today)), h('div', { className: 'timeline-dot today' }), h('div', { className: 'timeline-copy' }, h('div', { className: 'timeline-title' }, 'Hôm nay'), h('div', { className: 'timeline-meta' }, 'Không có dòng tiền')), h('div'))) : null,
+        future.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, 'Tương lai'), future.map(function (f) { return timelineRow(f, false); })) : null);
+    }
+    function calendarView() {
+      return h('div', null,
+        h('div', { className: 'calendar-weekdays' }, ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(function (label) { return h('span', { key: label }, label); })),
+        h('div', { className: 'calendar-grid' }, calendarCells.map(function (date, index) {
+          if (!date) return h('span', { className: 'calendar-blank', key: 'b' + index });
+          var rows = live.filter(function (f) { return f.date === date; });
+          return h('button', { type: 'button', key: date, className: 'calendar-day ' + (date === selectedDate ? 'selected ' : '') + (date === today ? 'today' : ''), onClick: function () { setSelectedDate(date); } },
+            h('span', null, Number(date.slice(-2))), rows.length ? h('i', { className: rows.some(function (f) { return flowAmount(f, props.data.accounts) < 0; }) ? 'out' : 'in' }) : null);
+        })),
+        h('div', { className: 'calendar-events' }, h('h3', null, D.fmtDateFull(selectedDate)),
+          selectedFlows.length ? h('div', { className: 'flow-list' }, selectedFlows.map(function (flow) { return h(FlowRow, { key: flow.id, flow: flow, accounts: props.data.accounts }); })) : h('p', { className: 'section-copy' }, 'Không có dòng tiền trong ngày này.')));
+    }
+    return h('main', { className: 'page' },
+      h(AppBar, { title: 'Flow', subtitle: filter === 'certain' ? 'Chỉ dòng đã xác nhận' : 'Quá khứ · hiện tại · tương lai' }, h(IconButton, { icon: 'filter', label: filter === 'all' ? 'Chỉ hiện dòng đã xác nhận' : 'Hiện tất cả dòng tiền', onClick: function () { setFilter(filter === 'all' ? 'certain' : 'all'); } })),
+      h('div', { className: 'content' },
+        h('div', { className: 'segmented' }, h('button', { type: 'button', className: 'seg-button ' + (tab === 'timeline' ? 'on' : ''), onClick: function () { setTab('timeline'); } }, 'Timeline'), h('button', { type: 'button', className: 'seg-button ' + (tab === 'calendar' ? 'on' : ''), onClick: function () { setTab('calendar'); } }, 'Calendar')),
+        h('div', { className: 'month-control' }, h(IconButton, { icon: 'back', label: 'Tháng trước', onClick: function () { changeMonth(-1); } }), h('strong', null, D.fmtMonth(ym)), h(IconButton, { icon: 'chevron', label: 'Tháng sau', onClick: function () { changeMonth(1); } })),
+        tab === 'calendar' ? calendarView() : timelineView(),
         h('div', { className: 'metric-strip' },
           h('div', { className: 'metric-box' }, h('div', { className: 'metric-label' }, 'Thu tháng'), h('div', { className: 'metric-value positive' }, compactMoney(month.income, true))),
           h('div', { className: 'metric-box' }, h('div', { className: 'metric-label' }, 'Chi tháng'), h('div', { className: 'metric-value negative' }, compactMoney(-month.expense, true))),
@@ -530,6 +565,10 @@
       h('div', { className: 'settings-group section' }, h('h3', null, 'Tài khoản'),
         h('div', { className: 'account-list' }, props.data.accounts.filter(function (a) { return !a.archived; }).map(function (a) { return h('div', { className: 'setting-row', key: a.id }, h('div', { className: 'row-label' }, h('strong', null, a.name), h('span', null, D.ACCOUNT_TYPES[a.type] ? D.ACCOUNT_TYPES[a.type].label : a.type)), h('span', { className: 'row-value' }, compactMoney(props.balances[a.id] || 0))); })),
         h('button', { type: 'button', className: 'secondary-button', style: { marginTop: 10 }, onClick: props.onAddAccount }, 'Thêm tài khoản')),
+      props.data.scenarios.length ? h('div', { className: 'settings-group section' }, h('h3', null, 'Kịch bản đã lưu'),
+        h('div', { className: 'account-list' }, props.data.scenarios.slice().reverse().slice(0, 8).map(function (scenario) {
+          return h('div', { className: 'setting-row', key: scenario.id }, h('div', { className: 'row-label' }, h('strong', null, scenario.name || 'Kịch bản'), h('span', null, scenario.date ? D.fmtDateFull(scenario.date) : 'Chưa đặt ngày')), h('span', { className: 'row-value' }, compactMoney(scenario.amount || 0)));
+        }))) : null,
       h('div', { className: 'settings-group section' }, h('h3', null, 'Dữ liệu & kiểm tra'),
         h('div', { className: 'button-row' }, h('button', { type: 'button', className: 'secondary-button', onClick: props.onExport }, 'Xuất backup'), h('label', { className: 'secondary-button', style: { display: 'grid', placeItems: 'center' } }, 'Nhập backup', h('input', { type: 'file', accept: 'application/json', hidden: true, onChange: function (e) { if (e.target.files[0]) props.onImport(e.target.files[0]); } }))),
         h('button', { type: 'button', className: 'secondary-button', style: { marginTop: 10 }, onClick: props.onTest }, 'Chạy kiểm tra nghiệp vụ'),
