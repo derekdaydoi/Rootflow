@@ -112,7 +112,17 @@
   }
 
   function parseMoney(str) {
-    var digits = String(str == null ? '' : str).replace(/[^0-9]/g, '');
+    var raw = String(str == null ? '' : str).trim().toLowerCase();
+    if (!raw) return 0;
+    var suffix = raw.match(/(k|ng|m|tr|b|tỷ|ty)\s*(?:đ|vnd)?$/i);
+    if (suffix) {
+      var multiplier = /^(k|ng)$/i.test(suffix[1]) ? 1e3
+        : /^(m|tr)$/i.test(suffix[1]) ? 1e6 : 1e9;
+      var compact = raw.slice(0, suffix.index).replace(/\s/g, '').replace(',', '.').replace(/[^0-9.]/g, '');
+      var value = Number(compact);
+      return Number.isFinite(value) ? Math.round(value * multiplier) : 0;
+    }
+    var digits = raw.replace(/[^0-9]/g, '');
     return digits ? Number(digits) : 0;
   }
 
@@ -222,6 +232,29 @@
     return Math.abs(Number(f.amount) || 0);
   }
 
+  /* Thu nợ có thể gồm gốc và lãi. Dữ liệu cũ chỉ có amount được hiểu là
+     100% gốc để không làm thay đổi báo cáo lịch sử. */
+  function collectPrincipal(f) {
+    if (!f || f.kind !== 'collect') return Math.abs(Number(f && f.amount) || 0);
+    if (f.principalAmount !== undefined && f.principalAmount !== null && f.principalAmount !== '') {
+      return Math.abs(Number(f.principalAmount) || 0);
+    }
+    return Math.abs(Number(f.amount) || 0);
+  }
+
+  function collectInterest(f) {
+    if (!f || f.kind !== 'collect') return 0;
+    return Math.abs(Number(f.interestAmount) || 0);
+  }
+
+  function collectTotal(f) {
+    if (!f || f.kind !== 'collect') return Math.abs(Number(f && f.amount) || 0);
+    if (f.principalAmount !== undefined || f.interestAmount !== undefined) {
+      return collectPrincipal(f) + collectInterest(f);
+    }
+    return Math.abs(Number(f.amount) || 0);
+  }
+
   function byId(accounts) {
     var m = {};
     for (var i = 0; i < accounts.length; i++) m[accounts[i].id] = accounts[i];
@@ -237,7 +270,9 @@
   function effects(f, accMap) {
     var a = accMap[f.accountId];
     if (!a) return [];
-    var amt = f.kind === 'repay' ? repayTotal(f) : Math.abs(Number(f.amount) || 0);
+    var amt = f.kind === 'repay' ? repayTotal(f)
+      : f.kind === 'collect' ? collectTotal(f)
+      : Math.abs(Number(f.amount) || 0);
     var b = f.counterAccountId ? accMap[f.counterAccountId] : null;
     var onCard = a.type === 'credit_card';
     var out = [];
@@ -277,7 +312,7 @@
 
       case 'collect':
         out.push({ accountId: a.id, delta: amt });
-        if (b) out.push({ accountId: b.id, delta: -amt });
+        if (b) out.push({ accountId: b.id, delta: -collectPrincipal(f) });
         break;
     }
     return out;
@@ -465,6 +500,132 @@
     };
   }
 
+  /* ====================== THANH KHOẢN & BUFFER ======================
+     Kết quả chính luôn bảo thủ với inflow: CERTAIN mới được dùng để chứng minh
+     an toàn. Mọi outflow đã lên lịch vẫn được tính, bất kể confidence, để một
+     khoản thu EXPECTED/UNCERTAIN không che mất maturity mismatch. */
+
+  var CONFIDENCE = {
+    CERTAIN: { label: 'Đã xác nhận', short: 'Confirmed' },
+    EXPECTED: { label: 'Dự kiến', short: 'Expected' },
+    UNCERTAIN: { label: 'Chưa chắc chắn', short: 'Uncertain' }
+  };
+
+  function confidenceOf(f) {
+    var value = String(f && f.confidence || '').toUpperCase();
+    return CONFIDENCE[value] ? value : 'EXPECTED';
+  }
+
+  function liquidityStatus(low, hardFloor, operatingBuffer) {
+    var liquidityBuffer = Number(low || 0) - Number(hardFloor || 0);
+    var operatingHeadroom = Number(low || 0) - Number(operatingBuffer || 0);
+    return {
+      liquidityBuffer: liquidityBuffer,
+      operatingHeadroom: operatingHeadroom,
+      status: liquidityBuffer < 0 ? 'UNSAFE' : operatingHeadroom < 0 ? 'TIGHT' : 'SAFE'
+    };
+  }
+
+  function projectionPath(accounts, flows, opts, mode) {
+    var start = opts.baseDate || today();
+    var days = Math.max(1, Number(opts.horizonDays) || 90);
+    var accMap = byId(accounts);
+    var current = totals(accounts, balances(accounts, flows)).liquid + (Number(opts.initialAdjustment) || 0);
+    var planned = live(flows).filter(function (f) {
+      return !f.confirmed && !f.skipped;
+    }).map(function (f) {
+      return { flow: f, delta: liquidDelta(f, accMap) };
+    }).filter(function (row) {
+      if (row.delta <= 0) return true;
+      var confidence = confidenceOf(row.flow);
+      if (mode === 'full') return true;
+      if (mode === 'expected') return confidence !== 'UNCERTAIN';
+      return confidence === 'CERTAIN';
+    }).sort(function (a, b) {
+      return String(a.flow.date || '').localeCompare(String(b.flow.date || ''));
+    });
+
+    var points = [], running = current, idx = 0;
+    for (var i = 0; i <= days; i++) {
+      var date = addDays(start, i);
+      while (idx < planned.length && String(planned[idx].flow.date || '') <= date) {
+        running += planned[idx].delta;
+        idx++;
+      }
+      points.push({ date: date, value: running });
+    }
+    return points;
+  }
+
+  function lowestPoint(points) {
+    var lowest = points[0] || { date: today(), value: 0 };
+    for (var i = 1; i < points.length; i++) {
+      if (points[i].value < lowest.value) lowest = points[i];
+    }
+    return lowest;
+  }
+
+  function liquidityModel(accounts, flows, settings, opts) {
+    settings = settings || {};
+    opts = opts || {};
+    var config = {
+      baseDate: opts.baseDate || today(),
+      horizonDays: Number(opts.horizonDays || settings.horizonDays) || 90,
+      initialAdjustment: Number(opts.initialAdjustment) || 0
+    };
+    var hardFloor = Math.max(0, Number(settings.hardFloor != null ? settings.hardFloor : settings.reserveFloor) || 0);
+    var operating = Math.max(hardFloor, Number(settings.operatingBuffer) || hardFloor);
+    var comfort = Math.max(operating, Number(settings.comfortBuffer) || operating);
+    var confirmedPoints = projectionPath(accounts, flows, config, 'confirmed');
+    var expectedPoints = projectionPath(accounts, flows, config, 'expected');
+    var allPoints = projectionPath(accounts, flows, config, 'full');
+    var confirmedLow = lowestPoint(confirmedPoints);
+    var expectedLow = lowestPoint(expectedPoints);
+    var state = liquidityStatus(confirmedLow.value, hardFloor, operating);
+    var expectedState = liquidityStatus(expectedLow.value, hardFloor, operating);
+    var zeroPoint = null;
+    for (var i = 0; i < confirmedPoints.length; i++) {
+      if (confirmedPoints[i].value <= 0) { zeroPoint = confirmedPoints[i]; break; }
+    }
+    return {
+      points: confirmedPoints,
+      expectedPoints: expectedPoints,
+      allPoints: allPoints,
+      current: confirmedPoints[0] ? confirmedPoints[0].value : 0,
+      projectedLow: confirmedLow.value,
+      pressurePointDate: confirmedLow.date,
+      expectedLow: expectedLow.value,
+      expectedPressureDate: expectedLow.date,
+      hardFloor: hardFloor,
+      operatingBuffer: operating,
+      comfortBuffer: comfort,
+      liquidityBuffer: state.liquidityBuffer,
+      operatingHeadroom: state.operatingHeadroom,
+      status: state.status,
+      expectedStatus: expectedState.status,
+      dependsOnExpected: expectedLow.value > confirmedLow.value,
+      safeDeployableNow: Math.max(0, confirmedLow.value - hardFloor),
+      operatingDeployableNow: Math.max(0, confirmedLow.value - operating),
+      runwayDays: zeroPoint ? Math.max(0, diffDays(config.baseDate, zeroPoint.date)) : config.horizonDays,
+      runwayCapped: !zeroPoint,
+      horizonDays: config.horizonDays
+    };
+  }
+
+  function decisionLiquidityImpact(kind, amount) {
+    var value = Math.abs(Number(amount) || 0);
+    return kind === 'borrow' || kind === 'collect' || kind === 'income' || kind === 'sell_asset'
+      ? value : -value;
+  }
+
+  function simulateDecision(accounts, flows, settings, decision, opts) {
+    var before = liquidityModel(accounts, flows, settings, opts);
+    var afterOpts = Object.assign({}, opts || {}, {
+      initialAdjustment: decisionLiquidityImpact(decision && decision.kind, decision && decision.amount)
+    });
+    return { before: before, after: liquidityModel(accounts, flows, settings, afterOpts) };
+  }
+
   /* ============================ THÁNG ============================ */
 
   function monthSummary(accounts, flows, ym) {
@@ -484,7 +645,9 @@
     for (var i = 0; i < inMonth.length; i++) {
       var f = inMonth[i];
       var meta = FLOW_KINDS[f.kind] || {};
-      var amt = f.kind === 'repay' ? repayTotal(f) : Math.abs(Number(f.amount) || 0);
+      var amt = f.kind === 'repay' ? repayTotal(f)
+        : f.kind === 'collect' ? collectTotal(f)
+        : Math.abs(Number(f.amount) || 0);
 
       if (f.confirmed) r.confirmed++; else { r.pending++; continue; }
 
@@ -518,7 +681,12 @@
         r.debtPrincipal += amt;
       }
       if (f.kind === 'lend') r.lent += amt;
-      if (f.kind === 'collect') r.collected += amt;
+      if (f.kind === 'collect') {
+        r.collected += collectPrincipal(f);
+        if (collectInterest(f) > 0) {
+          r.income += collectInterest(f);
+        }
+      }
       if (f.kind === 'borrow') r.borrowed += amt;
 
       r.netCash += liquidDelta(f, accMap);
@@ -619,10 +787,13 @@
     groupOf: groupOf, isLiquid: isLiquid, isLiability: isLiability, isReceivable: isReceivable,
     isInvestment: isInvestment, isFixedAsset: isFixedAsset, termClass: termClass,
     repayPrincipal: repayPrincipal, repayCost: repayCost, repayTotal: repayTotal,
+    collectPrincipal: collectPrincipal, collectInterest: collectInterest, collectTotal: collectTotal,
     accountBalanceAsOf: accountBalanceAsOf, baselineIsOpening: baselineIsOpening, effectAfterBaseline: effectAfterBaseline,
     isLegacyDebtPayment: isLegacyDebtPayment,
     byId: byId, effects: effects, liquidDelta: liquidDelta, balances: balances, totals: totals,
     personalBalanceSheet: personalBalanceSheet,
+    CONFIDENCE: CONFIDENCE, confidenceOf: confidenceOf, liquidityStatus: liquidityStatus,
+    liquidityModel: liquidityModel, decisionLiquidityImpact: decisionLiquidityImpact, simulateDecision: simulateDecision,
     forecast: forecast, monthSummary: monthSummary, overdue: overdue, upcoming: upcoming,
     expand: expand, validateFlow: validateFlow, validateAccount: validateAccount
   };

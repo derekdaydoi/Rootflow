@@ -4,7 +4,7 @@
   'use strict';
 
   var KEY = 'rootflow.data';
-  var SCHEMA = 5;
+  var SCHEMA = 6;
   var TRASH_DAYS = 30;
   var WARN_BYTES = 3 * 1024 * 1024;
   var D = global.RootflowDomain;
@@ -21,9 +21,11 @@
       schemaVersion: SCHEMA,
       accounts: [],
       flows: [],
+      counterparties: [],
+      contracts: [],
       budgets: [],
       scenarios: [],
-      settings: { reserveFloor: 0, horizonDays: 90 },
+      settings: { hardFloor: 0, operatingBuffer: 0, comfortBuffer: 0, reserveFloor: 0, horizonDays: 90 },
       updatedAt: now()
     };
   }
@@ -33,13 +35,26 @@
     if (!data || typeof data !== 'object') return empty();
     if (!data.schemaVersion) data.schemaVersion = 1;
     var fromVersion = Number(data.schemaVersion) || 1;
+    if (fromVersion > SCHEMA) throw new Error('Dữ liệu được tạo bởi phiên bản Rootflow mới hơn.');
 
     var base = empty();
     data.accounts = Array.isArray(data.accounts) ? data.accounts : [];
     data.flows = Array.isArray(data.flows) ? data.flows : [];
+    data.counterparties = Array.isArray(data.counterparties) ? data.counterparties : [];
+    data.contracts = Array.isArray(data.contracts) ? data.contracts : [];
     data.budgets = Array.isArray(data.budgets) ? data.budgets : [];
     data.scenarios = Array.isArray(data.scenarios) ? data.scenarios : [];
     data.settings = Object.assign({}, base.settings, data.settings || {});
+    if (fromVersion < 6) {
+      var legacyFloor = Math.max(0, Number(data.settings.reserveFloor) || 0);
+      if (!(Number(data.settings.hardFloor) > 0)) data.settings.hardFloor = legacyFloor;
+      if (!(Number(data.settings.operatingBuffer) > 0)) data.settings.operatingBuffer = legacyFloor;
+      if (!(Number(data.settings.comfortBuffer) > 0)) data.settings.comfortBuffer = data.settings.operatingBuffer;
+    }
+    data.settings.hardFloor = Math.max(0, Number(data.settings.hardFloor) || 0);
+    data.settings.operatingBuffer = Math.max(data.settings.hardFloor, Number(data.settings.operatingBuffer) || data.settings.hardFloor);
+    data.settings.comfortBuffer = Math.max(data.settings.operatingBuffer, Number(data.settings.comfortBuffer) || data.settings.operatingBuffer);
+    data.settings.reserveFloor = data.settings.hardFloor;
 
     /* Mỗi account có ngày baseline riêng. Liquid account hiểu openingBalance là
        số dư đầu kỳ và replay từ chính ngày baseline; vị thế hiện hữu như khoản vay
@@ -100,12 +115,39 @@
       f.seriesCount = 1;
     });
 
-    /* V4 bỏ thao tác xác nhận thủ công khỏi UX. Dòng tới hạn được post thành
-       actual tự động; dòng tương lai vẫn là planned để forecast tiếp tục đúng. */
+    /* V6 phân biệt confidence của forecast. Legacy planned flow chỉ cho biết
+       "dự kiến", không đủ bằng chứng để nâng thành CERTAIN. Actual rows được
+       giữ CERTAIN vì đã xảy ra. */
+    data.flows.forEach(function (f) {
+      if (!f) return;
+      var confidence = String(f.confidence || '').toUpperCase();
+      if (!/^(CERTAIN|EXPECTED|UNCERTAIN)$/.test(confidence)) {
+        confidence = f.confirmed ? 'CERTAIN' : 'EXPECTED';
+      }
+      f.confidence = confidence;
+    });
+
+    data.counterparties = data.counterparties.map(function (p) {
+      return Object.assign({ id: uid(), name: '', note: '', createdAt: now(), updatedAt: now() }, p || {});
+    }).filter(function (p) { return String(p.name || '').trim(); });
+
+    data.contracts = data.contracts.map(function (c) {
+      var type = c && c.type === 'payable' ? 'payable' : 'receivable';
+      return Object.assign({
+        id: uid(), type: type, counterpartyId: null, counterpartyName: '', accountId: '',
+        originalPrincipal: 0, startDate: D.today(), maturityDate: null,
+        interestRate: 0, interestFrequency: 'monthly', status: 'active',
+        fundingSource: 'own', fundingContractId: null, note: '', createdAt: now(), updatedAt: now()
+      }, c || {}, { type: type });
+    });
+
+    /* Chỉ nghĩa vụ CERTAIN mới được auto-post khi tới hạn. EXPECTED/UNCERTAIN
+       phải chờ người dùng xác nhận, nếu không một khoản thu trễ sẽ làm số dư
+       hiện tại an toàn giả. */
     var t = D.today();
     data.flows.forEach(function (f) {
       if (!f || f.deletedAt || f.skipped || f.confirmed) return;
-      if (String(f.date || '') <= t) {
+      if (String(f.date || '') <= t && f.confidence === 'CERTAIN') {
         f.confirmed = true;
         f.autoPosted = true;
       }
@@ -135,7 +177,9 @@
     try { parsed = JSON.parse(raw); }
     catch (e) { return { data: empty(), error: 'Dữ liệu đã lưu bị hỏng và không đọc được. Nạp lại từ bản sao lưu.' }; }
 
-    var data = migrate(parsed);
+    var data;
+    try { data = migrate(parsed); }
+    catch (e) { return { data: empty(), error: e && e.message ? e.message : 'Không thể nâng cấp dữ liệu đã lưu.' }; }
     purge(data);
     return { data: data, error: null };
   }
@@ -213,6 +257,8 @@
       data: {
         accounts: data.accounts,
         flows: data.flows,
+        counterparties: data.counterparties || [],
+        contracts: data.contracts || [],
         budgets: data.budgets || [],
         scenarios: data.scenarios || [],
         settings: data.settings

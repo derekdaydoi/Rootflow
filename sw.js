@@ -1,10 +1,11 @@
 /* Rootflow — sw.js
    Cache key đổi theo deploy để PWA Home Screen nhận code mới. */
-var CACHE = 'rootflow-cache-2026-08-11';
+var CACHE = 'rootflow-cache-v2-2026-08-24';
 
 var ASSETS = [
   './',
   './index.html',
+  './styles.css',
   './domain.js',
   './store.js',
   './selftest.js',
@@ -76,6 +77,6 @@ self.addEventListener('fetch', function (e) {
 
   /* Navigation + app code ưu tiên mạng để refresh Home Screen chỉ cần một lần.
      Khi offline vẫn fallback về cache. Vendor/icon giữ cache-first. */
-  var core = req.mode === 'navigate' || /\/(index\.html|app\.js|domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(u.pathname);
+  var core = req.mode === 'navigate' || /\/(index\.html|styles\.css|app\.js|domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(u.pathname);
   e.respondWith(core ? networkFirst(req) : cacheFirst(req));
 });

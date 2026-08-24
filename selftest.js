@@ -225,6 +225,71 @@
     var beforeOpening = D.balances(openingAccounts, [], { upto: '2026-08-10' });
     check('Lịch sử trước ngày bắt đầu không kéo opening balance ngược quá khứ', beforeOpening.ob, 0);
 
+    /* --- 21. Acceptance: vay 100M --- */
+    var treasuryAccounts = [
+      { id: 'tc', name: 'Bank', type: 'bank', openingBalance: 0, balanceAsOf: '2026-09-01', archived: false },
+      { id: 'tl', name: 'Loan', type: 'loan', openingBalance: 0, balanceAsOf: '2026-09-01', archived: false },
+      { id: 'tr', name: 'Receivable', type: 'receivable', openingBalance: 0, balanceAsOf: '2026-09-01', archived: false }
+    ];
+    var borrow100 = [{ id: 'ta', kind: 'borrow', accountId: 'tc', counterAccountId: 'tl', amount: 100000000, date: '2026-09-01', confirmed: true, confidence: 'CERTAIN', skipped: false }];
+    var taBal = D.balances(treasuryAccounts, borrow100), taTot = D.totals(treasuryAccounts, taBal);
+    check('Case A — vay tăng cash 100M', taBal.tc, 100000000);
+    check('Case A — vay tăng liability 100M', taBal.tl, 100000000);
+    check('Case A — vay không đổi net worth', taTot.netWorth, 0);
+
+    /* --- 22. Acceptance: cho vay 80M --- */
+    var lend80 = borrow100.concat([{ id: 'tb', kind: 'lend', accountId: 'tc', counterAccountId: 'tr', amount: 80000000, date: '2026-09-01', confirmed: true, confidence: 'CERTAIN', skipped: false }]);
+    var teBal = D.balances(treasuryAccounts, lend80), teTot = D.totals(treasuryAccounts, teBal);
+    check('Case E — vay rồi cho vay còn cash 20M', teBal.tc, 20000000);
+    check('Case E — receivable 80M', teBal.tr, 80000000);
+    check('Case E — liability 100M', teBal.tl, 100000000);
+    check('Case E — net worth không đổi trước lãi', teTot.netWorth, 0);
+
+    /* --- 23. Acceptance: thu gốc 10M + lãi 2M --- */
+    var collectSplit = lend80.concat([{ id: 'tc2', kind: 'collect', accountId: 'tc', counterAccountId: 'tr', amount: 12000000, principalAmount: 10000000, interestAmount: 2000000, date: '2026-09-02', confirmed: true, confidence: 'CERTAIN', skipped: false }]);
+    var tcBal = D.balances(treasuryAccounts, collectSplit);
+    var tcMonth = D.monthSummary(treasuryAccounts, collectSplit, '2026-09');
+    check('Case C — thu đủ 12M vào cash', tcBal.tc, 32000000);
+    check('Case C — chỉ giảm receivable 10M', tcBal.tr, 70000000);
+    check('Case C — lãi 2M là income', tcMonth.income, 2000000);
+
+    /* --- 24. Acceptance: trả gốc 20M + chi phí vay 1M --- */
+    var repaySplit = lend80.concat([{ id: 'td', kind: 'repay', accountId: 'tc', counterAccountId: 'tl', amount: 21000000, principalAmount: 20000000, borrowingCost: 1000000, date: '2026-09-02', confirmed: true, confidence: 'CERTAIN', skipped: false }]);
+    var tdBal = D.balances(treasuryAccounts, repaySplit);
+    var tdMonth = D.monthSummary(treasuryAccounts, repaySplit, '2026-09');
+    check('Case D — trả đủ 21M khỏi cash', tdBal.tc, -1000000);
+    check('Case D — chỉ giảm liability 20M', tdBal.tl, 80000000);
+    check('Case D — chỉ 1M là expense', tdMonth.expense, 1000000);
+
+    /* --- 25. Maturity mismatch: khoản phải trả đến trước khoản thu Expected --- */
+    var mismatchAccounts = [
+      { id: 'mc', name: 'Cash', type: 'bank', openingBalance: 20000000, balanceAsOf: '2026-09-01', archived: false },
+      { id: 'ml', name: 'Loan', type: 'loan', openingBalance: 100000000, balanceAsOf: '2026-09-01', archived: false },
+      { id: 'mr', name: 'Receivable', type: 'receivable', openingBalance: 80000000, balanceAsOf: '2026-09-01', archived: false }
+    ];
+    var mismatchFlows = [
+      { id: 'mf1', kind: 'repay', accountId: 'mc', counterAccountId: 'ml', amount: 100000000, principalAmount: 100000000, borrowingCost: 0, date: '2026-09-10', confirmed: false, confidence: 'CERTAIN', skipped: false },
+      { id: 'mf2', kind: 'collect', accountId: 'mc', counterAccountId: 'mr', amount: 80000000, principalAmount: 80000000, interestAmount: 0, date: '2026-09-20', confirmed: false, confidence: 'EXPECTED', skipped: false }
+    ];
+    var mismatch = D.liquidityModel(mismatchAccounts, mismatchFlows, { hardFloor: 0, operatingBuffer: 0, horizonDays: 30 }, { baseDate: '2026-09-01' });
+    check('Case F — phát hiện đáy trước khoản thu Expected', [mismatch.projectedLow, mismatch.pressurePointDate], [-80000000, '2026-09-10']);
+    check('Case F — trạng thái unsafe', mismatch.status, 'UNSAFE');
+
+    /* --- 26. Buffer status --- */
+    var bufferAccounts = [{ id: 'bc', name: 'Cash', type: 'bank', openingBalance: 32000000, balanceAsOf: '2026-09-01', archived: false }];
+    var buffer = D.liquidityModel(bufferAccounts, [], { hardFloor: 20000000, operatingBuffer: 35000000, horizonDays: 30 }, { baseDate: '2026-09-01' });
+    check('Case G — liquidity buffer +12M', buffer.liquidityBuffer, 12000000);
+    check('Case G — operating headroom -3M', buffer.operatingHeadroom, -3000000);
+    check('Case G — status tight', buffer.status, 'TIGHT');
+
+    /* --- 27. Decision simulation --- */
+    var decision = D.simulateDecision(bufferAccounts, [], { hardFloor: 20000000, operatingBuffer: 35000000, horizonDays: 30 }, { kind: 'lend', amount: 15000000 }, { baseDate: '2026-09-01' });
+    check('Case H — cho vay thêm 15M làm unsafe', [decision.after.projectedLow, decision.after.status], [17000000, 'UNSAFE']);
+
+    /* --- 28. Money input shorthand --- */
+    check('Đọc shorthand 12.5M', D.parseMoney('12.5M'), 12500000);
+    check('Đọc shorthand 2 tỷ', D.parseMoney('2 tỷ'), 2000000000);
+
     var passed = results.filter(function (r) { return r.pass; }).length;
     return { total: results.length, passed: passed, failed: results.length - passed, results: results };
   }

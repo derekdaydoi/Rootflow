@@ -1,6 +1,6 @@
 # Rootflow
 
-Rootflow là personal financial operating system chạy local-first trên trình duyệt/PWA, dùng để theo dõi dòng tiền, tài khoản, tài sản, nợ phải trả, kế hoạch và kịch bản trong cùng một ledger.
+Rootflow là personal treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới; giao diện tập trung vào tiền khả dụng, điểm áp lực, buffer và các quyết định tài chính đời thường.
 
 ## Nguyên tắc dữ liệu
 
@@ -11,20 +11,38 @@ Rootflow là personal financial operating system chạy local-first trên trình
 - Trả khoản vay tách vốn/gốc và chi phí vay: gốc giảm liability, chi phí vay đi vào expense, cash giảm bằng tổng hai phần.
 - Cho vay và thu hồi gốc là luân chuyển giữa tiền khả dụng và phải thu, không phải income/expense của principal.
 - Giao dịch hôm nay/quá khứ được ghi nhận actual; giao dịch tương lai nằm trong forecast.
+- Dòng tiền tương lai được phân `CERTAIN`, `EXPECTED`, `UNCERTAIN`; inflow chưa chắc chắn không được dùng để chứng minh trạng thái an toàn.
+- `liquidityBuffer = projectedLowPoint - hardFloor`; `operatingHeadroom = projectedLowPoint - operatingBuffer`.
+- `UNSAFE` khi thủng hard floor, `TIGHT` khi trên hard floor nhưng dưới operating buffer, còn lại là `SAFE`.
+- Vay và cho vay tạo contract/counterparty; ngày đáo hạn và ngày dự kiến thu được đưa vào cùng một timeline để phát hiện maturity mismatch.
 
 ## Cấu trúc
 
-- `index.html` — app shell và style
+- `index.html` — app shell
+- `styles.css` — hệ thống giao diện mobile-first, safe-area và responsive
 - `app.js` — UI
 - `domain.js` — finance engine
 - `store.js` — local storage, migration, backup/restore
-- `selftest.js` — business-rule tests
+- `selftest.js` — business-rule tests chạy được trong app
+- `tests/run-tests.js` — test tài chính và migration chạy bằng Node
 - `sw.js` — PWA/offline cache
 - `manifest.json` — PWA manifest
 - `vendor/` — runtime local
 - `brand/`, `icon-*` — logo và PWA assets
 
 Rootflow không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh trong repository.
+
+## Schema và migration
+
+Schema hiện tại là v6. Migration giữ nguyên `accounts`, `flows`, `budgets`, `scenarios`, thêm `counterparties`, `contracts`, ba mức buffer và confidence cho forecast. Planned flow cũ được giữ ở mức `EXPECTED` thay vì tự nâng thành confirmed. Backup cũ vẫn import được; dữ liệu từ schema mới hơn bị từ chối trước khi ghi đè.
+
+## Kiểm tra
+
+```sh
+node tests/run-tests.js
+```
+
+Suite bao phủ vay, cho vay, thu gốc/lãi, trả gốc/chi phí vay, maturity mismatch, buffer status, decision simulation, input tiền rút gọn và migration guard.
 
 ## Dữ liệu
 

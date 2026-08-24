@@ -1,14 +1,14 @@
 {
   "name": "Rootflow",
   "short_name": "Rootflow",
-  "description": "Theo dõi hiện tại, lập kế hoạch và nhìn trước dòng tiền.",
+  "description": "Personal treasury system: vị thế, dòng tiền và buffer thanh khoản.",
   "start_url": "./",
   "scope": "./",
   "id": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F3F0E7",
-  "theme_color": "#F3F0E7",
+  "background_color": "#F5F6F2",
+  "theme_color": "#F5F6F2",
   "categories": [
     "finance",
     "productivity"
