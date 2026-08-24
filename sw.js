@@ -1,6 +1,6 @@
 /* Rootflow — sw.js
    Cache key đổi theo deploy để PWA Home Screen nhận code mới. */
-var CACHE = 'rootflow-cache-v10-2026-08-25c';
+var CACHE = 'rootflow-cache-v10-2026-08-25d';
 
 var ASSETS = [
   './',
