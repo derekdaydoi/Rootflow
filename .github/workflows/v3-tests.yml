@@ -20,3 +20,5 @@ jobs:
         run: node tests/run-v3-tests.js
       - name: V3 committed versus actual regressions
         run: node tests/run-v3-store-tests.js
+      - name: V3 compatibility regressions
+        run: node tests/run-v3-compat-tests.js
