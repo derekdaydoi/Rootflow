@@ -11,6 +11,7 @@ function load(file) {
 load('domain.js');
 load('v3-domain.js');
 load('v4-domain.js');
+load('v4-refinements.js');
 const D = global.RootflowDomain;
 
 const data = {
@@ -48,9 +49,24 @@ assert.strictEqual(bs.totalDebt, 90, 'debt includes credit card and loans');
 assert.strictEqual(bs.ownCapital, 290, 'own capital = assets - debt');
 
 const structure = D.v4DebtStructure(data);
-assert.strictEqual(structure.shortDebt, 60, 'credit card + short maturity are short-term');
+assert.strictEqual(structure.shortDebt, 60, 'revolving card + short maturity are short-term');
 assert.strictEqual(structure.longDebt, 30, 'long maturity stays long-term');
 assert.strictEqual(structure.unknownDebt, 0);
+
+const termData = {
+  accounts: [
+    { id:'cash2', name:'Cash', type:'bank', openingBalance:0, balanceAsOf:'2026-08-24', balanceSemantics:'closing_snapshot', archived:false },
+    { id:'card2', name:'Installment card', type:'credit_card', openingBalance:100, revolvingBalance:20, installmentBalance:80, balanceAsOf:'2026-08-24', archived:false }
+  ],
+  flows: [],
+  contracts: [{ id:'card-contract', type:'payable', accountId:'card2', status:'active', originalPrincipal:80, currentOutstanding:80, termMonths:24, interestMode:'none', actualInterestMethod:'none' }],
+  settings: { snapshotDate:'2026-08-24', forecastStartDate:'2026-08-25', ignoreHistoricalFlowsForProjection:true },
+  controlAssumptions: {}, recurringIncomes: [], budgets: [], counterparties: [], statements: [], nonCashEvents: [], scenarios: []
+};
+const cardStructure = D.v4DebtStructure(termData);
+assert.strictEqual(cardStructure.shortDebt, 20, 'revolving portion stays short-term');
+assert.strictEqual(cardStructure.longDebt, 80, '24-month installment portion is classified long-term');
+assert.strictEqual(cardStructure.unknownDebt, 0);
 
 const calendar = D.v4DebtCalendar(data, 30);
 assert(calendar.some(r => r.id === 'repay'), 'repayment must appear in debt calendar');
@@ -62,10 +78,21 @@ const business = D.v4BusinessSummary(data);
 assert.strictEqual(business.recurringLendingIncome, 12);
 /* Rootflow stores currency as integer units. The synthetic sub-unit monthly
    costs (0.2, 0.6, 0.64) therefore round to 0 + 1 + 1 = 2. */
-assert.strictEqual(business.knownFundingCostMonthly, 2, 'funding cost must use integer currency rounding consistently');
+assert.strictEqual(business.knownFundingCostMonthly, 2, 'displayed funding cost must reconcile to the profit estimate');
 assert.strictEqual(business.netMonthlyProfitEstimate, 10);
 assert.strictEqual(business.profitable, true);
 assert(business.netMonthlyProfitEstimate < 100, 'salary must not be counted as business profit');
+
+const estimateData = {
+  accounts: [{ id:'loan-est', name:'Estimated loan', type:'loan', openingBalance:1000, balanceAsOf:'2026-08-24', archived:false }],
+  flows: [],
+  contracts: [{ id:'est', type:'payable', accountId:'loan-est', status:'active', originalPrincipal:1000, currentOutstanding:1000, interestMode:'rate', actualInterestMethod:null, planningInterestMethod:'flat', interestBasis:'original_principal', interestRate:1, fieldCertainty:{ actualInterestMethod:'UNKNOWN' } }],
+  controlAssumptions: {}, settings:{ snapshotDate:'2026-08-24', forecastStartDate:'2026-08-25' }, recurringIncomes:[], budgets:[], counterparties:[], statements:[], nonCashEvents:[], scenarios:[]
+};
+const estimatedCost = D.v4FundingCostSummary(estimateData);
+assert.strictEqual(estimatedCost.contractualKnownTotal, 0, 'planning method must not become contractual truth');
+assert.strictEqual(estimatedCost.estimatedInterest, 10, 'planning method can still provide a control estimate');
+assert.strictEqual(estimatedCost.unknownContracts, 1, 'unknown actual interest method must remain visibly incomplete');
 
 const budget = D.v4BudgetSummary(data, '2026-08');
 assert.strictEqual(budget.planned, 20);
