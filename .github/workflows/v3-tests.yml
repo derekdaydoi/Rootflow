@@ -1,9 +1,10 @@
-name: Rootflow V3 tests
+name: Rootflow regression tests
 
 on:
   push:
     branches:
       - rootflow-v3-explainable-treasury
+      - rootflow-final-decision-dashboard
   pull_request:
 
 jobs:
@@ -22,3 +23,5 @@ jobs:
         run: node tests/run-v3-store-tests.js
       - name: V3 compatibility regressions
         run: node tests/run-v3-compat-tests.js
+      - name: V4 final decision dashboard regressions
+        run: node tests/run-v4-tests.js

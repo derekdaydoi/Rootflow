@@ -1,89 +1,104 @@
 # Rootflow
 
-Rootflow là personal treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới; giao diện ưu tiên trả lời những câu hỏi đời thường: **đang có bao nhiêu tiền, sắp phải trả gì, ngày nào căng nhất, cần giữ bao nhiêu cash và vì sao**.
+Rootflow là personal finance / treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới, nhưng trải nghiệm mặc định được thiết kế để trả lời trực tiếp các câu hỏi quản trị:
 
-**Money in motion. Clarity in control.** Bộ nhận diện, logo, source dot, ba flow bo tròn và opening splash được giữ nguyên. Opening animation vẫn tôn trọng `prefers-reduced-motion`.
-Ở chế độ standalone/Home Screen, viewport khóa pinch-zoom và chỉ giữ thao tác pan dọc; khi mở bằng trình duyệt thường, khả năng zoom vẫn được giữ nguyên.
+- Tôi có bao nhiêu tài sản, bao nhiêu là vốn ròng của mình và bao nhiêu đến từ vay nợ?
+- Nợ nào ngắn hạn, nợ nào dài hạn, 30 ngày tới cần trả bao nhiêu và buffer có đủ không?
+- Hoạt động vay để cho vay có tạo lợi nhuận không, và lợi nhuận đó có đi kèm vấn đề thanh khoản hay không?
+- Kế hoạch chi tiêu tháng đang trong hạn mức hay vượt kế hoạch?
+- Tôi đang có những khoản đầu tư/tài sản nào và còn bao nhiêu tiền có thể triển khai sau buffer?
 
-## Rootflow V3 — explainable treasury
+Bộ nhận diện Rootflow, logo, source dot, ba flow bo tròn và opening splash/animation được giữ nguyên. Giao diện dùng xanh Rootflow làm accent chính, giảm decorative copy và giữ depth/shadow ở mức nhẹ thay vì flat dashboard.
 
-V3 là lớp bổ sung trên kiến trúc V2 hiện hữu, không rewrite framework hoặc phá visual system. Nó thêm:
+## Final decision dashboard
 
-- **Tổng quan / Overview**: tiền hiện có, snapshot date, minimum cash required, recommended buffer, pressure date và phần giải thích phép tính.
-- **Lịch tiền / Cash Calendar**: cash bridge, nghĩa vụ 7/30 ngày, gốc/lãi/phí và nghĩa vụ tháng chưa có exact date.
-- **Nợ & Cho vay / Debt & Lending**: lending book và funding links giữa khoản vay với khoản phải thu.
-- **Kế hoạch / Plan**: giữ lại công cụ mô phỏng hiện hữu.
-- **Song ngữ VI/EN** cho trải nghiệm chính; Vietnamese là mặc định.
-- **Control obligation** cho rollover cost thẻ: hiển thị trong planning nhưng không giả thành ledger transaction.
+Màn **Tổng quan** ưu tiên bốn khối, theo đúng thứ tự ra quyết định:
 
-## Nguyên tắc dữ liệu
+1. **Tài sản & nguồn vốn** — tổng tài sản, vốn ròng của user, vay nợ.
+2. **Nợ & thanh khoản** — nợ ngắn/dài hạn, nghĩa vụ 30 ngày, cash hiện có, inflow đã chốt, buffer và shortfall nếu có.
+3. **Hoạt động kinh doanh** — lãi cho vay, chi phí vốn đã biết, lợi nhuận lõi và trạng thái cashflow. Salary không được dùng để làm đẹp business profit.
+4. **Chi tiêu & đầu tư** — ngân sách tháng, mức đã chi, phần còn lại, đầu tư tài chính, tài sản sở hữu và cash dư sau buffer.
 
-- Tài sản = Nợ phải trả + Vốn chủ.
-- Tài sản ròng = Tổng tài sản - Nợ phải trả.
-- Account hỗ trợ hai semantics rõ ràng:
-  - `opening_balance`: flow cùng ngày baseline được replay.
-  - `closing_snapshot`: mọi flow `date <= balanceAsOf` đã nằm trong snapshot và không được replay lần nữa.
-- Khoản vay, phải thu, đầu tư và tài sản hiện hữu có thể được nhập theo snapshot để tránh double count lịch sử.
-- `confirmed=true` nghĩa là **Actual / Đã xảy ra**. Một future flow `CERTAIN` chỉ là **Committed / Đã chốt lịch**, không tự biến thành actual chỉ vì đến ngày.
-- Trả khoản vay tách principal, interest và fee. Cash out = principal + interest + fee.
-- Cho vay và thu hồi gốc là luân chuyển giữa tiền khả dụng và phải thu; principal collection không phải income.
-- Interest-only receivable không giảm principal khi thu lãi.
-- Dòng tiền tương lai được phân `CERTAIN`, `EXPECTED`, `INFERRED`, `UNCERTAIN/UNKNOWN`; Expected inflow không được dùng để chứng minh conservative safety.
-- Statement thẻ là statement; debt conversion từ revolving sang installment là non-cash reclassification.
-- Rollover rate là control assumption và chỉ áp lên revolving principal.
-- Nghĩa vụ monthly nhưng chưa biết exact due date vẫn được tính vào planning mà không bị gán ngày giả.
+Các treasury metrics cũ vẫn tồn tại cho power user nhưng được đưa xuống **Chi tiết nâng cao** thay vì chiếm Home mặc định.
 
-## Buffer và thanh khoản
-
-Rootflow V3 không yêu cầu user tự hiểu `hard floor` trước khi dùng app.
-
-Minimum cash requirement được giải thích theo cấu trúc:
+Primary navigation được rút gọn để dễ đọc trên mobile và tránh overflow:
 
 ```text
-Minimum required cash
-= maximum cumulative funding gap on dated cashflows
-+ undated monthly obligations
-+ estimated rollover control cost
+Tổng quan · Dòng tiền · Tài sản · Kế hoạch
+Overview · Cashflow · Assets · Plan
 ```
 
-Nếu user có `operatingBuffer`, Rootflow cộng phần reserve này riêng để tạo `recommendedCashToKeep`.
+## Nguyên tắc tài chính
 
-Rootflow hiển thị hai góc nhìn:
+- `Vốn ròng = Tổng tài sản - Tổng nợ`.
+- Nợ thẻ được xem là short-term; khoản vay có exact maturity được phân short/long theo horizon 12 tháng; kỳ hạn không đủ dữ liệu được giữ `unknown`, không đoán.
+- Debt calendar chỉ chứa financing obligations thực: repayment, contract interest/fee, undated debt obligation và rollover control cost. Chi tiêu sinh hoạt hoặc một khoản cho vay mới không được gọi là “lịch trả nợ”.
+- Business profitability được tách khỏi personal liquidity:
+  - `core lending profit = recurring lending income - known funding cost`.
+  - funding cost gồm interest/fee có thể xác định và revolving rollover control assumption.
+  - salary là personal inflow, không phải lending profit.
+  - nếu cost terms chưa đủ, UI phải ghi rõ đây là estimate thay vì giả định bằng 0.
+- Profitability và liquidity là hai trạng thái độc lập: business có thể có lãi nhưng vẫn cash-tight do maturity mismatch.
+- Spending plan đối chiếu budget theo category với actual expense trong tháng.
+- Investment position tách `investment` khỏi `fixed_asset` để user thấy đầu tư tài chính và tài sản sở hữu riêng.
 
-- **Conservative**: chỉ dùng committed/CERTAIN inflow để chứng minh khả năng cover.
-- **Expected**: bổ sung expected inflow để user nhìn planning case, nhưng không dùng để nâng trạng thái an toàn bảo thủ.
+## Snapshot, forecast và buffer
 
-## Cấu trúc
+Rootflow giữ semantics V3:
 
-Core V2 được giữ nguyên:
+- `opening_balance`: flow cùng ngày baseline được replay.
+- `closing_snapshot`: mọi flow `date <= balanceAsOf` đã nằm trong snapshot và không replay lần nữa.
+- `confirmed=true` = **Actual / Đã xảy ra**.
+- Future `CERTAIN` = **Committed / Đã chốt lịch**, không tự biến thành Actual chỉ vì tới ngày.
+- Expected inflow không được dùng để chứng minh conservative safety.
+- Nghĩa vụ tháng chưa biết exact date vẫn được tính trong planning nhưng không bị gán ngày giả.
+- Rollover cost là control assumption, chỉ áp lên revolving principal; nó không phải fake ledger transaction.
+
+Minimum cash requirement giữ nguyên logic explainable:
+
+```text
+minimum required cash
+= maximum cumulative funding gap on dated cashflows
++ undated monthly obligations
++ rollover control cost
+```
+
+Nếu có operating reserve, phần này được cộng riêng vào `recommendedCashToKeep`.
+
+## Kiến trúc
+
+Core hiện hữu vẫn được giữ:
 
 - `index.html` — app shell + opening splash
-- `styles.css` — visual system hiện hữu
-- `app.js` — React UI hiện hữu
+- `styles.css` — visual system gốc
+- `app.js` — React UI/forms/timeline/calendar/simulator hiện hữu
 - `domain.js` — finance engine gốc
 - `store.js` — local storage, migration, backup/restore
 - `selftest.js` — in-app business-rule tests
-- `tests/run-tests.js` — regression suite hiện hữu
 - `sw.js` — PWA/offline cache
 - `brand/`, `icon-*` — logo và PWA assets
 
-V3 bổ sung theo kiểu additive:
+Snapshot/compatibility layer:
 
-- `v3-domain.js` — snapshot-aware projection, explainable buffer, debt calendar, funding map
-- `v3-store.js` — tách Committed khỏi Actual, normalize legacy auto-posted flows
-- `v3-i18n.js` — bilingual copy layer
-- `v3-ui.js` — progressive UX panels trên UI hiện hữu
-- `v3.css` — chỉ style các component V3; không overwrite visual system cũ
-- `tests/run-v3-tests.js` — snapshot/buffer/funding regression tests
-- `tests/run-v3-store-tests.js` — committed-vs-actual persistence tests
+- `v3-domain.js` — closing snapshot, forecast, explainable liquidity primitives
+- `v3-compat.js` — route legacy simulation qua snapshot-aware model
+- `v3-store.js` — Committed vs Actual normalization
+- `v3-i18n.js` — bilingual base dictionary
 
-Rootflow vẫn không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh trong repository.
+Final decision layer:
+
+- `v4-domain.js` — balance sheet, debt health, core lending profit, spending and investment summaries
+- `v4-i18n.js` — VI/EN copy cho decision dashboard
+- `v4-ui.js` — presentation layer ưu tiên 5 câu hỏi quản trị
+- `v4.css` — responsive modern-minimal UI; green-first, subtle depth, overflow/wrapping guards
+
+V4 không thay schema và không rewrite framework. Rootflow vẫn không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh.
 
 ## Schema và migration
 
-Store hiện tại dùng **schema v9**. V3 không bắt buộc bump schema vì các field bổ sung đều backward-tolerant và backup v9 hiện hữu vẫn import được.
+Store hiện tại dùng **schema v9**. V4 là derived/presentation layer nên không cần bump schema. Existing v9 backups vẫn import theo migration guard hiện hữu.
 
-Các field quan trọng V3 có thể đọc khi tồn tại:
+Các field snapshot/control quan trọng vẫn được đọc khi có:
 
 ```text
 account.balanceSemantics
@@ -96,17 +111,17 @@ settings.forecastStartDate
 settings.ignoreHistoricalFlowsForProjection
 ```
 
-Backup từ schema mới hơn app vẫn bị từ chối trước khi ghi đè, giữ migration guard hiện hữu.
-
 ## Kiểm tra
 
 ```sh
 node tests/run-tests.js
 node tests/run-v3-tests.js
 node tests/run-v3-store-tests.js
+node tests/run-v3-compat-tests.js
+node tests/run-v4-tests.js
 ```
 
-CI trên branch/PR chạy cả ba suite.
+V4 regressions kiểm tra balance sheet/vốn ròng, short-vs-long debt, debt-calendar filtering, business profit không cộng salary, spending budget và investment summary.
 
 ## Dữ liệu
 
