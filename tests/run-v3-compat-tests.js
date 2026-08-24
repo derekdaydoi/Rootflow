@@ -24,4 +24,21 @@ assert.strictEqual(sim.before.current, 100);
 assert.strictEqual(sim.after.current, 80);
 assert.strictEqual(sim.after.projectedLow, sim.before.projectedLow - 20);
 
+// Same-day matched funding must be deterministic regardless of row order.
+function matchedSummary(rows) {
+  return D.v3TreasurySummary({
+    accounts: [{ id: 'cash', name: 'Cash', type: 'bank', openingBalance: 0, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }],
+    flows: rows,
+    contracts: [], recurringIncomes: [], controlAssumptions: {},
+    settings: { snapshotDate: '2026-08-24', forecastStartDate: '2026-08-25', ignoreHistoricalFlowsForProjection: true, horizonDays: 30 }
+  }, { days: 30 });
+}
+const incoming = { id: 'in', date: '2026-09-15', kind: 'income', amount: 33, confirmed: false, confidence: 'CERTAIN', skipped: false, accountId: 'cash', counterAccountId: null };
+const outgoing = { id: 'out', date: '2026-09-15', kind: 'expense', amount: 30, confirmed: false, confidence: 'CERTAIN', skipped: false, accountId: 'cash', counterAccountId: null };
+const firstIn = matchedSummary([incoming, outgoing]);
+const firstOut = matchedSummary([outgoing, incoming]);
+assert.strictEqual(firstIn.minimumRequiredCash, 0);
+assert.strictEqual(firstOut.minimumRequiredCash, 0);
+assert.strictEqual(firstIn.minimumRequiredCash, firstOut.minimumRequiredCash);
+
 console.log('Rootflow V3 compatibility regression tests passed.');
