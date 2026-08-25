@@ -5,6 +5,7 @@ on:
     branches:
       - rootflow-v3-explainable-treasury
       - rootflow-final-decision-dashboard
+      - rootflow-mockup-canonical-ui
   pull_request:
 
 jobs:
@@ -25,3 +26,5 @@ jobs:
         run: node tests/run-v3-compat-tests.js
       - name: V4 final decision dashboard regressions
         run: node tests/run-v4-tests.js
+      - name: Canonical mockup UI contract
+        run: node tests/run-ui-contract-tests.js
