@@ -1,0 +1,45 @@
+/* Rootflow bottom navigation contrast pass.
+   Presentation only: keeps layout, icons, interaction and Rootflow green identity.
+   The bar is deliberately darker than the app canvas so it reads as persistent chrome. */
+
+.bottom-nav{
+  border-color:rgba(255,255,255,.14);
+  background:linear-gradient(145deg,rgba(15,79,53,.985),rgba(23,107,69,.965));
+  -webkit-backdrop-filter:saturate(135%) blur(20px);
+  backdrop-filter:saturate(135%) blur(20px);
+  box-shadow:0 18px 42px rgba(8,48,31,.24),inset 0 1px 0 rgba(255,255,255,.13);
+}
+
+.bottom-nav::before{
+  background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.015));
+}
+
+.nav-button{
+  color:rgba(255,255,255,.58);
+}
+
+.nav-button.on{
+  color:#fff;
+  background:rgba(255,255,255,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.09),0 5px 14px rgba(4,34,21,.11);
+}
+
+.nav-button.on span{font-weight:760}
+
+.nav-add{
+  border-color:rgba(255,255,255,.92);
+  background:#fff;
+  color:#0f4f35;
+  box-shadow:0 9px 22px rgba(4,35,21,.25),inset 0 0 0 1px rgba(15,79,53,.06);
+}
+
+.nav-add:active{
+  background:#f5f8f5;
+  color:#176b45;
+  transform:scale(.94);
+  box-shadow:0 5px 14px rgba(4,35,21,.2);
+}
+
+@supports not ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+  .bottom-nav{background:#0f5b3b}
+}
