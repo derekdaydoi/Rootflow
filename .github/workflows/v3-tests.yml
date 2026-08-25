@@ -26,5 +26,7 @@ jobs:
         run: node tests/run-v3-compat-tests.js
       - name: V4 final decision dashboard regressions
         run: node tests/run-v4-tests.js
+      - name: Canonical UI JavaScript syntax
+        run: node --check v4-ui.js
       - name: Canonical mockup UI contract
         run: node tests/run-ui-contract-tests.js
