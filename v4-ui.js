@@ -1,280 +1,349 @@
-/* Rootflow V4 — final decision dashboard.
-   Presentation only: the existing React app, forms, logo and motion remain.
-   V4 makes the default screens answer the user's core questions first. */
+/* Rootflow V4 — canonical mockup UI.
+   The approved mockup is the visual source of truth. Finance logic stays in
+   domain/store layers; this file only translates that truth into a simple,
+   decision-first mobile interface. */
 (function (global) {
   'use strict';
 
   var D = global.RootflowDomain;
   var S = global.RootflowStore;
   var I = global.RootflowI18n;
-  if (!D || !S || !I || !D.v4FinalSummary) return;
-
-  var advancedShown = false;
+  if (!D || !S || !D.v4FinalSummary) return;
 
   function esc(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
-  function t(key) { return I.t(key); }
-  function locale() { return I.getLocale(); }
-  function trim1(value) { return String(Math.round(value * 10) / 10).replace(/\.0$/, ''); }
+
+  function locale() { return I && I.getLocale ? I.getLocale() : 'vi'; }
+
   function money(value, signed) {
-    var n = Number(value) || 0, a = Math.abs(n), text;
+    var n = Number(value) || 0;
     var sign = n < 0 ? '−' : signed && n > 0 ? '+' : '';
-    if (locale() === 'en') text = a >= 1e9 ? trim1(a / 1e9) + 'B' : a >= 1e6 ? trim1(a / 1e6) + 'M' : a >= 1e3 ? trim1(a / 1e3) + 'K' : String(Math.round(a));
-    else text = a >= 1e9 ? trim1(a / 1e9).replace('.', ',') + ' tỷ' : a >= 1e6 ? trim1(a / 1e6).replace('.', ',') + ' tr' : a >= 1e3 ? trim1(a / 1e3).replace('.', ',') + ' ng' : String(Math.round(a));
-    return sign + text;
+    var formatted;
+    try {
+      formatted = new Intl.NumberFormat(locale() === 'en' ? 'en-US' : 'vi-VN', { maximumFractionDigits: 0 }).format(Math.abs(n));
+    } catch (e) {
+      formatted = String(Math.round(Math.abs(n)));
+    }
+    return sign + formatted + ' ₫';
   }
+
   function pct(value) {
     if (value === null || value === undefined || !isFinite(Number(value))) return '—';
-    return trim1(Number(value)) + '%';
+    return (Math.round(Number(value) * 10) / 10).toString().replace('.', ',') + '%';
   }
-  function fmtDate(value) {
-    if (!value) return t('dueUnknown');
-    var p = String(value).split('-');
-    return p.length === 3 ? p[2] + '/' + p[1] : value;
+
+  function fmtDate(value, withYear) {
+    if (!value) return 'Chưa rõ ngày';
+    var p = String(value).slice(0, 10).split('-');
+    if (p.length !== 3) return String(value);
+    return withYear ? p[2] + '/' + p[1] + '/' + p[0] : p[2] + '/' + p[1];
   }
+
+  function updatedLabel(data) {
+    var snapshot = data && data.settings && data.settings.snapshotDate;
+    if (snapshot) return fmtDate(snapshot, true);
+    var raw = String(data && data.updatedAt || '').slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? fmtDate(raw, true) : fmtDate(D.today(), true);
+  }
+
   function getData() {
     var loaded = S.load();
     return loaded && loaded.data ? loaded.data : S.empty();
   }
+
   function activeViewIndex() {
     var nodes = Array.prototype.slice.call(document.querySelectorAll('.bottom-nav .nav-button'));
     for (var i = 0; i < nodes.length; i++) if (nodes[i].classList.contains('on')) return i;
     return 0;
   }
-  function ensureSlot(parent, id, before) {
-    if (!parent) return null;
-    var node = parent.querySelector('#' + id);
+
+  function ensureSlot(content, id) {
+    var node = document.getElementById(id);
     if (!node) {
       node = document.createElement('section');
       node.id = id;
       node.className = 'v4-panel';
-      if (before && before.parentNode === parent) parent.insertBefore(node, before);
-      else parent.insertBefore(node, parent.firstChild);
+      content.insertBefore(node, content.firstChild);
+    } else if (node.parentNode !== content) {
+      node.remove();
+      node = document.createElement('section');
+      node.id = id;
+      node.className = 'v4-panel';
+      content.insertBefore(node, content.firstChild);
     }
     return node;
   }
+
   function setHtml(node, signature, html) {
-    if (!node || node.getAttribute('data-v4-signature') === signature) return;
-    node.setAttribute('data-v4-signature', signature);
+    if (!node || node.getAttribute('data-rf-signature') === signature) return;
+    node.setAttribute('data-rf-signature', signature);
     node.innerHTML = html;
   }
-  function kpi(label, value, cls, note) {
-    return '<div class="v4-kpi ' + esc(cls || '') + '"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div>';
-  }
-  function status(text, cls) { return '<span class="v4-status ' + esc(cls || '') + '">' + esc(text) + '</span>'; }
-  function row(label, value, cls, note) {
-    return '<div class="v4-row ' + esc(cls || '') + '"><div><span>' + esc(label) + '</span>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div><strong>' + esc(value) + '</strong></div>';
-  }
-  function card(title, body, cls, action) {
-    return '<section class="v4-card ' + esc(cls || '') + '"><div class="v4-card-head"><h2>' + esc(title) + '</h2>' + (action || '') + '</div>' + body + '</section>';
+
+  function icon(name) {
+    var path = '';
+    if (name === 'debt') path = '<path d="M5 4.5h14v15H5z"/><path d="M8 2.5v4M16 2.5v4M5 9h14"/>';
+    else if (name === 'business') path = '<path d="M4 19V5M4 19h16"/><path d="m7 15 3-4 3 2 4-6"/><path d="M17 7h3v3"/>';
+    else if (name === 'plan') path = '<rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 10h5v5h-5a2.5 2.5 0 0 1 0-5Z"/><path d="M6 6V4h11v2"/>';
+    else if (name === 'invest') path = '<path d="M12 3v9h9A9 9 0 1 1 12 3Z"/><path d="M15 3.6A9 9 0 0 1 20.4 9H15Z"/>';
+    else if (name === 'cash') path = '<path d="M3 7h18v10H3z"/><path d="M7 12h.01M17 12h.01"/><circle cx="12" cy="12" r="2.5"/>';
+    else path = '<circle cx="12" cy="12" r="8"/>';
+    return '<svg class="rf-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>';
   }
 
-  function debtStatusCopy(debt) {
-    if (debt.status === 'SHORTFALL') return { text: t('cashShortfall'), cls: 'danger' };
-    if (debt.status === 'THIN_BUFFER') return { text: t('thinBuffer'), cls: 'neutral' };
-    return { text: t('debtCovered'), cls: 'good' };
-  }
-  function businessStatusCopy(summary) {
-    var business = summary.business, debt = summary.debt;
-    if (!business.hasBusiness) return { text: t('noData'), cls: 'neutral' };
-    if (business.netMonthlyProfitEstimate < 0) return { text: t('lossBusiness'), cls: 'danger' };
-    if (debt.status === 'SHORTFALL' || debt.status === 'THIN_BUFFER') return { text: t('profitableCashTight'), cls: 'neutral' };
-    return { text: t('profitableHealthy'), cls: 'good' };
+  function statusForDebt(debt) {
+    if (debt.status === 'SHORTFALL') return { cls: 'danger', text: 'Thiếu tiền cho nghĩa vụ đã biết' };
+    if (debt.status === 'THIN_BUFFER') return { cls: 'warn', text: 'Đủ trả nợ nhưng buffer còn mỏng' };
+    return { cls: 'good', text: 'Đủ thanh khoản cho 30 ngày tới' };
   }
 
-  function assetsCard(summary, compact) {
+  function statusForBusiness(summary) {
+    var b = summary.business;
+    if (!b.hasBusiness) return { cls: 'neutral', text: 'Chưa đủ dữ liệu hoạt động' };
+    if (b.netMonthlyProfitEstimate < 0) return { cls: 'danger', text: 'Hoạt động đang lỗ theo dữ liệu hiện có' };
+    if (summary.debt.status !== 'COVERED' || b.next30BusinessCashMargin < 0) return { cls: 'warn', text: 'Có lãi nhưng cần chú ý dòng tiền' };
+    return { cls: 'good', text: 'Hoạt động có lãi và thanh khoản ổn' };
+  }
+
+  function miniKpi(label, value, note, cls) {
+    return '<div class="rf-mini-kpi ' + esc(cls || '') + '"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div>';
+  }
+
+  function pair(label, value, cls) {
+    return '<div class="rf-pair-item ' + esc(cls || '') + '"><span>' + esc(label) + '</span><strong>' + esc(value) + '</strong></div>';
+  }
+
+  function decisionCard(opts) {
+    return '<button type="button" class="rf-decision-card" data-rf-detail="' + esc(opts.detail) + '">' +
+      '<div class="rf-card-title-row"><span class="rf-card-icon ' + esc(opts.icon) + '">' + icon(opts.icon) + '</span><strong>' + esc(opts.title) + '</strong><span class="rf-chevron">›</span></div>' +
+      '<div class="rf-pair">' + pair(opts.leftLabel, opts.leftValue, opts.leftClass) + pair(opts.rightLabel, opts.rightValue, opts.rightClass) + '</div>' +
+      '<div class="rf-card-status ' + esc(opts.statusClass) + '"><span class="rf-dot"></span><span>' + esc(opts.statusText) + '</span></div>' +
+      (opts.note ? '<div class="rf-card-note">' + esc(opts.note) + '</div>' : '') +
+    '</button>';
+  }
+
+  function homeHtml(summary, data) {
     var bs = summary.balanceSheet;
-    var body = '<div class="v4-hero-number"><span>' + esc(t('totalAssetsLabel')) + '</span><strong>' + esc(money(bs.totalAssets)) + '</strong></div>' +
-      '<div class="v4-kpi-grid two">' +
-        kpi(t('ownCapitalLabel'), money(bs.ownCapital), bs.ownCapital < 0 ? 'danger' : 'good') +
-        kpi(t('debtCapitalLabel'), money(bs.totalDebt), '') +
+    var d = summary.debt;
+    var b = summary.business;
+    var budget = summary.budget;
+    var inv = summary.investments;
+    var ds = statusForDebt(d);
+    var bus = statusForBusiness(summary);
+    var budgetStatus = !budget.hasPlan ? 'Chưa có kế hoạch chi tiêu' : budget.remaining < 0 ? 'Đã vượt ngân sách tháng' : 'Đang trong kế hoạch tháng';
+    var budgetClass = !budget.hasPlan ? 'neutral' : budget.remaining < 0 ? 'danger' : 'good';
+
+    return '<div class="rf-dashboard">' +
+      '<header class="rf-greeting"><h1>Chào ngày mới Bro! <span aria-hidden="true">👋</span></h1><p>Cập nhật gần nhất: ' + esc(updatedLabel(data)) + '</p></header>' +
+      '<button type="button" class="rf-networth-hero" data-rf-detail="assets"><span>TÀI SẢN RÒNG</span><strong>' + esc(money(bs.ownCapital)) + '</strong><small>= Tổng tài sản − Tổng nợ</small><b aria-hidden="true">›</b></button>' +
+      '<div class="rf-kpi-strip">' +
+        miniKpi('Tổng tài sản', money(bs.totalAssets), '', '') +
+        miniKpi('Vốn của bạn', money(bs.ownCapital), pct(bs.equityToAssetsPct) + ' tài sản', bs.ownCapital < 0 ? 'danger' : '') +
+        miniKpi('Tổng nợ', money(bs.totalDebt), pct(bs.debtToAssetsPct) + ' tài sản', bs.totalDebt > bs.totalAssets ? 'danger' : '') +
       '</div>' +
-      (compact ? '' : '<div class="v4-detail-grid">' +
-        row(t('cashLabel'), money(bs.liquid), '') + row(t('receivablesLabel'), money(bs.receivables), '') +
-        row(t('investmentsLabel'), money(bs.investments), '') + row(t('ownedAssetsLabel'), money(bs.ownedAssets), '') +
-        row(t('debtToAssets'), pct(bs.debtToAssetsPct), bs.debtToAssetsPct > 100 ? 'danger' : '') + '</div>');
-    return card(t('assetsAndCapital'), body, 'v4-assets-card');
+      '<div class="rf-section-label">TÌNH HÌNH HIỆN TẠI</div>' +
+      decisionCard({ detail:'debt', icon:'debt', title:'Nợ & Thanh khoản', leftLabel:'Nợ cần trả 30 ngày', leftValue:money(d.due30), rightLabel:'Cash khả dụng', rightValue:money(d.availableBeforeDebt), statusClass:ds.cls, statusText:ds.text, note:d.pressureDate ? 'Áp lực lớn nhất: ' + fmtDate(d.pressureDate, true) : '' }) +
+      decisionCard({ detail:'business', icon:'business', title:'Hoạt động kinh doanh', leftLabel:'Lợi nhuận tháng', leftValue:money(b.netMonthlyProfitEstimate, true), leftClass:b.netMonthlyProfitEstimate < 0 ? 'danger' : 'good', rightLabel:'Dòng tiền 30 ngày', rightValue:money(b.next30BusinessCashMargin, true), rightClass:b.next30BusinessCashMargin < 0 ? 'danger' : 'good', statusClass:bus.cls, statusText:bus.text }) +
+      decisionCard({ detail:'plan', icon:'plan', title:'Chi tiêu & Kế hoạch', leftLabel:'Chi tiêu tháng', leftValue:money(budget.spentAgainstPlan), rightLabel:'Ngân sách còn lại', rightValue:budget.hasPlan ? money(budget.remaining) : 'Chưa thiết lập', rightClass:budget.remaining < 0 ? 'danger' : '', statusClass:budgetClass, statusText:budgetStatus }) +
+      decisionCard({ detail:'assets', icon:'invest', title:'Đầu tư', leftLabel:'Giá trị đầu tư', leftValue:money(inv.totalInvestedAssets), rightLabel:'Có thể triển khai', rightValue:money(summary.deployableAfterBuffer), rightClass:summary.deployableAfterBuffer > 0 ? 'good' : '', statusClass:'neutral', statusText:inv.totalInvestedAssets > 0 ? 'Đầu tư được tính riêng khỏi cash vận hành' : 'Chưa ghi nhận khoản đầu tư' }) +
+    '</div>';
   }
 
-  function debtCard(summary, compact) {
-    var d = summary.debt, s = debtStatusCopy(d);
-    var note = d.status === 'SHORTFALL' ? t('needMore') + ' ' + money(Math.max(d.paymentShortfall, d.bufferGap)) : '';
-    var body = '<div class="v4-status-line">' + status(s.text, s.cls) + (note ? '<strong>' + esc(note) + '</strong>' : '') + '</div>' +
-      '<div class="v4-kpi-grid two">' + kpi(t('shortDebt'), money(d.shortDebt), '') + kpi(t('longDebt'), money(d.longDebt), '') + '</div>' +
-      '<div class="v4-detail-grid">' +
-        row(t('obligations30'), money(d.due30), '', d.nextDueDate ? t('nextDue') + ' ' + fmtDate(d.nextDueDate) : '') +
-        row(t('currentCash'), money(d.currentCash), '') +
-        row(t('reliableCash'), money(d.reliableInflows30), 'good') +
-        row(t('afterDebt'), money(d.cashAfterDebt30), d.cashAfterDebt30 < 0 ? 'danger' : 'good') +
-        row(t('requiredBuffer'), money(d.recommendedCashToKeep), '') +
-        (d.unknownDebt > 0 ? row(t('unknownDebt'), money(d.unknownDebt), 'neutral') : '') +
-      '</div>' + (compact ? '' : '<p class="v4-footnote">' + esc(t('liquidityCaveat')) + '</p>');
-    return card(t('debtAndLiquidity'), body, 'v4-debt-card');
+  function metricRow(label, value, cls, note) {
+    return '<div class="rf-metric-row ' + esc(cls || '') + '"><div><span>' + esc(label) + '</span>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</div><strong>' + esc(value) + '</strong></div>';
   }
 
-  function businessCard(summary, compact) {
-    var b = summary.business, s = businessStatusCopy(summary);
-    var body = '<div class="v4-status-line">' + status(s.text, s.cls) + (!b.costDataComplete && b.hasBusiness ? '<span class="v4-inline-note">' + esc(t('estimateOnly')) + '</span>' : '') + '</div>' +
-      '<div class="v4-kpi-grid three">' +
-        kpi(t('lendingIncomeMonthly'), money(b.recurringLendingIncome), 'good') +
-        kpi(t('fundingCostMonthly'), money(b.knownFundingCostMonthly), '') +
-        kpi(t('businessProfitMonthly'), money(b.netMonthlyProfitEstimate), b.netMonthlyProfitEstimate < 0 ? 'danger' : 'good') +
-      '</div>' +
-      (compact ? '' : '<div class="v4-detail-grid">' + row(t('next30BusinessMargin'), money(b.next30BusinessCashMargin), b.next30BusinessCashMargin < 0 ? 'danger' : 'good') + '</div><p class="v4-footnote">' + esc(t('coreProfitCaveat')) + '</p>');
-    return card(t('businessHealth'), body, 'v4-business-card');
+  function debtItem(row) {
+    var pieces = [];
+    if (row.principal) pieces.push('Gốc ' + money(row.principal));
+    if (row.interest) pieces.push('Lãi ' + money(row.interest));
+    if (row.fee) pieces.push('Phí ' + money(row.fee));
+    if (row.rollover) pieces.push('Đáo ' + money(row.rollover));
+    return '<div class="rf-obligation"><div class="rf-obligation-copy"><time>' + esc(row.date ? fmtDate(row.date, false) : 'Trong tháng') + '</time><div><strong>' + esc(row.name || 'Nghĩa vụ') + '</strong><small>' + esc(pieces.join(' · ') || row.note || 'Nghĩa vụ tài chính') + '</small></div></div><b>' + esc(money(row.total)) + '</b></div>';
   }
 
-  function planningCard(summary, compact) {
-    var b = summary.budget, inv = summary.investments;
-    var budgetState = b.status === 'NO_PLAN' ? t('noBudget') : b.status === 'OVER' ? t('overBudget') : t('onTrack');
-    var budgetClass = b.status === 'OVER' ? 'danger' : b.status === 'NO_PLAN' ? 'neutral' : 'good';
-    var body = '<div class="v4-plan-split">' +
-      '<div class="v4-plan-block"><div class="v4-block-title"><strong>' + esc(t('spendingPlan')) + '</strong>' + status(budgetState, budgetClass) + '</div>' +
-        (b.hasPlan ? '<div class="v4-detail-grid">' + row(t('monthlyBudget'), money(b.planned), '') + row(t('spent'), money(b.spentAgainstPlan), '') + row(t('remaining'), money(b.remaining), b.remaining < 0 ? 'danger' : 'good') + '</div>' : '<p class="v4-empty">' + esc(t('noBudget')) + '</p>') + '</div>' +
-      '<div class="v4-plan-block"><div class="v4-block-title"><strong>' + esc(t('investmentPosition')) + '</strong></div>' +
-        (inv.totalInvestedAssets > 0 ? '<div class="v4-detail-grid">' + row(t('financialInvestments'), money(inv.financialInvestments), '') + row(t('ownedAssets'), money(inv.ownedAssets), '') + '</div>' : '<p class="v4-empty">' + esc(t('noInvestments')) + '</p>') + '</div>' +
-      '</div>' + row(t('deployableAfterBuffer'), money(summary.deployableAfterBuffer), summary.deployableAfterBuffer > 0 ? 'good' : '') +
-      (compact ? '' : '');
-    return card(t('spendingAndInvesting'), body, 'v4-plan-card');
+  function debtDetailHtml(summary) {
+    var d = summary.debt;
+    var ds = statusForDebt(d);
+    var list = (d.calendar || []).slice(0, 8).map(debtItem).join('');
+    var afterDebt = d.cashAfterDebt30;
+    var target = Math.max(0, d.recommendedCashToKeep || 0);
+    var ratio = target > 0 ? Math.max(0, Math.min(100, afterDebt / target * 100)) : 100;
+    return '<div class="rf-detail-stack">' +
+      '<section class="rf-detail-card"><h2>Nợ cần trả</h2><p class="rf-detail-kicker">Trong 30 ngày tới</p><div class="rf-detail-amount danger">' + esc(money(d.due30)) + '</div><div class="rf-obligation-list">' + (list || '<p class="rf-empty">Không có nghĩa vụ đã biết trong 30 ngày.</p>') + '</div></section>' +
+      '<section class="rf-detail-card"><h2>Cash khả dụng trước hạn</h2>' + metricRow('Tiền mặt & ngân hàng', money(d.currentCash)) + metricRow('Dòng tiền chắc chắn về', money(d.reliableInflows30), 'good') + metricRow('Tổng', money(d.availableBeforeDebt), 'good') + '</section>' +
+      '<section class="rf-detail-card"><h2>Buffer sau khi trả nợ</h2><div class="rf-detail-amount ' + (afterDebt < 0 ? 'danger' : 'good') + '">' + esc(money(afterDebt)) + '</div><p class="rf-detail-kicker">Buffer mục tiêu: ' + esc(money(target)) + '</p><div class="rf-progress"><span style="width:' + ratio.toFixed(1) + '%"></span></div></section>' +
+      '<section class="rf-pressure-card"><span class="rf-card-icon debt">' + icon('debt') + '</span><div><small>Áp lực lớn nhất</small><strong>' + esc(fmtDate(d.pressureDate || d.nextDueDate, true)) + '</strong><span>' + esc(ds.text) + '</span></div></section>' +
+    '</div>';
   }
 
-  function homeHtml(summary) {
-    var toggle = '<button type="button" class="v4-text-button" data-v4-toggle-advanced>' + esc(advancedShown ? t('hideAdvanced') : t('advancedDetails')) + '</button>';
-    return '<div class="v4-home-grid">' + assetsCard(summary, true) + debtCard(summary, true) + businessCard(summary, true) + planningCard(summary, true) + '</div>' +
-      '<div class="v4-home-actions">' + toggle + '</div>';
+  function businessDetailHtml(summary) {
+    var b = summary.business;
+    var bus = statusForBusiness(summary);
+    var out = Math.max(0, b.next30FundingCashCost || 0);
+    var input = Math.max(0, b.next30LendingInterest || 0);
+    var margin = b.next30BusinessCashMargin || 0;
+    var reason = margin < 0 ? 'Hoạt động có thể có lợi nhuận nhưng dòng tiền vẫn âm khi lịch thu tiền và lịch hoàn vốn không trùng nhau.' : 'Dòng tiền hoạt động hiện không tạo thiếu hụt trong horizon 30 ngày theo dữ liệu đã biết.';
+    return '<div class="rf-detail-stack">' +
+      '<section class="rf-detail-card"><h2>Hiệu quả kinh doanh <small>(tháng)</small></h2>' + metricRow('Thu từ cho vay', money(b.recurringLendingIncome), 'good') + metricRow('Chi phí vốn', '−' + money(b.knownFundingCostMonthly)) + metricRow('Lợi nhuận hoạt động', money(b.netMonthlyProfitEstimate, true), b.netMonthlyProfitEstimate < 0 ? 'danger' : 'good') + (!b.costDataComplete ? '<p class="rf-caution">Một phần chi phí vốn đang là planning estimate vì điều khoản thực tế chưa đủ dữ liệu.</p>' : '') + '</section>' +
+      '<section class="rf-detail-card"><h2>Dòng tiền 30 ngày</h2>' + metricRow('Dòng tiền vào từ cho vay', money(input), 'good') + metricRow('Chi phí vốn phải trả', '−' + money(out)) + metricRow('Dòng tiền ròng', money(margin, true), margin < 0 ? 'danger' : 'good') + '</section>' +
+      '<section class="rf-detail-card"><h2>Vì sao?</h2><p class="rf-explain">' + esc(reason) + '</p></section>' +
+      '<section class="rf-evaluation ' + esc(bus.cls) + '"><strong>' + esc(bus.text) + '</strong><span>Rootflow đánh giá lợi nhuận và khả năng trả nợ độc lập với nhau.</span></section>' +
+    '</div>';
   }
 
-  function debtRowHtml(item) {
-    var meta = [];
-    if (item.principal) meta.push(t('principal') + ' ' + money(item.principal));
-    if (item.interest) meta.push(t('interest') + ' ' + money(item.interest));
-    if (item.fee) meta.push(t('fee') + ' ' + money(item.fee));
-    if (item.rollover) meta.push(t('rolloverCost') + ' ' + money(item.rollover));
-    return '<div class="v4-debt-row"><time>' + esc(item.date ? fmtDate(item.date) : '—') + '</time><div><strong>' + esc(item.name) + '</strong><small>' + esc(meta.join(' · ') || (item.type === 'control' ? t('controlAssumption') : t('monthlyUndated'))) + '</small></div><b>' + esc(money(item.total)) + '</b></div>';
+  function assetComposition(summary) {
+    var bs = summary.balanceSheet;
+    var total = Math.max(0, bs.totalAssets || 0);
+    function share(v) { return total > 0 ? Math.max(0, Number(v) || 0) / total * 100 : 0; }
+    var p1 = share(bs.liquid), p2 = share(bs.receivables), p3 = share(bs.investments), p4 = share(bs.ownedAssets);
+    var c1 = p1, c2 = p1 + p2, c3 = p1 + p2 + p3;
+    return { p1:p1, p2:p2, p3:p3, p4:p4, c1:c1, c2:c2, c3:c3 };
+  }
+
+  function assetsBody(summary) {
+    var bs = summary.balanceSheet;
+    var c = assetComposition(summary);
+    return '<section class="rf-detail-card rf-assets-summary"><p class="rf-detail-kicker">Tổng tài sản</p><div class="rf-detail-amount">' + esc(money(bs.totalAssets)) + '</div><div class="rf-asset-layout"><div class="rf-donut" style="--c1:' + c.c1.toFixed(2) + '%;--c2:' + c.c2.toFixed(2) + '%;--c3:' + c.c3.toFixed(2) + '%"></div><div class="rf-legend">' +
+      '<span><i class="cash"></i>Tiền & NH <b>' + esc(pct(c.p1)) + '</b></span>' +
+      '<span><i class="recv"></i>Khoản phải thu <b>' + esc(pct(c.p2)) + '</b></span>' +
+      '<span><i class="inv"></i>Đầu tư <b>' + esc(pct(c.p3)) + '</b></span>' +
+      '<span><i class="other"></i>Tài sản khác <b>' + esc(pct(c.p4)) + '</b></span>' +
+      '</div></div></section>' +
+      '<section class="rf-detail-card"><h2>Chi tiết</h2>' + metricRow('Tiền mặt & ngân hàng', money(bs.liquid)) + metricRow('Khoản phải thu (cho vay)', money(bs.receivables)) + metricRow('Đầu tư', money(bs.investments)) + metricRow('Tài sản khác', money(bs.ownedAssets)) + '</section>';
+  }
+
+  function planDetailHtml(summary) {
+    var b = summary.budget;
+    var inv = summary.investments;
+    return '<div class="rf-detail-stack">' +
+      '<section class="rf-detail-card"><h2>Kế hoạch chi tiêu</h2>' + (b.hasPlan ? metricRow('Ngân sách tháng', money(b.planned)) + metricRow('Đã chi', money(b.spentAgainstPlan)) + metricRow('Còn lại', money(b.remaining), b.remaining < 0 ? 'danger' : 'good') : '<p class="rf-empty">Chưa thiết lập ngân sách tháng.</p>') + '</section>' +
+      '<section class="rf-detail-card"><h2>Đầu tư</h2>' + metricRow('Đầu tư tài chính', money(inv.financialInvestments)) + metricRow('Tài sản sở hữu', money(inv.ownedAssets)) + metricRow('Cash có thể triển khai sau buffer', money(summary.deployableAfterBuffer), summary.deployableAfterBuffer > 0 ? 'good' : '') + '</section>' +
+    '</div>';
+  }
+
+  function detailShell(title, body) {
+    return '<div class="rf-detail-page"><header class="rf-detail-topbar"><button type="button" data-rf-close-detail aria-label="Quay lại">‹</button><strong>' + esc(title) + '</strong><span></span></header><main>' + body + '</main></div>';
+  }
+
+  function openDetail(kind) {
+    var old = document.getElementById('rf-detail-overlay');
+    if (old) old.remove();
+    var data = getData();
+    var summary = D.v4FinalSummary(data);
+    var title = 'Chi tiết', body = '';
+    if (kind === 'debt') { title = 'Nợ & Thanh khoản'; body = debtDetailHtml(summary); }
+    else if (kind === 'business') { title = 'Hoạt động kinh doanh'; body = businessDetailHtml(summary); }
+    else if (kind === 'plan') { title = 'Chi tiêu & Kế hoạch'; body = planDetailHtml(summary); }
+    else { title = 'Tài sản'; body = '<div class="rf-detail-stack">' + assetsBody(summary) + '</div>'; }
+    var overlay = document.createElement('div');
+    overlay.id = 'rf-detail-overlay';
+    overlay.className = 'rf-detail-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = detailShell(title, body);
+    document.body.appendChild(overlay);
+    document.body.classList.add('rf-detail-open');
+    overlay.scrollTop = 0;
+  }
+
+  function closeDetail() {
+    var overlay = document.getElementById('rf-detail-overlay');
+    if (overlay) overlay.remove();
+    document.body.classList.remove('rf-detail-open');
   }
 
   function cashflowHtml(summary) {
     var d = summary.debt;
-    var body = '<div class="v4-kpi-grid four">' +
-      kpi(t('currentCash'), money(d.currentCash), '') +
-      kpi(t('reliableCash'), money(d.reliableInflows30), 'good') +
-      kpi(t('obligations30'), money(d.due30), '') +
-      kpi(t('afterDebt'), money(d.cashAfterDebt30), d.cashAfterDebt30 < 0 ? 'danger' : 'good') + '</div>' +
-      '<div class="v4-debt-list">' + (d.calendar.length ? d.calendar.slice(0, 10).map(debtRowHtml).join('') : '<p class="v4-empty">' + esc(t('noData')) + '</p>') + '</div>';
-    return card(t('cashflowAndDebt'), body, 'v4-cashflow-card');
-  }
-
-  function fundingLinks(summary) {
-    var links = summary.treasury.fundingLinks || [];
-    if (!links.length) return '<p class="v4-empty">' + esc(t('noFundingLinks')) + '</p>';
-    return '<div class="v4-funding-list">' + links.slice(0, 8).map(function (link) {
-      return '<div class="v4-funding-row"><div><strong>' + esc(link.fundingName) + '</strong><small>' + esc(money(link.fundingPrincipal)) + '</small></div><span>→</span><div><strong>' + esc(link.receivableName) + '</strong><small>' + esc(money(link.receivablePrincipal)) + '</small></div></div>';
-    }).join('') + '</div>';
+    var list = (d.calendar || []).slice(0, 12).map(debtItem).join('');
+    return '<div class="rf-screen">' +
+      '<div class="rf-screen-metrics">' + miniKpi('Cash hiện có', money(d.currentCash), '', '') + miniKpi('Dòng tiền chắc chắn về', money(d.reliableInflows30), '', 'good') + miniKpi('Nợ cần trả 30 ngày', money(d.due30), '', d.cashAfterDebt30 < 0 ? 'danger' : '') + '</div>' +
+      '<section class="rf-detail-card"><div class="rf-screen-title"><h2>Lịch nghĩa vụ 30 ngày</h2><span>' + esc(d.pressureDate ? 'Áp lực: ' + fmtDate(d.pressureDate, true) : '') + '</span></div><div class="rf-obligation-list">' + (list || '<p class="rf-empty">Không có nghĩa vụ đã biết.</p>') + '</div></section>' +
+      '<section class="rf-evaluation ' + esc(statusForDebt(d).cls) + '"><strong>' + esc(statusForDebt(d).text) + '</strong><span>Sau nghĩa vụ 30 ngày còn ' + esc(money(d.cashAfterDebt30)) + '.</span></section>' +
+    '</div>';
   }
 
   function positionHtml(summary) {
-    var bs = summary.balanceSheet, d = summary.debt, inv = summary.investments;
-    return assetsCard(summary, false) +
-      card(t('debtStructure'), '<div class="v4-kpi-grid three">' + kpi(t('shortDebt'), money(d.shortDebt), '') + kpi(t('longDebt'), money(d.longDebt), '') + kpi(t('unknownDebt'), money(d.unknownDebt), d.unknownDebt ? 'neutral' : '') + '</div>', 'v4-structure-card') +
-      card(t('fundingAndLending'), '<div class="v4-kpi-grid two">' + kpi(t('receivablesLabel'), money(bs.receivables), 'good') + kpi(t('debtCapitalLabel'), money(bs.totalDebt), '') + '</div>' + fundingLinks(summary), 'v4-funding-card') +
-      card(t('investmentPosition'), '<div class="v4-kpi-grid two">' + kpi(t('financialInvestments'), money(inv.financialInvestments), '') + kpi(t('ownedAssets'), money(inv.ownedAssets), '') + '</div>' + (inv.rows.length ? '<div class="v4-mini-list">' + inv.rows.slice(0, 6).map(function (item) { return row(item.name, money(item.value), ''); }).join('') + '</div>' : '<p class="v4-empty">' + esc(t('noInvestments')) + '</p>'), 'v4-investment-card');
+    var d = summary.debt;
+    return '<div class="rf-screen">' + assetsBody(summary) +
+      '<section class="rf-detail-card"><h2>Cấu trúc nợ</h2>' + metricRow('Nợ ngắn hạn', money(d.shortDebt)) + metricRow('Nợ dài hạn', money(d.longDebt)) + (d.unknownDebt > 0 ? metricRow('Chưa xác định kỳ hạn', money(d.unknownDebt)) : '') + '</section>' +
+    '</div>';
   }
 
   function planHtml(summary) {
-    var b = summary.budget, inv = summary.investments;
-    var budgetBody = b.hasPlan ? '<div class="v4-kpi-grid three">' + kpi(t('monthlyBudget'), money(b.planned), '') + kpi(t('spent'), money(b.spentAgainstPlan), '') + kpi(t('remaining'), money(b.remaining), b.remaining < 0 ? 'danger' : 'good') + '</div>' : '<p class="v4-empty">' + esc(t('noBudget')) + '</p>';
-    var investmentBody = '<div class="v4-kpi-grid three">' + kpi(t('financialInvestments'), money(inv.financialInvestments), '') + kpi(t('ownedAssets'), money(inv.ownedAssets), '') + kpi(t('deployableAfterBuffer'), money(summary.deployableAfterBuffer), summary.deployableAfterBuffer > 0 ? 'good' : '') + '</div>';
-    return card(t('spendingPlan'), budgetBody, 'v4-budget-card') + card(t('investmentPosition'), investmentBody, 'v4-investment-card') + '<div class="v4-section-divider"><span>' + esc(t('simulateDecision')) + '</span></div>';
+    return '<div class="rf-screen">' + planDetailHtml(summary) + '</div>';
   }
 
-  function translateExisting() {
+  function translateChrome(view) {
     var nav = Array.prototype.slice.call(document.querySelectorAll('.bottom-nav .nav-button span'));
-    var labels = locale() === 'en' ? [t('navOverview'), t('navCashflow'), t('navAssets'), t('navPlan')] : [t('navOverview'), t('navCashflow'), t('navAssets'), t('navPlan')];
-    nav.forEach(function (node, index) { if (labels[index] && node.textContent !== labels[index]) node.textContent = labels[index]; });
-
-    var title = document.querySelector('.appbar-title:not(.brand)');
-    if (title) {
-      var raw = String(title.textContent || '').trim();
-      var map = { Flow:t('navCashflow'), Position:locale() === 'en' ? 'Assets & Debt' : 'Tài sản & Nợ', Decide:t('navPlan'), 'Dòng tiền':t('navCashflow'), 'Tài sản & Nợ':locale() === 'en' ? 'Assets & Debt' : 'Tài sản & Nợ', 'Kế hoạch':t('navPlan') };
-      if (map[raw]) title.textContent = map[raw];
-    }
-  }
-
-  function languageControl() {
-    var actions = document.querySelector('.appbar-actions');
-    if (actions) {
-      var button = actions.querySelector('.v4-lang-toggle');
-      if (!button) {
-        button = document.createElement('button');
-        button.type = 'button'; button.className = 'v4-lang-toggle';
-        button.addEventListener('click', function (event) { event.stopPropagation(); I.setLocale(locale() === 'vi' ? 'en' : 'vi'); });
-        actions.insertBefore(button, actions.firstChild);
-      }
-      button.textContent = locale().toUpperCase();
-      button.setAttribute('aria-label', I.t('locale'));
-    }
-  }
-
-  function cleanupOldPanels(content) {
-    ['v3-overview-panel','v3-calendar-panel','v3-funding-panel','v3-advanced-label'].forEach(function (id) {
-      var node = document.getElementById(id); if (node) node.remove();
+    ['Tổng quan','Dòng tiền','Tài sản','Kế hoạch'].forEach(function (label, i) {
+      if (nav[i]) nav[i].textContent = label;
     });
-    ['v4-overview-panel','v4-cashflow-panel','v4-position-panel','v4-plan-panel'].forEach(function (id) {
-      var node = document.getElementById(id); if (node && node.parentNode !== content) node.remove();
+    var title = document.querySelector('.appbar-title:not(.brand)');
+    if (title) title.textContent = view === 1 ? 'Dòng tiền' : view === 2 ? 'Tài sản' : view === 3 ? 'Kế hoạch' : title.textContent;
+    var lang = document.querySelector('.v4-lang-toggle');
+    if (lang) lang.remove();
+  }
+
+  function cleanupPanels(content) {
+    ['v3-overview-panel','v3-calendar-panel','v3-funding-panel','v3-advanced-label','v4-overview-panel','v4-cashflow-panel','v4-position-panel','v4-plan-panel'].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node && node.parentNode !== content) node.remove();
     });
   }
 
   function render() {
     var content = document.querySelector('.page > .content');
     if (!content) return;
-    cleanupOldPanels(content);
-    translateExisting(); languageControl();
     var data = getData();
+    var hasAccounts = (data.accounts || []).some(function (account) { return account && !account.archived; });
+    if (!hasAccounts) {
+      content.classList.remove('rf-canonical');
+      return;
+    }
+    cleanupPanels(content);
     var summary = D.v4FinalSummary(data);
     var view = activeViewIndex();
-    content.classList.remove('v4-home-simple','v4-show-legacy');
+    translateChrome(view);
+    content.classList.add('rf-canonical');
+    content.setAttribute('data-rf-view', String(view));
 
-    if (view === 0) {
-      var hasLiquid = (data.accounts || []).some(function (account) { return account && !account.archived && D.isLiquid(account); });
-      if (!hasLiquid) return;
-      content.classList.add('v4-home-simple');
-      if (advancedShown) content.classList.add('v4-show-legacy');
-      var home = ensureSlot(content, 'v4-overview-panel', content.firstChild);
-      home.className = 'v4-panel v4-overview-panel';
-      setHtml(home, locale() + '|' + JSON.stringify(summary), homeHtml(summary));
-    } else if (view === 1) {
-      var month = content.querySelector('.month-control');
-      var cash = ensureSlot(content, 'v4-cashflow-panel', month && month.nextSibling);
-      cash.className = 'v4-panel v4-cashflow-panel';
-      setHtml(cash, locale() + '|' + JSON.stringify([summary.debt,summary.business]), cashflowHtml(summary));
-    } else if (view === 2) {
-      var position = ensureSlot(content, 'v4-position-panel', content.firstChild);
-      position.className = 'v4-panel v4-position-panel';
-      setHtml(position, locale() + '|' + JSON.stringify([summary.balanceSheet,summary.debt,summary.investments,summary.treasury.fundingLinks]), positionHtml(summary));
-    } else if (view === 3) {
-      var plan = ensureSlot(content, 'v4-plan-panel', content.firstChild);
-      plan.className = 'v4-panel v4-plan-panel';
-      setHtml(plan, locale() + '|' + JSON.stringify([summary.budget,summary.investments,summary.deployableAfterBuffer]), planHtml(summary));
-    }
+    var id = view === 0 ? 'v4-overview-panel' : view === 1 ? 'v4-cashflow-panel' : view === 2 ? 'v4-position-panel' : 'v4-plan-panel';
+    ['v4-overview-panel','v4-cashflow-panel','v4-position-panel','v4-plan-panel'].forEach(function (other) {
+      if (other !== id) { var node = document.getElementById(other); if (node) node.remove(); }
+    });
+    var panel = ensureSlot(content, id);
+    panel.className = 'v4-panel ' + id;
+    var html = view === 0 ? homeHtml(summary, data) : view === 1 ? cashflowHtml(summary) : view === 2 ? positionHtml(summary) : planHtml(summary);
+    setHtml(panel, String(view) + '|' + String(data.updatedAt || '') + '|' + JSON.stringify(summary), html);
   }
 
-  function refreshSoon() { global.setTimeout(render, 0); global.setTimeout(render, 70); }
+  function refreshSoon() {
+    global.setTimeout(render, 0);
+    global.setTimeout(render, 80);
+  }
 
   document.addEventListener('click', function (event) {
-    var toggle = event.target.closest('[data-v4-toggle-advanced]');
-    if (toggle) { advancedShown = !advancedShown; render(); return; }
+    var close = event.target.closest('[data-rf-close-detail]');
+    if (close) { event.preventDefault(); closeDetail(); return; }
+    var detail = event.target.closest('[data-rf-detail]');
+    if (detail) { event.preventDefault(); openDetail(detail.getAttribute('data-rf-detail')); return; }
+    if (event.target.closest('.bottom-nav .nav-button')) closeDetail();
     refreshSoon();
   }, true);
   document.addEventListener('change', refreshSoon, true);
-  global.addEventListener('rootflow:locale', refreshSoon);
   global.addEventListener('storage', refreshSoon);
   global.addEventListener('load', refreshSoon);
 
-  var save = S.save;
-  S.save = function () { var result = save.apply(S, arguments); refreshSoon(); return result; };
+  var originalSave = S.save;
+  S.save = function () {
+    var result = originalSave.apply(S, arguments);
+    refreshSoon();
+    return result;
+  };
 
   refreshSoon();
 })(window);
