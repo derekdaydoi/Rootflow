@@ -6,6 +6,7 @@ on:
       - rootflow-v3-explainable-treasury
       - rootflow-final-decision-dashboard
       - rootflow-mockup-canonical-ui
+      - rootflow-content-aware-layout-audit
   pull_request:
 
 jobs:
