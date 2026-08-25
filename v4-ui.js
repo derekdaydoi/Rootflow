@@ -1,7 +1,7 @@
 /* Rootflow V4 — canonical mockup UI.
    The approved mockup is the visual source of truth. Finance logic stays in
-   domain/store layers; this file only translates that truth into a simple,
-   decision-first mobile interface. */
+   domain/store layers; this file translates that truth into a simple,
+   decision-first mobile interface with content-aware layout variants. */
 (function (global) {
   'use strict';
 
@@ -13,7 +13,7 @@
   function esc(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/\"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   function locale() { return I && I.getLocale ? I.getLocale() : 'vi'; }
@@ -145,7 +145,7 @@
         miniKpi('Tổng nợ', money(bs.totalDebt), pct(bs.debtToAssetsPct) + ' tài sản', bs.totalDebt > bs.totalAssets ? 'danger' : '') +
       '</div>' +
       '<div class="rf-section-label">TÌNH HÌNH HIỆN TẠI</div>' +
-      decisionCard({ detail:'debt', icon:'debt', title:'Nợ & Thanh khoản', leftLabel:'Nợ cần trả 30 ngày', leftValue:money(d.due30), rightLabel:'Cash khả dụng', rightValue:money(d.availableBeforeDebt), statusClass:ds.cls, statusText:ds.text, note:d.pressureDate ? 'Áp lực lớn nhất: ' + fmtDate(d.pressureDate, true) : '' }) +
+      decisionCard({ detail:'debt', icon:'debt', title:'Nợ & Thanh khoản', leftLabel:'Nợ 30 ngày', leftValue:money(d.due30), rightLabel:'Cash khả dụng', rightValue:money(d.availableBeforeDebt), statusClass:ds.cls, statusText:ds.text, note:d.pressureDate ? 'Áp lực lớn nhất: ' + fmtDate(d.pressureDate, true) : '' }) +
       decisionCard({ detail:'business', icon:'business', title:'Hoạt động kinh doanh', leftLabel:'Lợi nhuận tháng', leftValue:money(b.netMonthlyProfitEstimate, true), leftClass:b.netMonthlyProfitEstimate < 0 ? 'danger' : 'good', rightLabel:'Dòng tiền 30 ngày', rightValue:money(b.next30BusinessCashMargin, true), rightClass:b.next30BusinessCashMargin < 0 ? 'danger' : 'good', statusClass:bus.cls, statusText:bus.text }) +
       decisionCard({ detail:'plan', icon:'plan', title:'Chi tiêu & Kế hoạch', leftLabel:'Chi tiêu tháng', leftValue:money(budget.spentAgainstPlan), rightLabel:'Ngân sách còn lại', rightValue:budget.hasPlan ? money(budget.remaining) : 'Chưa thiết lập', rightClass:budget.remaining < 0 ? 'danger' : '', statusClass:budgetClass, statusText:budgetStatus }) +
       decisionCard({ detail:'assets', icon:'invest', title:'Đầu tư', leftLabel:'Giá trị đầu tư', leftValue:money(inv.totalInvestedAssets), rightLabel:'Có thể triển khai', rightValue:money(summary.deployableAfterBuffer), rightClass:summary.deployableAfterBuffer > 0 ? 'good' : '', statusClass:'neutral', statusText:inv.totalInvestedAssets > 0 ? 'Đầu tư được tính riêng khỏi cash vận hành' : 'Chưa ghi nhận khoản đầu tư' }) +
@@ -158,11 +158,19 @@
 
   function debtItem(row) {
     var pieces = [];
+    var dated = Boolean(row && row.date);
     if (row.principal) pieces.push('Gốc ' + money(row.principal));
     if (row.interest) pieces.push('Lãi ' + money(row.interest));
     if (row.fee) pieces.push('Phí ' + money(row.fee));
     if (row.rollover) pieces.push('Đáo ' + money(row.rollover));
-    return '<div class="rf-obligation"><div class="rf-obligation-copy"><time>' + esc(row.date ? fmtDate(row.date, false) : 'Trong tháng') + '</time><div><strong>' + esc(row.name || 'Nghĩa vụ') + '</strong><small>' + esc(pieces.join(' · ') || row.note || 'Nghĩa vụ tài chính') + '</small></div></div><b>' + esc(money(row.total)) + '</b></div>';
+    var period = dated ? fmtDate(row.date, false) : row.datePrecision === 'month' ? 'Trong tháng' : 'Chưa rõ ngày';
+    var periodNode = dated
+      ? '<time datetime="' + esc(String(row.date).slice(0, 10)) + '">' + esc(period) + '</time>'
+      : '<span class="rf-period-badge">' + esc(period) + '</span>';
+    return '<div class="rf-obligation ' + (dated ? 'is-dated' : 'is-undated') + '">' +
+      '<div class="rf-obligation-copy">' + periodNode + '<div class="rf-obligation-main"><strong>' + esc(row.name || 'Nghĩa vụ') + '</strong><small>' + esc(pieces.join(' · ') || row.note || 'Nghĩa vụ tài chính') + '</small></div></div>' +
+      '<b>' + esc(money(row.total)) + '</b>' +
+    '</div>';
   }
 
   function debtDetailHtml(summary) {
@@ -174,7 +182,7 @@
     var ratio = target > 0 ? Math.max(0, Math.min(100, afterDebt / target * 100)) : 100;
     return '<div class="rf-detail-stack">' +
       '<section class="rf-detail-card"><h2>Nợ cần trả</h2><p class="rf-detail-kicker">Trong 30 ngày tới</p><div class="rf-detail-amount danger">' + esc(money(d.due30)) + '</div><div class="rf-obligation-list">' + (list || '<p class="rf-empty">Không có nghĩa vụ đã biết trong 30 ngày.</p>') + '</div></section>' +
-      '<section class="rf-detail-card"><h2>Cash khả dụng trước hạn</h2>' + metricRow('Tiền mặt & ngân hàng', money(d.currentCash)) + metricRow('Dòng tiền chắc chắn về', money(d.reliableInflows30), 'good') + metricRow('Tổng', money(d.availableBeforeDebt), 'good') + '</section>' +
+      '<section class="rf-detail-card"><h2>Cash khả dụng trước hạn</h2>' + metricRow('Tiền mặt & ngân hàng', money(d.currentCash)) + metricRow('Tiền chắc chắn về', money(d.reliableInflows30), 'good') + metricRow('Tổng', money(d.availableBeforeDebt), 'good') + '</section>' +
       '<section class="rf-detail-card"><h2>Buffer sau khi trả nợ</h2><div class="rf-detail-amount ' + (afterDebt < 0 ? 'danger' : 'good') + '">' + esc(money(afterDebt)) + '</div><p class="rf-detail-kicker">Buffer mục tiêu: ' + esc(money(target)) + '</p><div class="rf-progress"><span style="width:' + ratio.toFixed(1) + '%"></span></div></section>' +
       '<section class="rf-pressure-card"><span class="rf-card-icon debt">' + icon('debt') + '</span><div><small>Áp lực lớn nhất</small><strong>' + esc(fmtDate(d.pressureDate || d.nextDueDate, true)) + '</strong><span>' + esc(ds.text) + '</span></div></section>' +
     '</div>';
@@ -186,10 +194,10 @@
     var out = Math.max(0, b.next30FundingCashCost || 0);
     var input = Math.max(0, b.next30LendingInterest || 0);
     var margin = b.next30BusinessCashMargin || 0;
-    var reason = margin < 0 ? 'Hoạt động có thể có lợi nhuận nhưng dòng tiền vẫn âm khi lịch thu tiền và lịch hoàn vốn không trùng nhau.' : 'Dòng tiền hoạt động hiện không tạo thiếu hụt trong horizon 30 ngày theo dữ liệu đã biết.';
+    var reason = margin < 0 ? 'Hoạt động có thể có lợi nhuận nhưng dòng tiền vẫn âm khi lịch thu tiền và lịch hoàn vốn không trùng nhau.' : 'Dòng tiền hoạt động hiện không tạo thiếu hụt trong 30 ngày theo dữ liệu đã biết.';
     return '<div class="rf-detail-stack">' +
       '<section class="rf-detail-card"><h2>Hiệu quả kinh doanh <small>(tháng)</small></h2>' + metricRow('Thu từ cho vay', money(b.recurringLendingIncome), 'good') + metricRow('Chi phí vốn', '−' + money(b.knownFundingCostMonthly)) + metricRow('Lợi nhuận hoạt động', money(b.netMonthlyProfitEstimate, true), b.netMonthlyProfitEstimate < 0 ? 'danger' : 'good') + (!b.costDataComplete ? '<p class="rf-caution">Một phần chi phí vốn đang là planning estimate vì điều khoản thực tế chưa đủ dữ liệu.</p>' : '') + '</section>' +
-      '<section class="rf-detail-card"><h2>Dòng tiền 30 ngày</h2>' + metricRow('Dòng tiền vào từ cho vay', money(input), 'good') + metricRow('Chi phí vốn phải trả', '−' + money(out)) + metricRow('Dòng tiền ròng', money(margin, true), margin < 0 ? 'danger' : 'good') + '</section>' +
+      '<section class="rf-detail-card"><h2>Dòng tiền 30 ngày</h2>' + metricRow('Tiền vào từ cho vay', money(input), 'good') + metricRow('Chi phí vốn phải trả', '−' + money(out)) + metricRow('Dòng tiền ròng', money(margin, true), margin < 0 ? 'danger' : 'good') + '</section>' +
       '<section class="rf-detail-card"><h2>Vì sao?</h2><p class="rf-explain">' + esc(reason) + '</p></section>' +
       '<section class="rf-evaluation ' + esc(bus.cls) + '"><strong>' + esc(bus.text) + '</strong><span>Rootflow đánh giá lợi nhuận và khả năng trả nợ độc lập với nhau.</span></section>' +
     '</div>';
@@ -208,10 +216,10 @@
     var bs = summary.balanceSheet;
     var c = assetComposition(summary);
     return '<section class="rf-detail-card rf-assets-summary"><p class="rf-detail-kicker">Tổng tài sản</p><div class="rf-detail-amount">' + esc(money(bs.totalAssets)) + '</div><div class="rf-asset-layout"><div class="rf-donut" style="--c1:' + c.c1.toFixed(2) + '%;--c2:' + c.c2.toFixed(2) + '%;--c3:' + c.c3.toFixed(2) + '%"></div><div class="rf-legend">' +
-      '<span><i class="cash"></i>Tiền & NH <b>' + esc(pct(c.p1)) + '</b></span>' +
-      '<span><i class="recv"></i>Khoản phải thu <b>' + esc(pct(c.p2)) + '</b></span>' +
-      '<span><i class="inv"></i>Đầu tư <b>' + esc(pct(c.p3)) + '</b></span>' +
-      '<span><i class="other"></i>Tài sản khác <b>' + esc(pct(c.p4)) + '</b></span>' +
+      '<span><i class="cash"></i><em>Tiền & NH</em><b>' + esc(pct(c.p1)) + '</b></span>' +
+      '<span><i class="recv"></i><em>Khoản phải thu</em><b>' + esc(pct(c.p2)) + '</b></span>' +
+      '<span><i class="inv"></i><em>Đầu tư</em><b>' + esc(pct(c.p3)) + '</b></span>' +
+      '<span><i class="other"></i><em>Tài sản khác</em><b>' + esc(pct(c.p4)) + '</b></span>' +
       '</div></div></section>' +
       '<section class="rf-detail-card"><h2>Chi tiết</h2>' + metricRow('Tiền mặt & ngân hàng', money(bs.liquid)) + metricRow('Khoản phải thu (cho vay)', money(bs.receivables)) + metricRow('Đầu tư', money(bs.investments)) + metricRow('Tài sản khác', money(bs.ownedAssets)) + '</section>';
   }
@@ -221,7 +229,7 @@
     var inv = summary.investments;
     return '<div class="rf-detail-stack">' +
       '<section class="rf-detail-card"><h2>Kế hoạch chi tiêu</h2>' + (b.hasPlan ? metricRow('Ngân sách tháng', money(b.planned)) + metricRow('Đã chi', money(b.spentAgainstPlan)) + metricRow('Còn lại', money(b.remaining), b.remaining < 0 ? 'danger' : 'good') : '<p class="rf-empty">Chưa thiết lập ngân sách tháng.</p>') + '</section>' +
-      '<section class="rf-detail-card"><h2>Đầu tư</h2>' + metricRow('Đầu tư tài chính', money(inv.financialInvestments)) + metricRow('Tài sản sở hữu', money(inv.ownedAssets)) + metricRow('Cash có thể triển khai sau buffer', money(summary.deployableAfterBuffer), summary.deployableAfterBuffer > 0 ? 'good' : '') + '</section>' +
+      '<section class="rf-detail-card"><h2>Đầu tư</h2>' + metricRow('Đầu tư tài chính', money(inv.financialInvestments)) + metricRow('Tài sản sở hữu', money(inv.ownedAssets)) + metricRow('Có thể triển khai', money(summary.deployableAfterBuffer), summary.deployableAfterBuffer > 0 ? 'good' : '') + '</section>' +
     '</div>';
   }
 
@@ -260,7 +268,7 @@
     var d = summary.debt;
     var list = (d.calendar || []).slice(0, 12).map(debtItem).join('');
     return '<div class="rf-screen">' +
-      '<div class="rf-screen-metrics">' + miniKpi('Cash hiện có', money(d.currentCash), '', '') + miniKpi('Dòng tiền chắc chắn về', money(d.reliableInflows30), '', 'good') + miniKpi('Nợ cần trả 30 ngày', money(d.due30), '', d.cashAfterDebt30 < 0 ? 'danger' : '') + '</div>' +
+      '<div class="rf-screen-metrics">' + miniKpi('Cash hiện có', money(d.currentCash), '', '') + miniKpi('Tiền chắc chắn về', money(d.reliableInflows30), '', 'good') + miniKpi('Nợ 30 ngày', money(d.due30), '', d.cashAfterDebt30 < 0 ? 'danger' : '') + '</div>' +
       '<section class="rf-detail-card"><div class="rf-screen-title"><h2>Lịch nghĩa vụ 30 ngày</h2><span>' + esc(d.pressureDate ? 'Áp lực: ' + fmtDate(d.pressureDate, true) : '') + '</span></div><div class="rf-obligation-list">' + (list || '<p class="rf-empty">Không có nghĩa vụ đã biết.</p>') + '</div></section>' +
       '<section class="rf-evaluation ' + esc(statusForDebt(d).cls) + '"><strong>' + esc(statusForDebt(d).text) + '</strong><span>Sau nghĩa vụ 30 ngày còn ' + esc(money(d.cashAfterDebt30)) + '.</span></section>' +
     '</div>';
