@@ -34,6 +34,59 @@
     return null;
   }
 
+  function isOptionalDateField(field) {
+    var label = textOf(field && field.querySelector('.field-label'));
+    return /có thể để trống|có thể trống|có thể chưa biết|để trống nếu chưa biết/i.test(label);
+  }
+
+  function setNativeInputValue(input, value) {
+    if (!input) return;
+    var descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value');
+    if (descriptor && descriptor.set) descriptor.set.call(input, value);
+    else input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function enhanceOptionalDateField(field) {
+    if (!field || !isOptionalDateField(field)) return;
+    var input = field.querySelector('input.date-native[type="date"]');
+    if (!input) return;
+
+    field.classList.add('rf-optional-date-field');
+    var button = field.querySelector('.rf-optional-clear');
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'rf-optional-clear';
+      button.textContent = 'Để trống';
+      button.setAttribute('aria-label', 'Xóa ngày và để trường này ở trạng thái chưa biết');
+      field.appendChild(button);
+    }
+
+    function sync() {
+      button.hidden = !input.value;
+      field.classList.toggle('has-optional-value', Boolean(input.value));
+    }
+
+    if (field.getAttribute('data-rf-optional-date-bound') !== 'true') {
+      field.setAttribute('data-rf-optional-date-bound', 'true');
+      input.addEventListener('input', sync);
+      input.addEventListener('change', sync);
+      button.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        setNativeInputValue(input, '');
+        sync();
+      });
+    }
+    sync();
+  }
+
+  function enhanceOptionalDates(sheet) {
+    Array.prototype.forEach.call(sheet.querySelectorAll('.field'), enhanceOptionalDateField);
+  }
+
   function enhanceAccountEdit(sheet) {
     if (!sheet || sheet.getAttribute('aria-label') !== 'Sửa tài khoản') return;
     sheet.classList.add('rf-account-edit-sheet');
@@ -67,6 +120,8 @@
       var dateLabel = outstandingDate.querySelector('.field-label');
       if (dateLabel) dateLabel.textContent = 'Ngày số dư hiện tại';
     }
+
+    enhanceOptionalDates(sheet);
 
     Array.prototype.forEach.call(sheet.querySelectorAll('.field, .form-divider, .form-grid'), function (node) {
       node.style.minWidth = '0';
