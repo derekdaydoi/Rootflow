@@ -1,0 +1,150 @@
+/* Rootflow focused polish: keep the approved visual system, fix fit/anatomy only. */
+
+/* Cashflow hero metrics: larger cards, stronger number hierarchy, protected money. */
+.v4-cashflow-panel .rf-screen-metrics{
+  gap:10px;
+  margin-bottom:2px;
+}
+.v4-cashflow-panel .rf-mini-kpi{
+  min-height:88px;
+  padding:16px 12px 14px;
+  justify-content:center;
+  gap:8px;
+  border-radius:17px;
+}
+.v4-cashflow-panel .rf-mini-kpi>span{
+  min-width:0;
+  font-size:clamp(9.5px,2.45vw,11px);
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.v4-cashflow-panel .rf-mini-kpi>strong{
+  min-width:0;
+  font-size:clamp(13px,3.55vw,17px);
+  line-height:1.08;
+  white-space:nowrap;
+  overflow:visible;
+  font-variant-numeric:tabular-nums;
+}
+
+/* Month-only obligations no longer get a separate visual badge.
+   The period is carried by the subtitle so rows keep one balanced rhythm. */
+.v4-cashflow-panel .rf-period-badge,
+.rf-detail-overlay .rf-period-badge{display:none!important}
+.v4-cashflow-panel .rf-obligation.is-undated .rf-obligation-copy,
+.rf-detail-overlay .rf-obligation.is-undated .rf-obligation-copy{
+  display:block;
+  min-width:0;
+}
+.v4-cashflow-panel .rf-obligation.is-undated,
+.rf-detail-overlay .rf-obligation.is-undated{
+  align-items:start;
+  padding-top:14px;
+  padding-bottom:14px;
+}
+.v4-cashflow-panel .rf-obligation-main>strong,
+.rf-detail-overlay .rf-obligation-main>strong{
+  text-wrap:pretty;
+}
+.v4-cashflow-panel .rf-obligation-main>small,
+.rf-detail-overlay .rf-obligation-main>small{
+  margin-top:4px;
+  line-height:1.4;
+  text-wrap:pretty;
+}
+
+/* Edit-account sheet: make editable truth obvious, remove duplicate derived card,
+   and let content determine height instead of squeezing fields. */
+.rf-account-edit-sheet .rf-hide-derived-card{display:none!important}
+.rf-account-edit-sheet .sheet-body{
+  min-width:0;
+  padding-bottom:max(30px,env(safe-area-inset-bottom,0px));
+}
+.rf-account-edit-sheet .rf-edit-note{
+  display:grid;
+  gap:5px;
+  margin:0 0 18px;
+  padding:13px 14px;
+  border:1px solid #d9e9df;
+  border-radius:14px;
+  background:#f1f8f4;
+  color:#24533d;
+}
+.rf-account-edit-sheet .rf-edit-note strong{
+  font-size:12.5px;
+  line-height:1.3;
+  font-weight:760;
+}
+.rf-account-edit-sheet .rf-edit-note span{
+  font-size:10.5px;
+  line-height:1.45;
+  color:#597065;
+  text-wrap:pretty;
+}
+.rf-account-edit-sheet .field,
+.rf-account-edit-sheet .form-divider,
+.rf-account-edit-sheet .form-grid{
+  min-width:0;
+}
+.rf-account-edit-sheet .field-label,
+.rf-account-edit-sheet .field-help{
+  white-space:normal;
+  word-break:normal;
+  overflow-wrap:normal;
+  text-wrap:pretty;
+}
+.rf-account-edit-sheet .input,
+.rf-account-edit-sheet .select,
+.rf-account-edit-sheet .date-control,
+.rf-account-edit-sheet textarea{
+  width:100%;
+  max-width:100%;
+  min-width:0;
+}
+.rf-account-edit-sheet .rf-primary-edit-field .input,
+.rf-account-edit-sheet .rf-primary-edit-field .input-money{
+  border-color:#b9d9c8;
+  background:#fbfefc;
+  box-shadow:0 0 0 1px rgba(8,122,76,.045);
+}
+.rf-account-edit-sheet .rf-primary-edit-field .field-label{
+  color:#166443;
+  font-weight:760;
+}
+.rf-account-edit-sheet .form-divider>h3{
+  text-wrap:balance;
+}
+
+/* On mobile, prefer one clear editable field per row; do not allow Vietnamese
+   labels to create awkward two-column wrapping. */
+@media(max-width:640px){
+  .rf-account-edit-sheet .form-grid{grid-template-columns:1fr!important}
+}
+
+/* Fit protection for narrower phones. Keep the 3-card anatomy while there is
+   enough room; only collapse when full money values genuinely cannot fit. */
+@container rfpanel (max-width:350px){
+  .v4-cashflow-panel .rf-screen-metrics{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+  }
+  .v4-cashflow-panel .rf-mini-kpi{
+    min-height:82px;
+    padding:13px 8px 12px;
+    display:flex;
+  }
+  .v4-cashflow-panel .rf-mini-kpi>span{font-size:9px}
+  .v4-cashflow-panel .rf-mini-kpi>strong{font-size:clamp(11px,3.35vw,14px);text-align:left}
+}
+@container rfpanel (max-width:300px){
+  .v4-cashflow-panel .rf-screen-metrics{grid-template-columns:1fr}
+  .v4-cashflow-panel .rf-mini-kpi{
+    min-height:auto;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) max-content;
+    align-items:center;
+  }
+  .v4-cashflow-panel .rf-mini-kpi>strong{text-align:right}
+}
