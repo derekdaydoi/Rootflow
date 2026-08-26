@@ -7,6 +7,7 @@ on:
       - rootflow-final-decision-dashboard
       - rootflow-mockup-canonical-ui
       - rootflow-content-aware-layout-audit
+      - rootflow-edit-account-cashflow-polish
   pull_request:
 
 jobs:
@@ -29,5 +30,9 @@ jobs:
         run: node tests/run-v4-tests.js
       - name: Canonical UI JavaScript syntax
         run: node --check v4-ui.js
+      - name: Focused polish JavaScript syntax
+        run: node --check v4-polish.js
       - name: Canonical mockup UI contract
         run: node tests/run-ui-contract-tests.js
+      - name: Account edit and cashflow polish contract
+        run: node tests/run-polish-tests.js
