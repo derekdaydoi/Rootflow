@@ -8,6 +8,7 @@ on:
       - rootflow-mockup-canonical-ui
       - rootflow-content-aware-layout-audit
       - rootflow-edit-account-cashflow-polish
+      - rootflow-root-family-brand-v2
   pull_request:
 
 jobs:
@@ -36,3 +37,5 @@ jobs:
         run: node tests/run-ui-contract-tests.js
       - name: Account edit and cashflow polish contract
         run: node tests/run-polish-tests.js
+      - name: ROOT family brand and splash contract
+        run: node tests/run-brand-v2-tests.js

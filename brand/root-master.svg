@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">ROOT master mark</title>
+  <desc id="desc">Shared ROOT family foundation: one trunk and three minimal roots.</desc>
+  <g id="root-base" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M64 82V58"/>
+    <path d="M64 82C55 82 49 87 45 94L38 106"/>
+    <path d="M64 82V108"/>
+    <path d="M64 82C73 82 79 87 83 94L90 106"/>
+  </g>
+</svg>

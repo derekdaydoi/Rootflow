@@ -1,15 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
   <title id="title">Rootflow mark</title>
-  <desc id="desc">A source dot feeding three calm, rounded financial flows.</desc>
-  <defs>
-    <linearGradient id="rootflow-green" x1="18" y1="104" x2="106" y2="18" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0F4F35"/><stop offset="1" stop-color="#1C8A58"/>
-    </linearGradient>
-  </defs>
-  <circle cx="21" cy="64" r="7" fill="url(#rootflow-green)"/>
-  <g fill="none" stroke="url(#rootflow-green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M46 35C46 25.6 53.6 18 63 18H101"/>
-    <path d="M46 68C46 58.6 53.6 51 63 51H91"/>
-    <path d="M46 101C46 91.6 53.6 84 63 84H80"/>
+  <desc id="desc">The ROOT family base rising into three calm, controlled flow lanes.</desc>
+  <g fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+    <g id="root-base">
+      <path d="M64 82V58"/>
+      <path d="M64 82C55 82 49 87 45 94L38 106"/>
+      <path d="M64 82V108"/>
+      <path d="M64 82C73 82 79 87 83 94L90 106"/>
+    </g>
+    <g id="flow-crown">
+      <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/>
+      <path d="M64 58V19"/>
+      <path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+    </g>
   </g>
 </svg>

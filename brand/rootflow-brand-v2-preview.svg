@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">Rootflow ROOT family brand v2 preview</title>
+  <desc id="desc">Brand board showing the Rootflow logo, ROOT master geometry, Flow crown, monochrome behavior and opening motion sequence.</desc>
+  <rect width="1440" height="900" fill="#F6F8F6"/>
+  <g font-family="Manrope, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="72" y="74" font-size="18" font-weight="760" letter-spacing="2" fill="#6D7771">ROOT FAMILY / V2</text>
+    <text x="72" y="124" font-size="34" font-weight="780" letter-spacing="-1.5" fill="#111A15">Rootflow identity system</text>
+    <text x="72" y="156" font-size="16" fill="#6D7771">One invariant root. One product-specific Flow crown.</text>
+
+    <rect x="72" y="204" width="1296" height="300" rx="28" fill="#FFFFFF" stroke="#E6EBE7"/>
+    <g transform="translate(118 242) scale(1.7)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+      <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/><path d="M64 58V19"/><path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+    </g>
+    <text x="360" y="366" font-size="92" font-weight="780" letter-spacing="-5.2"><tspan fill="#111A15">root</tspan><tspan fill="#087A4C">flow</tspan></text>
+    <text x="365" y="410" font-size="17" font-weight="620" letter-spacing="1.2" fill="#6D7771">MONEY IN MOTION · CLARITY IN CONTROL</text>
+
+    <g transform="translate(1010 248)">
+      <rect width="126" height="126" rx="30" fill="#087A4C"/>
+      <g transform="translate(15 14) scale(.75)" fill="none" stroke="#FFFFFF" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+        <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/><path d="M64 58V19"/><path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+      </g>
+      <text x="0" y="158" font-size="13" font-weight="720" fill="#6D7771">MONO / DARK TILE</text>
+    </g>
+
+    <g transform="translate(1176 248)">
+      <rect width="126" height="126" rx="30" fill="#F6F8F6" stroke="#E6EBE7"/>
+      <g transform="translate(15 14) scale(.75)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+        <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/><path d="M64 58V19"/><path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+      </g>
+      <text x="0" y="158" font-size="13" font-weight="720" fill="#6D7771">CORE / LIGHT TILE</text>
+    </g>
+
+    <text x="72" y="570" font-size="15" font-weight="760" letter-spacing="1.5" fill="#6D7771">SYSTEM ANATOMY</text>
+    <g transform="translate(72 602)">
+      <rect width="390" height="220" rx="24" fill="#FFFFFF" stroke="#E6EBE7"/>
+      <text x="24" y="38" font-size="14" font-weight="740" fill="#111A15">ROOT MASTER</text>
+      <text x="24" y="61" font-size="12" fill="#6D7771">Invariant across the family</text>
+      <g transform="translate(132 74) scale(.92)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+      </g>
+    </g>
+
+    <g transform="translate(486 602)">
+      <rect width="390" height="220" rx="24" fill="#FFFFFF" stroke="#E6EBE7"/>
+      <text x="24" y="38" font-size="14" font-weight="740" fill="#111A15">FLOW CROWN</text>
+      <text x="24" y="61" font-size="12" fill="#6D7771">Movement without arrows or decoration</text>
+      <g transform="translate(132 82) scale(.92)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/><path d="M64 58V19"/><path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+      </g>
+    </g>
+
+    <g transform="translate(900 602)">
+      <rect width="468" height="220" rx="24" fill="#FFFFFF" stroke="#E6EBE7"/>
+      <text x="24" y="38" font-size="14" font-weight="740" fill="#111A15">OPENING MOTION</text>
+      <text x="24" y="61" font-size="12" fill="#6D7771">Seed → roots → spine → three flows</text>
+      <g transform="translate(28 94)" fill="#6D7771" font-size="11" font-weight="700">
+        <text x="0" y="92">01 SEED</text><text x="103" y="92">02 ROOT</text><text x="217" y="92">03 SPINE</text><text x="330" y="92">04 FLOW</text>
+      </g>
+      <circle cx="71" cy="125" r="7" fill="#05623D"/>
+      <g transform="translate(128 75) scale(.55)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+      </g>
+      <g transform="translate(240 75) scale(.55)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+      </g>
+      <g transform="translate(352 75) scale(.55)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M64 82V58"/><path d="M64 82C55 82 49 87 45 94L38 106"/><path d="M64 82V108"/><path d="M64 82C73 82 79 87 83 94L90 106"/>
+        <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/><path d="M64 58V19"/><path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+      </g>
+    </g>
+  </g>
+</svg>

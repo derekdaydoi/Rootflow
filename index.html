@@ -24,27 +24,25 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="v4.css">
   <link rel="stylesheet" href="v4-polish.css">
+  <link rel="stylesheet" href="brand-v2.css">
 </head>
 <body class="splash-active">
   <div id="opening-splash" class="opening-splash" aria-hidden="true">
     <div class="splash-halo"></div>
     <div class="splash-lockup">
       <svg class="splash-mark" viewBox="0 0 128 128" role="presentation">
-        <defs>
-          <linearGradient id="splash-green" x1="18" y1="104" x2="106" y2="18" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#0F4F35"></stop>
-            <stop offset="1" stop-color="#1C8A58"></stop>
-          </linearGradient>
-        </defs>
-        <circle class="splash-source" cx="21" cy="64" r="7" fill="url(#splash-green)"></circle>
-        <g fill="none" stroke="url(#splash-green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
-          <path class="splash-flow splash-flow-one" pathLength="1" d="M46 35C46 25.6 53.6 18 63 18H101"></path>
-          <path class="splash-flow splash-flow-two" pathLength="1" d="M46 68C46 58.6 53.6 51 63 51H91"></path>
-          <path class="splash-flow splash-flow-three" pathLength="1" d="M46 101C46 91.6 53.6 84 63 84H80"></path>
+        <circle class="rf-splash-seed" cx="64" cy="82" r="4.5" fill="#05623D"></circle>
+        <g fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+          <path class="rf-splash-root rf-splash-root-left" pathLength="1" d="M64 82C55 82 49 87 45 94L38 106"></path>
+          <path class="rf-splash-root rf-splash-root-center" pathLength="1" d="M64 82V108"></path>
+          <path class="rf-splash-root rf-splash-root-right" pathLength="1" d="M64 82C73 82 79 87 83 94L90 106"></path>
+          <path class="rf-splash-trunk" pathLength="1" d="M64 82V58"></path>
+          <path class="rf-splash-flow rf-splash-flow-center" pathLength="1" d="M64 58V19"></path>
+          <path class="rf-splash-flow rf-splash-flow-left" pathLength="1" d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"></path>
+          <path class="rf-splash-flow rf-splash-flow-right" pathLength="1" d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"></path>
         </g>
       </svg>
       <div class="splash-wordmark"><span>root</span><strong>flow</strong></div>
-      <div class="splash-copyright">© Copyright from <strong>@derekdaydoi</strong>.</div>
     </div>
   </div>
   <div id="root"><div class="boot">Đang mở Rootflow…</div></div>
@@ -72,7 +70,7 @@
       window.setTimeout(function () {
         document.body.classList.remove('splash-active');
         splash.remove();
-      }, reduced ? 700 : 3150);
+      }, reduced ? 450 : 2100);
     })();
   </script>
 </body>
