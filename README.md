@@ -8,7 +8,7 @@ Rootflow là personal finance / treasury system chạy local-first trên trình 
 - Kế hoạch chi tiêu tháng đang trong hạn mức hay vượt kế hoạch?
 - Tôi đang có những khoản đầu tư/tài sản nào và còn bao nhiêu tiền có thể triển khai sau buffer?
 
-Bộ nhận diện Rootflow, logo, source dot, ba flow bo tròn và opening splash/animation được giữ nguyên. Giao diện dùng xanh Rootflow làm accent chính, giảm decorative copy và giữ depth/shadow ở mức nhẹ thay vì flat dashboard.
+Bộ nhận diện Rootflow dùng **ROOT family geometry**: một root/trunk base cố định và một Flow crown gồm ba lane bo tròn. Mark core dùng một màu `#087A4C` để giữ khả năng scale/monochrome; opening splash diễn giải đúng cấu trúc đó theo thứ tự seed → roots → trunk → three flows. Giao diện tiếp tục dùng xanh Rootflow làm accent chính, giảm decorative copy và giữ depth/shadow ở mức nhẹ thay vì flat dashboard.
 
 ## Final decision dashboard
 
@@ -71,12 +71,14 @@ Core hiện hữu vẫn được giữ:
 
 - `index.html` — app shell + opening splash
 - `styles.css` — visual system gốc
+- `brand-v2.css` — ROOT-family opening motion layer
 - `app.js` — React UI/forms/timeline/calendar/simulator hiện hữu
 - `domain.js` — finance engine gốc
 - `store.js` — local storage, migration, backup/restore
 - `selftest.js` — in-app business-rule tests
 - `sw.js` — PWA/offline cache
-- `brand/`, `icon-*` — logo và PWA assets
+- `brand/root-master.svg` — invariant ROOT base geometry
+- `brand/`, `icon-*` — Rootflow logo và PWA assets
 
 Snapshot/compatibility layer:
 
@@ -119,9 +121,12 @@ node tests/run-v3-tests.js
 node tests/run-v3-store-tests.js
 node tests/run-v3-compat-tests.js
 node tests/run-v4-tests.js
+node tests/run-ui-contract-tests.js
+node tests/run-polish-tests.js
+node tests/run-brand-v2-tests.js
 ```
 
-V4 regressions kiểm tra balance sheet/vốn ròng, short-vs-long debt, debt-calendar filtering, business profit không cộng salary, spending budget và investment summary.
+V4 regressions kiểm tra balance sheet/vốn ròng, short-vs-long debt, debt-calendar filtering, business profit không cộng salary, spending budget và investment summary. Brand v2 regressions kiểm tra ROOT master reuse, opening motion sequence, reduced-motion behavior và PWA cache contract.
 
 ## Dữ liệu
 
