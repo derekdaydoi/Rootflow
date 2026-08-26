@@ -1,11 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 240" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 210" role="img" aria-labelledby="title desc">
   <title id="title">Rootflow logo</title>
-  <desc id="desc">Rootflow source-and-flow mark, wordmark, and the line Money in motion. Clarity in control.</desc>
-  <defs><linearGradient id="green" x1="28" y1="195" x2="190" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0F4F35"/><stop offset="1" stop-color="#1C8A58"/></linearGradient></defs>
-  <g transform="translate(18 18) scale(1.55)">
-    <circle cx="21" cy="64" r="7" fill="url(#green)"/>
-    <g fill="none" stroke="url(#green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"><path d="M46 35C46 25.6 53.6 18 63 18H101"/><path d="M46 68C46 58.6 53.6 51 63 51H91"/><path d="M46 101C46 91.6 53.6 84 63 84H80"/></g>
+  <desc id="desc">ROOT family base with a three-lane flow crown and minimal Rootflow wordmark.</desc>
+  <g transform="translate(14 10) scale(1.45)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+    <g id="root-base">
+      <path d="M64 82V58"/>
+      <path d="M64 82C55 82 49 87 45 94L38 106"/>
+      <path d="M64 82V108"/>
+      <path d="M64 82C73 82 79 87 83 94L90 106"/>
+    </g>
+    <g id="flow-crown">
+      <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/>
+      <path d="M64 58V19"/>
+      <path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+    </g>
   </g>
-  <text x="220" y="120" font-family="Manrope, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="88" font-weight="780" letter-spacing="-5"><tspan fill="#161B18">root</tspan><tspan fill="#176B45">flow</tspan></text>
-  <text x="225" y="164" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="18" font-weight="560" letter-spacing="1.5" fill="#69716C">Money in motion. Clarity in control.</text>
+  <text x="220" y="129" font-family="Manrope, 'Avenir Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif" font-size="88" font-weight="780" letter-spacing="-5"><tspan fill="#111A15">root</tspan><tspan fill="#087A4C">flow</tspan></text>
 </svg>
