@@ -1,10 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-labelledby="title desc">
-  <title id="title">Rootflow symbol</title>
-  <desc id="desc">A white anchored R-flow line with a root dot on Rootflow green.</desc>
-  <rect width="1000" height="1000" rx="220" fill="#14614A"/>
-  <g fill="none" stroke="#FFFFFF" stroke-width="74" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M254 733 C330 602 353 387 490 286 C580 220 766 210 822 333 C873 446 795 568 650 574 L500 574"/>
-    <path d="M520 574 C624 596 724 665 814 744"/>
+  <title id="title">Rootflow icon master</title>
+  <desc id="desc">Minimal Rootflow square icon derived from the shared ROOT family geometry.</desc>
+  <defs>
+    <radialGradient id="tile" cx="45%" cy="30%" r="82%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F1F5F1"/>
+    </radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="#F6F8F6"/>
+  <rect x="36" y="36" width="928" height="928" rx="224" fill="url(#tile)"/>
+  <rect x="36" y="36" width="928" height="928" rx="224" fill="none" stroke="#E3E9E4" stroke-width="14"/>
+  <g transform="translate(154 154) scale(5.4)" fill="none" stroke="#087A4C" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round">
+    <g id="root-base">
+      <path d="M64 82V58"/>
+      <path d="M64 82C55 82 49 87 45 94L38 106"/>
+      <path d="M64 82V108"/>
+      <path d="M64 82C73 82 79 87 83 94L90 106"/>
+    </g>
+    <g id="flow-crown">
+      <path d="M64 58C53 58 47 52 47 43C47 34 40 28 30 28"/>
+      <path d="M64 58V19"/>
+      <path d="M64 58C75 58 81 52 81 43C81 34 88 28 98 28"/>
+    </g>
   </g>
-  <circle cx="219" cy="782" r="57" fill="#FFFFFF"/>
 </svg>
