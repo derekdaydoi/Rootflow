@@ -57,10 +57,37 @@
 
 /* Edit-account sheet: make editable truth obvious, remove duplicate derived card,
    and let content determine height instead of squeezing fields. */
-.rf-account-edit-sheet .rf-hide-derived-card{display:none!important}
+body.rf-account-sheet-open{
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+.rf-account-edit-sheet{
+  height:min(88dvh,780px);
+  max-height:calc(100dvh - max(8px,env(safe-area-inset-top,0px)));
+  display:flex;
+  flex-direction:column;
+  overflow:hidden!important;
+}
+.rf-account-edit-sheet .sheet-head{
+  flex:0 0 auto;
+}
 .rf-account-edit-sheet .sheet-body{
+  flex:1 1 auto;
   min-width:0;
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
   padding-bottom:max(30px,env(safe-area-inset-bottom,0px));
+}
+.rf-account-edit-sheet .rf-hide-derived-card{display:none!important}
+.rf-account-edit-sheet .rf-edit-close-spacer{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+.rf-account-edit-sheet .rf-account-back{
+  color:var(--text);
 }
 .rf-account-edit-sheet .rf-edit-note{
   display:grid;
@@ -102,6 +129,16 @@
   width:100%;
   max-width:100%;
   min-width:0;
+}
+/* iOS Safari auto-zooms focused form controls below 16px. Keep every editable
+   control at 16px or above so the account sheet stays at a stable scale. */
+.rf-account-edit-sheet input,
+.rf-account-edit-sheet select,
+.rf-account-edit-sheet textarea,
+.rf-account-edit-sheet .input,
+.rf-account-edit-sheet .select,
+.rf-account-edit-sheet .date-display{
+  font-size:16px!important;
 }
 .rf-account-edit-sheet .rf-primary-edit-field .input,
 .rf-account-edit-sheet .rf-primary-edit-field .input-money{

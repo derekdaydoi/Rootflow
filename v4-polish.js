@@ -87,6 +87,51 @@
     Array.prototype.forEach.call(sheet.querySelectorAll('.field'), enhanceOptionalDateField);
   }
 
+  function reopenSettingsAfterClose(closeButton) {
+    if (!closeButton) return;
+    closeButton.click();
+    var tries = 0;
+    function openSettings() {
+      var button = document.querySelector('.appbar .icon-button[aria-label="Cài đặt"]');
+      if (button) {
+        button.click();
+        return;
+      }
+      tries += 1;
+      if (tries < 5) window.setTimeout(openSettings, 24);
+    }
+    window.setTimeout(openSettings, 0);
+  }
+
+  function enhanceAccountBackNavigation(sheet) {
+    var head = sheet && sheet.querySelector('.sheet-head');
+    if (!head) return;
+    var closeButton = head.querySelector('.icon-button[aria-label="Đóng"]');
+    if (!closeButton) return;
+
+    closeButton.classList.add('rf-edit-close-spacer');
+    closeButton.setAttribute('aria-hidden', 'true');
+    closeButton.tabIndex = -1;
+
+    var backButton = head.querySelector('.rf-account-back');
+    if (!backButton) {
+      backButton = document.createElement('button');
+      backButton.type = 'button';
+      backButton.className = 'icon-button rf-account-back';
+      backButton.setAttribute('aria-label', 'Quay lại');
+      backButton.setAttribute('title', 'Quay lại');
+      backButton.innerHTML = '<svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>';
+      var first = head.firstElementChild;
+      if (first && first.tagName === 'DIV') head.replaceChild(backButton, first);
+      else head.insertBefore(backButton, head.firstChild);
+      backButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        reopenSettingsAfterClose(closeButton);
+      });
+    }
+  }
+
   function enhanceAccountEdit(sheet) {
     if (!sheet || sheet.getAttribute('aria-label') !== 'Sửa tài khoản') return;
     sheet.classList.add('rf-account-edit-sheet');
@@ -122,15 +167,22 @@
     }
 
     enhanceOptionalDates(sheet);
+    enhanceAccountBackNavigation(sheet);
 
     Array.prototype.forEach.call(sheet.querySelectorAll('.field, .form-divider, .form-grid'), function (node) {
       node.style.minWidth = '0';
     });
   }
 
+  function syncAccountSheetState() {
+    var open = Boolean(document.querySelector('.sheet.rf-account-edit-sheet'));
+    document.body.classList.toggle('rf-account-sheet-open', open);
+  }
+
   function enhanceAll() {
     enhanceUndatedObligations(document);
     Array.prototype.forEach.call(document.querySelectorAll('.sheet[aria-label="Sửa tài khoản"]'), enhanceAccountEdit);
+    syncAccountSheetState();
   }
 
   var scheduled = false;
