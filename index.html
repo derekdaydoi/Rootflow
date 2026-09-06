@@ -19,32 +19,61 @@
   <meta name="description" content="Rootflow — personal treasury and decision dashboard.">
   <title>Rootflow — Personal Treasury</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="brand/rootflow-mark.svg" type="image/svg+xml">
   <link rel="icon" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-180.png">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="v4.css">
   <link rel="stylesheet" href="v4-polish.css">
+  <link rel="stylesheet" href="brand/rootflow-splash.css">
 </head>
 <body class="splash-active">
   <div id="opening-splash" class="opening-splash" aria-hidden="true">
     <div class="splash-halo"></div>
     <div class="splash-lockup">
-      <svg class="splash-mark" viewBox="0 0 128 128" role="presentation">
+      <svg class="splash-mark" viewBox="0 0 128 128" role="presentation" aria-hidden="true">
         <defs>
-          <linearGradient id="splash-green" x1="18" y1="104" x2="106" y2="18" gradientUnits="userSpaceOnUse">
+          <linearGradient id="splash-rf-green" x1="26" y1="102" x2="102" y2="24" gradientUnits="userSpaceOnUse">
             <stop offset="0" stop-color="#0F4F35"></stop>
             <stop offset="1" stop-color="#1C8A58"></stop>
           </linearGradient>
         </defs>
-        <circle class="splash-source" cx="21" cy="64" r="7" fill="url(#splash-green)"></circle>
-        <g fill="none" stroke="url(#splash-green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
-          <path class="splash-flow splash-flow-one" pathLength="1" d="M46 35C46 25.6 53.6 18 63 18H101"></path>
-          <path class="splash-flow splash-flow-two" pathLength="1" d="M46 68C46 58.6 53.6 51 63 51H91"></path>
-          <path class="splash-flow splash-flow-three" pathLength="1" d="M46 101C46 91.6 53.6 84 63 84H80"></path>
+
+        <g class="splash-gear">
+          <g fill="#1C8A58" stroke="#0F4F35" stroke-width="5" stroke-linejoin="round">
+            <circle cx="82" cy="68" r="25"></circle>
+            <rect x="76" y="29" width="12" height="19" rx="3"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(45 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(90 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(135 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(180 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(225 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(270 82 68)"></rect>
+            <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(315 82 68)"></rect>
+          </g>
+          <circle cx="82" cy="68" r="10" fill="#F5F6F2" stroke="#0F4F35" stroke-width="6"></circle>
+        </g>
+
+        <g class="splash-bulb">
+          <path d="M50 13C27 13 12 29 12 50c0 13 6 22 14 31 3 4 5 7 5 12h38c0-5 2-9 6-13 8-8 13-17 13-30C88 29 73 13 50 13Z" fill="#E8F2EB" stroke="#0F4F35" stroke-width="7" stroke-linejoin="round"></path>
+          <path class="splash-glint" pathLength="1" d="M29 34c4-8 10-13 18-15" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"></path>
+
+          <g class="splash-coin">
+            <circle cx="50" cy="50" r="21" fill="#1C8A58" stroke="#0F4F35" stroke-width="6"></circle>
+            <path class="splash-money-line" pathLength="1" d="M59 39c-3-5-13-6-17 0-5 8 3 11 9 13 9 3 12 8 8 15-5 7-17 6-20-2" fill="none" stroke="#0F4F35" stroke-width="5" stroke-linecap="round"></path>
+            <path class="splash-money-line" pathLength="1" d="M50 32v7M50 68v8" fill="none" stroke="#0F4F35" stroke-width="5" stroke-linecap="round"></path>
+          </g>
+
+          <g class="splash-base">
+            <rect x="27" y="88" width="46" height="14" rx="7" fill="url(#splash-rf-green)" stroke="#0F4F35" stroke-width="6"></rect>
+            <rect x="31" y="100" width="38" height="14" rx="7" fill="#1C8A58" stroke="#0F4F35" stroke-width="6"></rect>
+            <path d="M39 113h22c0 7-5 11-11 11s-11-4-11-11Z" fill="#1C8A58" stroke="#0F4F35" stroke-width="6" stroke-linejoin="round"></path>
+            <path d="M36 95h12" stroke="#79D8A5" stroke-width="4" stroke-linecap="round" opacity=".8"></path>
+          </g>
         </g>
       </svg>
       <div class="splash-wordmark"><span>root</span><strong>flow</strong></div>
-      <div class="splash-copyright">© Copyright from <strong>@derekdaydoi</strong>.</div>
+      <div class="splash-copyright">© 2026 <strong>@derekdaydoi</strong>. All rights reserved.</div>
     </div>
   </div>
   <div id="root"><div class="boot">Đang mở Rootflow…</div></div>
@@ -72,7 +101,7 @@
       window.setTimeout(function () {
         document.body.classList.remove('splash-active');
         splash.remove();
-      }, reduced ? 700 : 3150);
+      }, reduced ? 650 : 3250);
     })();
   </script>
 </body>

@@ -1,0 +1,183 @@
+/* Rootflow smart-treasury splash.
+   Brand palette: #0F4F35 / #1C8A58. Copyright © 2026 @derekdaydoi. */
+.opening-splash {
+  --rf-logo-deep: #0F4F35;
+  --rf-logo-green: #1C8A58;
+  --rf-logo-mint: #E8F2EB;
+  --rf-logo-bg: #F5F6F2;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(28, 138, 88, .16), rgba(28, 138, 88, 0) 34%),
+    radial-gradient(circle at 50% 47%, rgba(15, 79, 53, .05), rgba(15, 79, 53, 0) 58%),
+    var(--rf-logo-bg);
+  animation: rf-splash-screen 3.2s cubic-bezier(.22, .72, .25, 1) both;
+}
+
+.opening-splash .splash-lockup {
+  width: min(84vw, 380px);
+  transform: translateY(-2.5vh);
+}
+
+.opening-splash .splash-halo {
+  top: 45%;
+  width: min(60vw, 235px);
+  border-color: rgba(28, 138, 88, .12);
+  box-shadow:
+    0 0 0 22px rgba(28, 138, 88, .025),
+    0 22px 72px rgba(15, 79, 53, .1);
+  animation: rf-halo-pulse 1.05s .75s cubic-bezier(.18, .82, .28, 1) both;
+}
+
+.opening-splash .splash-mark {
+  width: 132px;
+  height: 132px;
+  filter: drop-shadow(0 10px 20px rgba(15, 79, 53, .12));
+  animation: rf-mark-enter .66s .1s cubic-bezier(.18, .86, .24, 1.08) both;
+}
+
+.opening-splash .splash-gear,
+.opening-splash .splash-bulb,
+.opening-splash .splash-coin,
+.opening-splash .splash-base {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.opening-splash .splash-gear {
+  animation: rf-gear-enter .96s .22s cubic-bezier(.16, .82, .22, 1) both;
+}
+
+.opening-splash .splash-bulb {
+  animation: rf-bulb-enter .66s .14s cubic-bezier(.18, .88, .24, 1.08) both;
+}
+
+.opening-splash .splash-coin {
+  animation: rf-coin-enter .52s .72s cubic-bezier(.2, .9, .26, 1.16) both;
+}
+
+.opening-splash .splash-base {
+  animation: rf-base-enter .42s .52s cubic-bezier(.2, .82, .25, 1) both;
+}
+
+.opening-splash .splash-money-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: rf-money-draw .48s .95s cubic-bezier(.3, .05, .18, 1) both;
+}
+
+.opening-splash .splash-glint {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  animation: rf-glint-draw .38s 1.12s ease-out both;
+}
+
+.opening-splash .splash-wordmark {
+  margin-top: 10px;
+  font-size: 43px;
+  animation: rf-copy-enter .44s 1.32s cubic-bezier(.22, .8, .25, 1) both;
+}
+
+.opening-splash .splash-wordmark strong {
+  color: var(--rf-logo-green);
+}
+
+.opening-splash .splash-copyright {
+  margin-top: 16px;
+  font-size: 10px;
+  letter-spacing: .025em;
+  animation: rf-copy-enter .4s 1.66s cubic-bezier(.22, .8, .25, 1) both;
+}
+
+.opening-splash .splash-copyright strong {
+  color: var(--rf-logo-deep);
+}
+
+@keyframes rf-mark-enter {
+  0% { opacity: 0; transform: translateY(8px) scale(.88); }
+  65% { opacity: 1; transform: translateY(-1px) scale(1.025); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rf-gear-enter {
+  0% { opacity: 0; transform: rotate(-26deg) scale(.76); }
+  58% { opacity: 1; transform: rotate(5deg) scale(1.02); }
+  100% { opacity: 1; transform: rotate(0) scale(1); }
+}
+
+@keyframes rf-bulb-enter {
+  0% { opacity: 0; transform: translateY(7px) scale(.84); }
+  72% { opacity: 1; transform: translateY(-1px) scale(1.018); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes rf-coin-enter {
+  0% { opacity: 0; transform: scale(.58); }
+  70% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rf-base-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rf-money-draw {
+  0% { opacity: 0; stroke-dashoffset: 1; }
+  14% { opacity: 1; }
+  100% { opacity: 1; stroke-dashoffset: 0; }
+}
+
+@keyframes rf-glint-draw {
+  0% { opacity: 0; stroke-dashoffset: 1; }
+  30% { opacity: .82; }
+  100% { opacity: .72; stroke-dashoffset: 0; }
+}
+
+@keyframes rf-halo-pulse {
+  0% { opacity: 0; transform: translate(-50%, -64%) scale(.58); }
+  46% { opacity: .82; }
+  100% { opacity: 0; transform: translate(-50%, -64%) scale(1.16); }
+}
+
+@keyframes rf-copy-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rf-splash-screen {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+@media (max-width: 420px) {
+  .opening-splash .splash-mark { width: 124px; height: 124px; }
+  .opening-splash .splash-wordmark { font-size: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening-splash {
+    animation: rf-splash-screen-reduced .65s linear both;
+  }
+  .opening-splash .splash-halo { display: none; }
+  .opening-splash .splash-mark,
+  .opening-splash .splash-gear,
+  .opening-splash .splash-bulb,
+  .opening-splash .splash-coin,
+  .opening-splash .splash-base,
+  .opening-splash .splash-money-line,
+  .opening-splash .splash-glint,
+  .opening-splash .splash-wordmark,
+  .opening-splash .splash-copyright {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes rf-splash-screen-reduced {
+  0%, 76% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}

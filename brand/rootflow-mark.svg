@@ -1,15 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
-  <title id="title">Rootflow mark</title>
-  <desc id="desc">A source dot feeding three calm, rounded financial flows.</desc>
+  <title id="title">Rootflow smart treasury mark</title>
+  <desc id="desc">A lightbulb, coin and gear mark representing financial clarity, systems and decision making.</desc>
+  <metadata>Copyright © 2026 @derekdaydoi. All rights reserved. Rootflow brand asset.</metadata>
   <defs>
-    <linearGradient id="rootflow-green" x1="18" y1="104" x2="106" y2="18" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#0F4F35"/><stop offset="1" stop-color="#1C8A58"/>
+    <linearGradient id="rf-green" x1="26" y1="102" x2="102" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F4F35"/>
+      <stop offset="1" stop-color="#1C8A58"/>
     </linearGradient>
   </defs>
-  <circle cx="21" cy="64" r="7" fill="url(#rootflow-green)"/>
-  <g fill="none" stroke="url(#rootflow-green)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M46 35C46 25.6 53.6 18 63 18H101"/>
-    <path d="M46 68C46 58.6 53.6 51 63 51H91"/>
-    <path d="M46 101C46 91.6 53.6 84 63 84H80"/>
+
+  <g aria-hidden="true">
+    <g fill="#1C8A58" stroke="#0F4F35" stroke-width="5" stroke-linejoin="round">
+      <circle cx="82" cy="68" r="25"/>
+      <rect x="76" y="29" width="12" height="19" rx="3"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(45 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(90 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(135 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(180 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(225 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(270 82 68)"/>
+      <rect x="76" y="29" width="12" height="19" rx="3" transform="rotate(315 82 68)"/>
+    </g>
+    <circle cx="82" cy="68" r="10" fill="#F5F6F2" stroke="#0F4F35" stroke-width="6"/>
+
+    <path d="M50 13C27 13 12 29 12 50c0 13 6 22 14 31 3 4 5 7 5 12h38c0-5 2-9 6-13 8-8 13-17 13-30C88 29 73 13 50 13Z" fill="#E8F2EB" stroke="#0F4F35" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M29 34c4-8 10-13 18-15" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" opacity=".72"/>
+
+    <circle cx="50" cy="50" r="21" fill="#1C8A58" stroke="#0F4F35" stroke-width="6"/>
+    <path d="M59 39c-3-5-13-6-17 0-5 8 3 11 9 13 9 3 12 8 8 15-5 7-17 6-20-2" fill="none" stroke="#0F4F35" stroke-width="5" stroke-linecap="round"/>
+    <path d="M50 32v7M50 68v8" fill="none" stroke="#0F4F35" stroke-width="5" stroke-linecap="round"/>
+
+    <rect x="27" y="88" width="46" height="14" rx="7" fill="url(#rf-green)" stroke="#0F4F35" stroke-width="6"/>
+    <rect x="31" y="100" width="38" height="14" rx="7" fill="#1C8A58" stroke="#0F4F35" stroke-width="6"/>
+    <path d="M39 113h22c0 7-5 11-11 11s-11-4-11-11Z" fill="#1C8A58" stroke="#0F4F35" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M36 95h12" stroke="#79D8A5" stroke-width="4" stroke-linecap="round" opacity=".8"/>
   </g>
 </svg>
