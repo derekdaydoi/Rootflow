@@ -7,10 +7,12 @@ function read(name) { return fs.readFileSync(path.join(__dirname, '..', name), '
 const index = read('index.html');
 const app = read('app.js');
 const css = read('capital.css');
+const effects = read('effects.css');
 const ui = read('capital-ui.js');
 const sw = read('sw.js');
 
 assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
+assert(index.includes('effects.css'), 'production motion stylesheet must load');
 assert(!index.includes('user-scalable=no') && !index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
 assert(index.includes('brand/rootflow-mark.png'), 'splash must use the canonical raster artwork');
 assert(index.includes('4150'), 'splash timing must preserve the approved final cadence');
@@ -51,6 +53,12 @@ assert(css.includes('font-size:16px'), 'mobile inputs must avoid iOS focus zoom'
 assert(css.includes('env(safe-area-inset-bottom'), 'mobile chrome must respect safe areas');
 assert(!css.includes('overflow-wrap:anywhere'), 'Vietnamese words must not be broken arbitrarily');
 
+assert(effects.includes('@keyframes rf-surface-enter'), 'screen surfaces must have restrained entry motion');
+assert(effects.includes('@keyframes rf-nav-select'), 'navigation state changes must have feedback');
+assert(effects.includes('prefers-reduced-motion:reduce'), 'motion must respect reduced-motion preferences');
+assert(!effects.includes('linear-gradient') && !effects.includes('radial-gradient'), 'motion layer must not introduce decorative gradients');
+
+assert(sw.includes("'./effects.css'"), 'service worker must cache the motion stylesheet');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
