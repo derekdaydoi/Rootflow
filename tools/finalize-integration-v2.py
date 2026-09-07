@@ -8,10 +8,8 @@ import sys
 
 ROOT = Path('.')
 
-
 def run(path):
     subprocess.run([sys.executable, str(path)], check=True)
-
 
 def validate_png(data, size):
     if not data.startswith(b'\x89PNG\r\n\x1a\n'):
@@ -21,20 +19,17 @@ def validate_png(data, size):
         raise RuntimeError(f'Unexpected PNG dimensions: {(width, height)} != {(size, size)}')
     return data
 
-
 run(ROOT / 'tools' / 'integrate-runtime.py')
 run(ROOT / 'tools' / 'canonicalize-runtime.py')
 
-brand_stage = ROOT / '.brand-final'
-b512 = ''.join((brand_stage / f'512-0{i}.txt').read_text().strip() for i in (1, 2, 3))
-assets = {
-    180: validate_png((ROOT / 'rootflow-home-180.png').read_bytes(), 180),
-    192: validate_png((ROOT / 'rootflow-home-192.png').read_bytes(), 192),
-    512: validate_png(base64.b64decode(b512, validate=True), 512),
-}
+stage = ROOT / '.brand-final'
+b512 = ''.join((stage / f'512-0{i}.txt').read_text().strip() for i in (1, 2, 3))
+validate_png((ROOT / 'rootflow-home-180.png').read_bytes(), 180)
+validate_png((ROOT / 'rootflow-home-192.png').read_bytes(), 192)
+mark = validate_png(base64.b64decode(b512, validate=True), 512)
 (ROOT / 'brand').mkdir(exist_ok=True)
-(ROOT / 'brand' / 'rootflow-mark.png').write_bytes(assets[512])
-(ROOT / 'rootflow-home-512.png').write_bytes(assets[512])
+(ROOT / 'brand' / 'rootflow-mark.png').write_bytes(mark)
+(ROOT / 'rootflow-home-512.png').write_bytes(mark)
 
 index = (ROOT / 'index.html').read_text()
 index = index.replace('href="icon-192.png"', 'href="rootflow-home-192.png"')
@@ -127,53 +122,11 @@ CI chạy trên mọi push vào `main` và pull request.
 © 2026 @derekdaydoi. All rights reserved.
 ''')
 
-(ROOT / '.github' / 'workflows' / 'tests.yml').write_text('''name: Rootflow regression tests
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-
-permissions:
-  contents: read
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Financial invariants
-        run: node tests/run-tests.js
-      - name: Cashflow regressions
-        run: node tests/run-cashflow-tests.js
-      - name: Store regressions
-        run: node tests/run-store-tests.js
-      - name: Compatibility regressions
-        run: node tests/run-compat-tests.js
-      - name: Capital decision regressions
-        run: node tests/run-capital-tests.js
-      - name: Application syntax
-        run: node --check app.js
-      - name: Capital UI syntax
-        run: node --check capital-ui.js
-      - name: Capital domain syntax
-        run: node --check capital-domain.js
-      - name: UI contract
-        run: node tests/run-ui-contract-tests.js
-      - name: React ownership contract
-        run: node tests/run-account-editor-tests.js
-''')
-
+# Do not touch .github/workflows here: Actions' token cannot modify workflow files.
 for rel in (
     '.brand-final', '.brand-parts',
     'rootflow-home-180.txt', 'rootflow-home-180.b64.txt',
     'icon-180.png', 'icon-192.png', 'icon-512.png',
-    '.github/workflows/finalize-production.yml',
-    '.github/workflows/integration-build.yml',
     'account-editor.js', 'account-editor.css',
     'tools/integrate-runtime.py', 'tools/canonicalize-runtime.py',
     'tools/finalize-integration.py', 'tools/finalize-integration-v2.py',
@@ -184,4 +137,4 @@ for rel in (
     elif p.exists():
         p.unlink()
 
-print('Rootflow production integration finalized.')
+print('Rootflow runtime/material assets finalized; workflow cleanup deferred to connector.')
