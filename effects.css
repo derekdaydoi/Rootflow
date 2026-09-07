@@ -6,6 +6,22 @@
   --rf-motion-ease:cubic-bezier(.22,.72,.25,1);
 }
 
+/* Brand lockup: canonical name is Rootflow and the in-app mark gets more visual weight. */
+.brand-title-lockup{gap:10px}
+.brand-title-lockup>img{
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  object-fit:contain;
+  transform-origin:center;
+  transition:transform var(--rf-motion-base) var(--rf-motion-ease),filter var(--rf-motion-base) var(--rf-motion-ease);
+}
+.brand-title-word>span:first-child,
+.splash-wordmark>span:first-child{text-transform:capitalize}
+@media (hover:hover) and (pointer:fine){
+  .brand-title-lockup:hover>img{transform:scale(1.035);filter:drop-shadow(0 5px 10px rgba(15,79,53,.10))}
+}
+
 .rf-os-screen>.rf-card,
 .rf-os-screen>.rf-available-hero,
 .rf-os-screen>.rf-screen-title,
@@ -119,6 +135,7 @@
 }
 
 @media (prefers-reduced-motion:reduce){
+  .brand-title-lockup>img,
   .rf-os-screen>*,
   .rf-available-hero,
   .rf-hero-value,
@@ -128,6 +145,7 @@
   .rf-bottom-nav .nav-button .rf-icon{
     animation:none!important;
   }
+  .brand-title-lockup>img,
   .rf-card,
   .rf-metric,
   .rf-compact-card,
