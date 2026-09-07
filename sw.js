@@ -1,6 +1,6 @@
 /* Rootflow — sw.js
    Cache key changes per deploy so installed PWA receives one coherent asset set. */
-var CACHE = 'rootflow-cache-v21-2026-09-07-capital-os-logo-spacing';
+var CACHE = 'rootflow-cache-v21-2026-09-07-brand-fix';
 
 var ASSETS = [
   './',
@@ -32,7 +32,8 @@ var ASSETS = [
   './brand/rootflow-symbol.svg',
   './brand/rootflow-mark.svg',
   './brand/rootflow-wordmark.svg',
-  './brand/rootflow-logo.svg'
+  './brand/rootflow-logo.svg',
+  './brand/rootflow-icon-master.svg'
 ];
 
 self.addEventListener('install', function (event) {
