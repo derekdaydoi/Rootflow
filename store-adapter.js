@@ -1,8 +1,8 @@
-/* Rootflow — persistence semantics patch.
-   Earlier builds historically auto-posted CERTAIN planned flows when their date arrived.
+/* Rootflow — persistence semantics compatibility.
+   Historical builds auto-posted CERTAIN planned flows when their date arrived.
    The canonical model separates "committed" from "actual": confirmed=true only means the cash
-   event actually happened. This wrapper normalizes legacy auto-posted rows
-   without rewriting store.js or the backup format. */
+   event actually happened. This adapter normalizes historical auto-posted rows
+   without changing the backup format. */
 (function (global) {
   'use strict';
 
@@ -19,9 +19,9 @@
 
     (data.accounts || []).forEach(function (account) {
       if (!account) return;
-      /* Explicit values always win. Final v9 backups already carry this field.
-         New liquid accounts created by the current UI still keep compatibility opening
-         behavior until the user explicitly imports/sets a closing snapshot. */
+      /* Explicit values always win. Schema 9 backups already carry this field.
+         New liquid accounts created by the current UI keep compatibility opening
+         behavior until the user explicitly imports or sets a closing snapshot. */
       if (account.balanceSemantics !== 'opening_balance' && account.balanceSemantics !== 'closing_snapshot') {
         if (!D.isLiquid(account) && Math.abs(Number(account.openingBalance) || 0) > 0) account.balanceSemantics = 'closing_snapshot';
       }
@@ -32,7 +32,8 @@
       if (flow.autoPosted === true) {
         flow.confirmed = false;
         flow.autoPosted = false;
-        flow.autoPostedCompatibility = true;
+        /* Keep this persisted marker name for backward compatibility with schema 9 backups. */
+        flow.autoPostedLegacy = true;
         flow.confidence = flow.confidence || 'CERTAIN';
         flow.updatedAt = S.now();
         changed = true;
@@ -40,7 +41,7 @@
     });
 
     /* Migration may have closed a contract after auto-posting. Re-open it when
-       unconfirmed principal/interest remains after the normalization above. */
+       unconfirmed principal or interest remains after normalization. */
     (data.contracts || []).forEach(function (contract) {
       if (!contract) return;
       var principalLeft = D.contractOutstandingPrincipal(contract, data.flows || []);
