@@ -47,7 +47,7 @@ effects.css
 
 Canonical artwork: `brand/rootflow-mark.png`.
 
-Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-home-180.png`, `rootflow-home-192.png`, `rootflow-home-512.png` là các kích thước PWA từ cùng canonical artwork.
+Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork.
 
 ## Kiểm thử
 

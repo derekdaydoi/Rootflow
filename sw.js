@@ -22,9 +22,9 @@ var ASSETS = [
   './manifest.json',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
-  './rootflow-home-180.png',
-  './rootflow-home-192.png',
-  './rootflow-home-512.png',
+  './rootflow-touch-180.png',
+  './rootflow-icon-192.png',
+  './rootflow-icon-512.png',
   './brand/rootflow-mark.png'
 ];
 
