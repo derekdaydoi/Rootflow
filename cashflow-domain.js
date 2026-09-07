@@ -1,5 +1,5 @@
 /* Rootflow — explainable treasury extensions.
-   Additive layer: keeps the V2 ledger intact while fixing snapshot semantics
+   Compatibility layer: preserves the stable ledger while fixing snapshot semantics
    and exposing human-readable cash requirements, obligations and funding links. */
 (function (global) {
   'use strict';
@@ -22,7 +22,7 @@
   function balanceSemantics(account) {
     var explicit = String(account && account.balanceSemantics || '');
     if (explicit === 'closing_snapshot' || explicit === 'opening_balance') return explicit;
-    /* Preserve legacy behavior for old backups. */
+    /* Preserve backup compatibility behavior. */
     if (D.isLiquid(account)) return 'opening_balance';
     return Math.abs(Number(account && account.openingBalance) || 0) > 0 ? 'closing_snapshot' : 'opening_balance';
   }
@@ -120,7 +120,7 @@
     return { start: start, days: days, end: end, current: current, rows: planned };
   }
 
-  function projectionPathV3(accounts, flows, settings, opts, mode) {
+  function projectionPath(accounts, flows, settings, opts, mode) {
     var setup = projectionRows(accounts, flows, settings, opts, mode);
     var points = [];
     var running = setup.current;
@@ -154,9 +154,9 @@
     var hard = Math.max(0, Number(settings.hardFloor != null ? settings.hardFloor : settings.reserveFloor) || 0);
     var operating = Math.max(hard, Number(settings.operatingBuffer) || hard);
     var comfort = Math.max(operating, Number(settings.comfortBuffer) || operating);
-    var confirmedPoints = projectionPathV3(accounts, flows, settings, config, 'confirmed');
-    var expectedPoints = projectionPathV3(accounts, flows, settings, config, 'expected');
-    var allPoints = projectionPathV3(accounts, flows, settings, config, 'full');
+    var confirmedPoints = projectionPath(accounts, flows, settings, config, 'confirmed');
+    var expectedPoints = projectionPath(accounts, flows, settings, config, 'expected');
+    var allPoints = projectionPath(accounts, flows, settings, config, 'full');
     var confirmedLow = lowest(confirmedPoints);
     var expectedLow = lowest(expectedPoints);
     var state = D.liquidityStatus(confirmedLow.value, hard, operating);
@@ -502,11 +502,11 @@
       rolloverCostExposure: rollover,
       netExpectedMonthlyCashflow: expectedIncome + book.monthlyInterest - monthlyDebtService - plannedExpenses,
       fundingLinkedReceivables: fundingMap(data).reduce(function (sum, link) { return sum + link.receivablePrincipal; }, 0),
-      liquidityByDate: projectionPathV3(data.accounts || [], data.flows || [], data.settings || {}, { baseDate: baseDate, horizonDays: Number(data.settings && data.settings.horizonDays) || 90 }, 'expected')
+      liquidityByDate: projectionPath(data.accounts || [], data.flows || [], data.settings || {}, { baseDate: baseDate, horizonDays: Number(data.settings && data.settings.horizonDays) || 90 }, 'expected')
     };
   }
 
-  /* Export the corrected functions without rewriting the stable V2 code. */
+  /* Export the corrected functions without rewriting stable ledger behavior. */
   D.balanceSemantics = balanceSemantics;
   D.effectAfterBaseline = effectAfterBaseline;
   D.balancesBase = originalBalances;
@@ -515,7 +515,7 @@
   D.liquidityModel = liquidityModelSnapshotAware;
   D.controlMetricsBase = originalControlMetrics;
   D.controlMetrics = controlMetricsSnapshotAware;
-  D.cashflowProjectionPath = projectionPathV3;
+  D.cashflowProjectionPath = projectionPath;
   D.cashflowDebtCalendar = debtCalendar;
   D.cashflowFundingMap = fundingMap;
   D.cashflowLendingBook = lendingBook;
