@@ -38,15 +38,16 @@ app.js
 capital-ui.js
 styles.css
 capital.css
+effects.css
 ```
 
-React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.
+`effects.css` chỉ chứa motion/interaction feedback, không chứa business logic. Toàn bộ animation có `prefers-reduced-motion` fallback. React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.
 
 ## Brand
 
 Canonical artwork: `brand/rootflow-mark.png`.
 
-Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-home-180.png`, `rootflow-home-192.png`, `rootflow-home-512.png` chỉ là bản resize từ artwork đó, không redraw.
+Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-home-180.png`, `rootflow-home-192.png`, `rootflow-home-512.png` là các kích thước PWA từ cùng canonical artwork.
 
 ## Kiểm thử
 
