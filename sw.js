@@ -1,6 +1,6 @@
 /* Rootflow — sw.js
    Cache key changes per deploy so installed PWA receives one coherent asset set. */
-var CACHE = 'rootflow-cache-v21-2026-09-07-brand-fix';
+var CACHE = 'rootflow-cache-v21-2026-09-07-capital-os-brand-fix';
 
 var ASSETS = [
   './',
