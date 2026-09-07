@@ -42,19 +42,19 @@ function baseData() {
 }
 
 const data = baseData();
-const bs = D.v4BalanceSheetSummary(data);
+const bs = D.capitalBalanceSheetSummary(data);
 assert.strictEqual(bs.totalAssets, 70000000);
 assert.strictEqual(bs.totalDebt, 5000000);
 
-const income = D.v4IncomePlanSummary(data, '2026-09');
+const income = D.incomePlanSummary(data, '2026-09');
 assert.strictEqual(income.defaultAmount, 17000000);
 assert.strictEqual(income.plannedAmount, 15000000);
 assert.strictEqual(income.paymentDay, 28);
 
-const projection = D.v4ProjectionSummary(data, 30, 'confirmed');
+const projection = D.capitalProjectionSummary(data, 30, 'confirmed');
 assert(projection.recurringEvents.some(row => row.name === 'Lương' && row.amount === 15000000));
 
-const operating = D.v4OperatingSummary(data, 30);
+const operating = D.operatingSummary(data, 30);
 assert.strictEqual(operating.currentCash, 20000000);
 assert.strictEqual(operating.requirement.datedNeed, 5000000);
 assert.strictEqual(operating.requirement.rolloverNeed, 80000);
@@ -65,7 +65,7 @@ assert.strictEqual(operating.living.target, 7000000);
 assert.strictEqual(operating.living.unscheduledReserve, 5000000);
 assert.strictEqual(operating.deployableCapital, 7920000);
 
-const capital = D.v4CapitalSummary(data);
+const capital = D.capitalSummary(data);
 assert.strictEqual(capital.earningCapital, 50000000);
 assert(capital.positions.some(row => row.kind === 'lending' && row.value === 40000000));
 assert(capital.fundingSources.some(row => row.kind === 'credit_card' && row.balance === 5000000));
@@ -77,10 +77,10 @@ certainCase.controlAssumptions = {};
 certainCase.flows = [{ id:'big-due', kind:'expense', accountId:'cash2', amount:20000000, date:'2026-09-30', confirmed:false, confidence:'CERTAIN', skipped:false }];
 certainCase.recurringIncomes = [{ id:'salary2', type:'employment_income', name:'Lương', frequency:'monthly', expectedAmount:17000000, paymentDay:28, amountCertainty:'CERTAIN', archived:false }];
 certainCase.settings = { snapshotDate:'2026-09-07', forecastStartDate:'2026-09-07', hardFloor:0, operatingBuffer:0 };
-assert.strictEqual(D.v4CashRequirement(certainCase, 30, 'confirmed').minimumRequiredCash, 3000000);
+assert.strictEqual(D.capitalCashRequirement(certainCase, 30, 'confirmed').minimumRequiredCash, 3000000);
 certainCase.recurringIncomes[0].amountCertainty = 'EXPECTED';
-assert.strictEqual(D.v4CashRequirement(certainCase, 30, 'confirmed').minimumRequiredCash, 20000000);
-assert.strictEqual(D.v4CashRequirement(certainCase, 30, 'expected').minimumRequiredCash, 3000000);
+assert.strictEqual(D.capitalCashRequirement(certainCase, 30, 'confirmed').minimumRequiredCash, 20000000);
+assert.strictEqual(D.capitalCashRequirement(certainCase, 30, 'expected').minimumRequiredCash, 3000000);
 
 const annualLoan = {
   accounts:[{ id:'loan', name:'Bank loan', type:'loan', openingBalance:120000000, balanceAsOf:'2026-09-07', archived:false }],
@@ -88,9 +88,9 @@ const annualLoan = {
   contracts:[{ id:'loan-c', type:'payable', accountId:'loan', status:'active', originalPrincipal:120000000, currentOutstanding:120000000, interestMode:'rate', actualInterestMethod:'reducing_balance', interestBasis:'outstanding_principal', interestRate:12, interestRatePeriod:'annual', feeFrequency:'none' }],
   settings:{ snapshotDate:'2026-09-07', forecastStartDate:'2026-09-07' }, controlAssumptions:{}, recurringIncomes:[], budgets:[], counterparties:[], statements:[], nonCashEvents:[], scenarios:[]
 };
-assert.strictEqual(D.v4FundingCostSummary(annualLoan).knownInterest, 1200000);
+assert.strictEqual(D.capitalFundingCostSummary(annualLoan).knownInterest, 1200000);
 
-const final = D.v4FinalSummary(data);
+const final = D.finalSummary(data);
 assert(final.operating && final.capital && final.incomePlan && Array.isArray(final.upcoming));
 
 console.log('Rootflow capital decision regressions passed.');

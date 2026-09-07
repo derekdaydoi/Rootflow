@@ -95,8 +95,8 @@
       }, s || {});
     });
 
-    /* V2 chỉ lưu seriesId. V3 suy ra lại tần suất và vị trí trong chuỗi để
-       màn sửa có thể hiển thị và chỉnh lịch lặp. */
+    /* Dữ liệu lịch sử chỉ lưu seriesId. Dữ liệu hiện tại suy ra lại tần suất
+       và vị trí trong chuỗi để màn sửa có thể hiển thị và chỉnh lịch lặp. */
     var groups = {};
     data.flows.forEach(function (f) {
       if (!f || !f.seriesId) return;

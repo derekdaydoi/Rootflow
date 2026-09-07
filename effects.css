@@ -1,0 +1,145 @@
+/* Rootflow motion system — restrained, functional, and reduced-motion safe. */
+:root{
+  --rf-motion-fast:150ms;
+  --rf-motion-base:260ms;
+  --rf-motion-slow:420ms;
+  --rf-motion-ease:cubic-bezier(.22,.72,.25,1);
+}
+
+.rf-os-screen>.rf-card,
+.rf-os-screen>.rf-available-hero,
+.rf-os-screen>.rf-screen-title,
+.rf-os-screen>.rf-segmented,
+.rf-os-screen>.rf-capital-tabs,
+.rf-os-screen>.rf-home-intro{
+  animation:rf-surface-enter var(--rf-motion-slow) var(--rf-motion-ease) both;
+}
+.rf-os-screen>*:nth-child(2){animation-delay:35ms}
+.rf-os-screen>*:nth-child(3){animation-delay:70ms}
+.rf-os-screen>*:nth-child(4){animation-delay:105ms}
+.rf-os-screen>*:nth-child(5){animation-delay:140ms}
+
+.rf-available-hero{
+  transform-origin:50% 35%;
+  animation:rf-hero-enter 500ms var(--rf-motion-ease) both!important;
+}
+.rf-hero-value{
+  animation:rf-value-settle 560ms 110ms var(--rf-motion-ease) both;
+}
+.rf-chart-wrap{
+  animation:rf-chart-enter 460ms 90ms var(--rf-motion-ease) both;
+}
+
+.rf-card,
+.rf-metric,
+.rf-compact-card,
+.rf-position-row,
+.rf-funding-row,
+.rf-event-row,
+.rf-segmented button,
+.rf-capital-tabs button,
+.rf-text-action,
+.rf-hero-explain,
+.rf-bottom-nav .nav-button,
+.rf-bottom-nav .nav-add{
+  transition:
+    transform var(--rf-motion-fast) var(--rf-motion-ease),
+    box-shadow var(--rf-motion-base) var(--rf-motion-ease),
+    border-color var(--rf-motion-base) var(--rf-motion-ease),
+    background-color var(--rf-motion-base) var(--rf-motion-ease),
+    color var(--rf-motion-base) var(--rf-motion-ease),
+    opacity var(--rf-motion-base) var(--rf-motion-ease);
+}
+
+.rf-segmented button.on,
+.rf-capital-tabs button.on{
+  animation:rf-control-select 220ms var(--rf-motion-ease) both;
+}
+.rf-bottom-nav .nav-button.on .rf-icon{
+  animation:rf-nav-select 240ms var(--rf-motion-ease) both;
+}
+.rf-bottom-nav .nav-add:active,
+.rf-hero-explain:active,
+.rf-text-action:active,
+.rf-segmented button:active,
+.rf-capital-tabs button:active{
+  transform:scale(.97);
+}
+.rf-card:active,
+.rf-metric:active,
+.rf-compact-card:active{
+  transform:translateY(1px);
+}
+
+@media (hover:hover) and (pointer:fine){
+  .rf-card:hover{
+    transform:translateY(-1px);
+    border-color:#d5ded8;
+    box-shadow:0 11px 30px rgba(15,79,53,.075);
+  }
+  .rf-event-row:hover,
+  .rf-position-row:hover,
+  .rf-funding-row:hover{
+    background:#fafcfb;
+  }
+  .rf-text-action:hover,
+  .rf-hero-explain:hover{
+    opacity:.78;
+  }
+  .rf-bottom-nav .nav-button:hover{
+    color:var(--rf-green-deep);
+  }
+}
+
+@keyframes rf-surface-enter{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes rf-hero-enter{
+  0%{opacity:0;transform:translateY(10px) scale(.985)}
+  68%{opacity:1;transform:translateY(-1px) scale(1.003)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes rf-value-settle{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes rf-chart-enter{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes rf-control-select{
+  0%{transform:scale(.985)}
+  100%{transform:scale(1)}
+}
+@keyframes rf-nav-select{
+  0%{transform:translateY(1px) scale(.9)}
+  70%{transform:translateY(-1px) scale(1.06)}
+  100%{transform:translateY(0) scale(1)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .rf-os-screen>*,
+  .rf-available-hero,
+  .rf-hero-value,
+  .rf-chart-wrap,
+  .rf-segmented button,
+  .rf-capital-tabs button,
+  .rf-bottom-nav .nav-button .rf-icon{
+    animation:none!important;
+  }
+  .rf-card,
+  .rf-metric,
+  .rf-compact-card,
+  .rf-position-row,
+  .rf-funding-row,
+  .rf-event-row,
+  .rf-segmented button,
+  .rf-capital-tabs button,
+  .rf-text-action,
+  .rf-hero-explain,
+  .rf-bottom-nav .nav-button,
+  .rf-bottom-nav .nav-add{
+    transition:none!important;
+  }
+}

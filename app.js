@@ -1,4 +1,4 @@
-/* Rootflow V2 — Personal Treasury UI. React UMD, no build step. */
+/* Rootflow — Personal Treasury UI. React UMD, no build step. */
 (function (global) {
   'use strict';
 
@@ -90,7 +90,7 @@
 
   function BrandTitle() {
     return h('span', { className: 'brand-title-lockup' },
-      h('img', { src: 'brand/rootflow-mark.svg', alt: '', 'aria-hidden': 'true' }),
+      h('img', { src: 'brand/rootflow-mark.png', alt: '', 'aria-hidden': 'true' }),
       h('span', { className: 'brand-title-word' }, h('span', null, 'root'), h('strong', null, 'flow')));
   }
 
@@ -1315,16 +1315,29 @@
     function importBackup(file) { S.importFile(file, function (err, imported) { if (err) return setToast(err); var saved = S.save(imported); if (saved.ok) { setData(imported); setOverlay(null); setToast('Đã khôi phục bản sao lưu.'); } else setToast(saved.error); }); }
     function diagnostics() { var result = global.rootflowSelfTest(); setToast(result.failed ? result.failed + ' kiểm tra chưa đạt.' : 'Tất cả ' + result.total + ' kiểm tra nghiệp vụ đều đạt.'); }
 
-    var screen;
-    if (subview === 'risk') screen = h(BufferRisk, { derived: derived, onBack: function () { setSubview(null); }, onSettings: function () { setOverlay('settings'); } });
-    else if (subview === 'budgets') screen = h(BudgetScreen, { data: data, derived: derived, onBack: function () { setSubview(null); }, onEdit: editBudget });
-    else if (view === 'flow') screen = h(FlowScreen, { data: data, derived: derived, onAdd: function () { setOverlay('composer'); }, onSettings: function () { setOverlay('settings'); } });
-    else if (view === 'position') screen = h(PositionScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); } });
-    else if (view === 'decide') screen = h(DecideScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onToast: setToast, onSaveScenario: saveScenario });
-    else screen = h(Home, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onAddAccount: openAddAccount, onBudgets: openBudgets, onRisk: function () { setSubview('risk'); global.scrollTo(0, 0); }, onFlow: function () { go('flow'); } });
+    var screen, bottom;
+    var hasOperatingData = data.accounts.some(function (account) { return account && !account.archived; });
+    if (!subview && hasOperatingData && global.RootflowCapitalUI) {
+      screen = h(global.RootflowCapitalUI.Screen, {
+        data: data,
+        view: view,
+        onView: go,
+        onAdd: function () { setOverlay('composer'); },
+        onCommit: commit
+      });
+      bottom = h(global.RootflowCapitalUI.BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
+    } else {
+      if (subview === 'risk') screen = h(BufferRisk, { derived: derived, onBack: function () { setSubview(null); }, onSettings: function () { setOverlay('settings'); } });
+      else if (subview === 'budgets') screen = h(BudgetScreen, { data: data, derived: derived, onBack: function () { setSubview(null); }, onEdit: editBudget });
+      else if (view === 'flow') screen = h(FlowScreen, { data: data, derived: derived, onAdd: function () { setOverlay('composer'); }, onSettings: function () { setOverlay('settings'); } });
+      else if (view === 'position') screen = h(PositionScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); } });
+      else if (view === 'decide') screen = h(DecideScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onToast: setToast, onSaveScenario: saveScenario });
+      else screen = h(Home, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onAddAccount: openAddAccount, onBudgets: openBudgets, onRisk: function () { setSubview('risk'); global.scrollTo(0, 0); }, onFlow: function () { go('flow'); } });
+      bottom = h(BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
+    }
 
     return h('div', { className: 'app' }, screen,
-      h(BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } }),
+      bottom,
       overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onSave: saveEvent }) : null,
       overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: closeOverlay }, h(AccountForm, {
         account: editingAccount,

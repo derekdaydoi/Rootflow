@@ -1,4 +1,4 @@
-/* Rootflow V4 — Personal Capital & Cashflow Operating System.
+/* Rootflow — Personal Capital & Cashflow Operating System.
    Canonical decision layer. Accounting/ledger semantics stay underneath;
    this file exposes the questions a person actually needs to answer:
    what cash exists, what must be kept, what can be used, where capital sits,
@@ -7,7 +7,7 @@
   'use strict';
 
   var D = global.RootflowDomain;
-  if (!D || !D.v3TreasurySummary || !D.v3ProjectionPath) return;
+  if (!D || !D.cashflowTreasurySummary || !D.cashflowProjectionPath) return;
 
   function live(rows) {
     return (rows || []).filter(function (row) { return row && !row.deletedAt && !row.skipped; });
@@ -154,7 +154,7 @@
     });
     var flowById = {};
     live(planningData.flows).forEach(function (flow) { flowById[flow.id] = flow; });
-    return (D.v3DebtCalendar(planningData, days) || []).filter(function (row) {
+    return (D.cashflowDebtCalendar(planningData, days) || []).filter(function (row) {
       if (!row) return false;
       if (row.type === 'control' || String(row.id || '').indexOf('undated-') === 0) return true;
       var flow = flowById[row.id];
@@ -234,9 +234,9 @@
   }
 
   function businessSummary(data) {
-    var book = D.v3LendingBook(data) || {};
+    var book = D.cashflowLendingBook(data) || {};
     var funding = fundingCostSummary(data);
-    var bridge = D.v3CashBridge(data, 30) || {};
+    var bridge = D.cashflowBridge(data, 30) || {};
     var debt = debtCalendar(data, 30);
     var next30FundingCost = debt.reduce(function (sum, row) {
       return sum + Math.max(0, Number(row.interest) || 0) + Math.max(0, Number(row.fee) || 0) + Math.max(0, Number(row.rollover) || 0);
@@ -298,7 +298,7 @@
       remaining: remaining,
       usagePct: plan > 0 ? budgetedSpent / plan * 100 : null,
       overBy: Math.max(0, -remaining),
-      plannedNext30: Math.max(0, Number(D.v3CashBridge(data, 30).plannedExpenses) || 0),
+      plannedNext30: Math.max(0, Number(D.cashflowBridge(data, 30).plannedExpenses) || 0),
       status: plan <= 0 ? 'NO_PLAN' : remaining < 0 ? 'OVER' : budgetedSpent >= plan * 0.8 ? 'WATCH' : 'ON_TRACK'
     };
   }
@@ -398,7 +398,7 @@
     var start = D.today();
     var end = D.addDays(start, days);
     var projectionSettings = Object.assign({}, data.settings || {}, { forecastStartDate: start });
-    var base = D.v3ProjectionPath(data.accounts || [], data.flows || [], projectionSettings, { baseDate: start, horizonDays: days }, mode) || [];
+    var base = D.cashflowProjectionPath(data.accounts || [], data.flows || [], projectionSettings, { baseDate: start, horizonDays: days }, mode) || [];
     var recurring = recurringIncomeEvents(data, start, end, mode);
     var points = base.map(function (point) {
       var extra = recurring.reduce(function (sum, event) { return event.date <= point.date ? sum + event.amount : sum; }, 0);
@@ -428,7 +428,7 @@
       var delta = Number(point.value) - projection.currentCash;
       if (delta < minDelta) { minDelta = delta; pressureDate = point.date; }
     });
-    var treasury = D.v3TreasurySummary(data, { days: days });
+    var treasury = D.cashflowTreasurySummary(data, { days: days });
     var explain = treasury.explanation || {};
     var undated = Math.max(0, Number(explain.undatedNeed) || 0);
     var rollover = Math.max(0, Number(explain.rolloverNeed) || 0);
@@ -471,7 +471,7 @@
     days = Math.max(1, Number(days) || 30);
     var requirement = capitalOSCashRequirement(data, days, 'confirmed');
     var expectedRequirement = capitalOSCashRequirement(data, days, 'expected');
-    var treasury = D.v3TreasurySummary(data, { days: days });
+    var treasury = D.cashflowTreasurySummary(data, { days: days });
     var current = requirement.projection.currentCash;
     var reserve = Math.max(0, Number(settingsOf(data).operatingBuffer) || 0);
     var required = requirement.minimumRequiredCash;
@@ -694,21 +694,21 @@
     };
   }
 
-  D.v4BalanceSheetSummary = balanceSheetSummary;
-  D.v4DebtStructure = debtStructure;
-  D.v4DebtCalendar = debtCalendar;
-  D.v4DebtHealth = debtHealth;
-  D.v4FundingCostSummary = fundingCostSummary;
-  D.v4BusinessSummary = businessSummary;
-  D.v4BudgetSummary = budgetSummary;
-  D.v4InvestmentSummary = investmentSummary;
-  D.v4IncomePlanSummary = incomePlanSummary;
-  D.v4ProjectionSummary = projectionSummary;
-  D.v4CashRequirement = capitalOSCashRequirement;
-  D.v4LivingPlanSummary = livingPlanSummary;
-  D.v4OperatingSummary = operatingSummary;
-  D.v4CapitalSummary = capitalSummary;
-  D.v4FutureEvents = futureEvents;
-  D.v4FinalSummary = finalSummary;
-  D.v4Version = '4.1-capital-os';
+  D.capitalBalanceSheetSummary = balanceSheetSummary;
+  D.capitalDebtStructure = debtStructure;
+  D.capitalDebtCalendar = debtCalendar;
+  D.capitalDebtHealth = debtHealth;
+  D.capitalFundingCostSummary = fundingCostSummary;
+  D.capitalBusinessSummary = businessSummary;
+  D.capitalBudgetSummary = budgetSummary;
+  D.capitalInvestmentSummary = investmentSummary;
+  D.incomePlanSummary = incomePlanSummary;
+  D.capitalProjectionSummary = projectionSummary;
+  D.capitalCashRequirement = capitalOSCashRequirement;
+  D.livingPlanSummary = livingPlanSummary;
+  D.operatingSummary = operatingSummary;
+  D.capitalSummary = capitalSummary;
+  D.futureEvents = futureEvents;
+  D.finalSummary = finalSummary;
+  D.capitalDomainReady = true;
 })(window);

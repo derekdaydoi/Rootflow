@@ -1,20 +1,20 @@
-/* Rootflow V3 — compatibility bridge for V2 UI functions that close over the
+/* Rootflow — compatibility bridge for earlier UI functions that close over the
    old domain implementation. Keeps the original UI while routing exported
-   decision/liquidity calls through snapshot-aware V3 semantics. */
+   decision/liquidity calls through snapshot-aware cashflow semantics. */
 (function (global) {
   'use strict';
   var D = global.RootflowDomain;
-  if (!D || !D.v3Version) return;
+  if (!D || !D.cashflowDomainReady) return;
 
-  var liquidityV3 = D.liquidityModel;
+  var liquidityCurrent = D.liquidityModel;
   D.liquidityModel = function (accounts, flows, settings, opts) {
-    var model = liquidityV3(accounts, flows, settings, opts || {});
+    var model = liquidityCurrent(accounts, flows, settings, opts || {});
     var actual = D.totals(accounts || [], D.balances(accounts || [], flows || [])).liquid + (Number(opts && opts.initialAdjustment) || 0);
     model.current = actual;
     return model;
   };
 
-  D.simulateDecisionV2 = D.simulateDecision;
+  D.simulateDecisionBase = D.simulateDecision;
   D.simulateDecision = function (accounts, flows, settings, decision, opts) {
     opts = opts || {};
     var before = D.liquidityModel(accounts, flows, settings, opts);
@@ -24,19 +24,19 @@
     return { before: before, after: D.liquidityModel(accounts, flows, settings, afterOpts) };
   };
 
-  /* The initial V3 requirement engine iterated individual same-day rows. That
+  /* The initial cashflow requirement engine iterated individual same-day rows. That
      made the required buffer depend on JSON row ordering when +cash and -cash
      happen on the same date. Use end-of-day projection points instead: the
      result is deterministic and matches the Cash Calendar mental model. */
-  var treasurySummaryV3 = D.v3TreasurySummary;
-  D.v3TreasurySummary = function (data, opts) {
+  var treasurySummaryBase = D.cashflowTreasurySummary;
+  D.cashflowTreasurySummary = function (data, opts) {
     data = data || {};
     opts = opts || {};
-    var summary = treasurySummaryV3(data, opts);
+    var summary = treasurySummaryBase(data, opts);
     var days = Math.max(1, Number(opts.days) || 30);
     var settings = data.settings || {};
-    var conservative = D.v3ProjectionPath(data.accounts || [], data.flows || [], settings, { horizonDays: days }, 'confirmed');
-    var expected = D.v3ProjectionPath(data.accounts || [], data.flows || [], settings, { horizonDays: days }, 'expected');
+    var conservative = D.cashflowProjectionPath(data.accounts || [], data.flows || [], settings, { horizonDays: days }, 'confirmed');
+    var expected = D.cashflowProjectionPath(data.accounts || [], data.flows || [], settings, { horizonDays: days }, 'expected');
 
     function lowest(points, fallback) {
       var low = { value: fallback, date: summary.forecastStartDate || D.today() };

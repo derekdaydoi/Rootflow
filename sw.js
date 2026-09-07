@@ -1,12 +1,12 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-v22-2026-09-07-capital-os-final';
+var CACHE = 'rootflow-cache-2026-09-07-production-final-motion';
 
 var ASSETS = [
   './',
   './index.html',
   './styles.css',
   './capital.css',
-  './account-editor.css',
+  './effects.css',
   './brand/rootflow-splash.css',
   './domain.js',
   './cashflow-domain.js',
@@ -17,15 +17,14 @@ var ASSETS = [
   './store.js',
   './store-adapter.js',
   './selftest.js',
-  './app.js',
   './capital-ui.js',
-  './account-editor.js',
+  './app.js',
   './manifest.json',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
-  './icon-180.png',
-  './icon-192.png',
-  './icon-512.png',
+  './rootflow-home-180.png',
+  './rootflow-home-192.png',
+  './rootflow-home-512.png',
   './brand/rootflow-mark.png'
 ];
 
@@ -81,6 +80,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|account-editor\.css|rootflow-splash\.css|app\.js|capital-ui\.js|account-editor\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|compat\.js|i18n-base\.js|i18n-capital\.js|store\.js|store-adapter\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|effects\.css|rootflow-splash\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|compat\.js|i18n-base\.js|i18n-capital\.js|store\.js|store-adapter\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });

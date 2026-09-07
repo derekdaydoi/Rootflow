@@ -1,107 +1,95 @@
-/* Rootflow splash. Canonical artwork is brand/rootflow-mark.png. */
-.opening-splash {
-  --rf-logo-deep: #0F4F35;
-  --rf-logo-green: #1C8A58;
-  --rf-logo-bg: #F5F6F2;
-  background:
-    radial-gradient(circle at 50% 43%, rgba(28, 138, 88, .12), rgba(28, 138, 88, 0) 34%),
-    radial-gradient(circle at 50% 48%, rgba(15, 79, 53, .045), rgba(15, 79, 53, 0) 62%),
-    var(--rf-logo-bg);
-  animation: rf-splash-screen 4.1s cubic-bezier(.22,.72,.25,1) both;
+/* Rootflow splash — canonical artwork moves only as one raster mark. */
+.opening-splash{
+  --rf-logo-deep:#0F4F35;
+  --rf-logo-green:#1C8A58;
+  --rf-logo-bg:#F5F6F2;
+  background:var(--rf-logo-bg);
+  animation:rf-splash-screen 4.1s cubic-bezier(.22,.72,.25,1) both;
 }
 
-.opening-splash .splash-lockup {
-  width: min(84vw, 392px);
-  transform: translateY(-2vh);
+.opening-splash .splash-lockup{
+  width:min(84vw,392px);
+  transform:translateY(-2vh);
 }
 
-.opening-splash .splash-halo {
-  top: 45%;
-  width: min(64vw, 250px);
-  border-color: rgba(28, 138, 88, .10);
-  box-shadow:
-    0 0 0 24px rgba(28, 138, 88, .022),
-    0 24px 76px rgba(15, 79, 53, .09);
-  animation: rf-halo-pulse 1.45s .72s cubic-bezier(.18,.82,.28,1) both;
+.opening-splash .splash-halo{
+  top:45%;
+  width:min(64vw,250px);
+  border-color:rgba(28,138,88,.10);
+  box-shadow:0 0 0 22px rgba(28,138,88,.025),0 24px 72px rgba(15,79,53,.085);
+  animation:rf-halo-pulse 1.5s .68s cubic-bezier(.18,.82,.28,1) both;
 }
 
-.opening-splash .splash-mark {
-  display: block;
-  width: 148px;
-  height: 148px;
-  margin: 0 auto;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-  filter: drop-shadow(0 12px 24px rgba(15, 79, 53, .10));
-  animation: rf-logo-enter 1.15s .14s cubic-bezier(.18,.86,.24,1.04) both,
-             rf-logo-breathe 1.55s 1.32s ease-in-out both;
+.opening-splash .splash-mark{
+  display:block;
+  width:148px;
+  height:148px;
+  margin:0 auto;
+  object-fit:contain;
+  user-select:none;
+  -webkit-user-drag:none;
+  filter:drop-shadow(0 12px 24px rgba(15,79,53,.10));
+  transform-origin:50% 55%;
+  animation:rf-logo-enter 1.18s .12s cubic-bezier(.18,.86,.24,1.04) both,rf-logo-breathe 1.55s 1.34s ease-in-out both;
 }
 
-.opening-splash .splash-wordmark {
-  margin-top: 14px;
-  font-size: 43px;
-  animation: rf-copy-enter .62s 1.82s cubic-bezier(.22,.8,.25,1) both;
+.opening-splash .splash-wordmark{
+  margin-top:14px;
+  font-size:43px;
+  animation:rf-copy-enter .58s 1.78s cubic-bezier(.22,.8,.25,1) both;
+}
+.opening-splash .splash-wordmark strong{color:var(--rf-logo-green)}
+
+.opening-splash .splash-copyright{
+  margin-top:16px;
+  font-size:10px;
+  letter-spacing:.025em;
+  animation:rf-copy-enter .52s 2.16s cubic-bezier(.22,.8,.25,1) both;
+}
+.opening-splash .splash-copyright strong{color:var(--rf-logo-deep)}
+
+@keyframes rf-logo-enter{
+  0%{opacity:0;transform:translateY(10px) scale(.90)}
+  64%{opacity:1;transform:translateY(-1px) scale(1.018)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes rf-logo-breathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.024)}
+}
+@keyframes rf-halo-pulse{
+  0%{opacity:0;transform:translate(-50%,-64%) scale(.62)}
+  45%{opacity:.78}
+  100%{opacity:0;transform:translate(-50%,-64%) scale(1.16)}
+}
+@keyframes rf-copy-enter{
+  from{opacity:0;transform:translateY(7px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes rf-splash-screen{
+  0%{opacity:0}
+  5%{opacity:1}
+  90%{opacity:1}
+  100%{opacity:0;visibility:hidden}
 }
 
-.opening-splash .splash-wordmark strong { color: var(--rf-logo-green); }
-
-.opening-splash .splash-copyright {
-  margin-top: 16px;
-  font-size: 10px;
-  letter-spacing: .025em;
-  animation: rf-copy-enter .56s 2.20s cubic-bezier(.22,.8,.25,1) both;
+@media(max-width:420px){
+  .opening-splash .splash-mark{width:140px;height:140px}
+  .opening-splash .splash-wordmark{font-size:40px}
 }
 
-.opening-splash .splash-copyright strong { color: var(--rf-logo-deep); }
-
-@keyframes rf-logo-enter {
-  0% { opacity: 0; transform: translateY(10px) scale(.90); }
-  62% { opacity: 1; transform: translateY(-1px) scale(1.018); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes rf-logo-breathe {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.025); }
-}
-
-@keyframes rf-halo-pulse {
-  0% { opacity: 0; transform: translate(-50%, -64%) scale(.58); }
-  44% { opacity: .82; }
-  100% { opacity: 0; transform: translate(-50%, -64%) scale(1.18); }
-}
-
-@keyframes rf-copy-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes rf-splash-screen {
-  0% { opacity: 0; }
-  5% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
-}
-
-@media (max-width: 420px) {
-  .opening-splash .splash-mark { width: 140px; height: 140px; }
-  .opening-splash .splash-wordmark { font-size: 40px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .opening-splash { animation: rf-splash-screen-reduced .65s linear both; }
-  .opening-splash .splash-halo { display: none; }
+@media(prefers-reduced-motion:reduce){
+  .opening-splash{animation:rf-splash-screen-reduced .65s linear both}
+  .opening-splash .splash-halo{display:none}
   .opening-splash .splash-mark,
   .opening-splash .splash-wordmark,
-  .opening-splash .splash-copyright {
-    animation: none !important;
-    opacity: 1;
-    transform: none;
+  .opening-splash .splash-copyright{
+    animation:none!important;
+    opacity:1;
+    transform:none;
   }
 }
-
-@keyframes rf-splash-screen-reduced {
-  0%, 76% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+@keyframes rf-splash-screen-reduced{
+  0%,76%{opacity:1}
+  100%{opacity:0;visibility:hidden}
 }
