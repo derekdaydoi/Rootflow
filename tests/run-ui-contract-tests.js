@@ -23,9 +23,9 @@ assert(ui.includes('Kịch bản chắc chắn'), 'cashflow must expose conserva
 assert(ui.includes('Có dòng tiền dự kiến'), 'expected projection must be visually separate');
 assert(ui.includes('Nguồn vốn'), 'capital view must expose funding sources');
 assert(ui.includes('Vốn đang chạy'), 'capital positions must be a primary concept');
-assert(ui.includes('data-rf-edit-plan="salary"'), 'salary must be editable from planning');
-assert(ui.includes('data-rf-edit-plan="living"'), 'living allocation must be editable from planning');
-assert(ui.includes('data-rf-edit-plan="buffer"'), 'buffer reserve must be editable from planning');
+assert(ui.includes("editablePlanCard('salary', 'Thu nhập'"), 'salary must be editable from planning');
+assert(ui.includes("editablePlanCard('living', 'Sinh hoạt'"), 'living allocation must be editable from planning');
+assert(ui.includes("editablePlanCard('shield', 'Buffer'"), 'buffer reserve must be editable from planning');
 assert(ui.includes('monthlyOverrides'), 'monthly income override must be persisted explicitly');
 assert(ui.includes('monthlyLivingTargets'), 'living target overrides must be persisted explicitly');
 assert(!ui.includes('var originalSave = S.save'), 'presentation must not monkey-patch persistence');
@@ -41,7 +41,7 @@ assert(!css.includes('overflow-wrap:anywhere'), 'Vietnamese words must not be br
 
 assert(sw.includes('capital-os'), 'PWA cache must be bumped for Capital OS deploy');
 assert(!sw.includes('v4-refinements.js'), 'service worker must not cache removed patch layer');
-assert(sw.includes('if (navigation) return caches.match(\'./index.html\')'), 'HTML fallback must be navigation-only');
+assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
 console.log('Rootflow Capital OS UI contract tests passed.');
