@@ -1,7 +1,7 @@
 {
   "name": "Rootflow",
   "short_name": "Rootflow",
-  "description": "Money in motion. Clarity in control. Personal treasury chạy local-first.",
+  "description": "Hệ thống điều hành vốn và dòng tiền cá nhân — biết cần giữ bao nhiêu, có thể dùng bao nhiêu và vốn đang ở đâu.",
   "start_url": "./",
   "scope": "./",
   "id": "./",
@@ -9,42 +9,14 @@
   "orientation": "portrait",
   "background_color": "#F5F6F2",
   "theme_color": "#F5F6F2",
-  "categories": [
-    "finance",
-    "productivity"
-  ],
+  "categories": ["finance", "productivity"],
   "lang": "vi",
   "dir": "ltr",
   "icons": [
-    {
-      "src": "icon-180.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-256.png",
-      "sizes": "256x256",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any"
-    }
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-256.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-1024.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any" }
   ]
 }

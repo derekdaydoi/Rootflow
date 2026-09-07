@@ -3,11 +3,7 @@ name: Rootflow regression tests
 on:
   push:
     branches:
-      - rootflow-v3-explainable-treasury
-      - rootflow-final-decision-dashboard
-      - rootflow-mockup-canonical-ui
-      - rootflow-content-aware-layout-audit
-      - rootflow-edit-account-cashflow-polish
+      - main
   pull_request:
 
 jobs:
@@ -26,13 +22,15 @@ jobs:
         run: node tests/run-v3-store-tests.js
       - name: V3 compatibility regressions
         run: node tests/run-v3-compat-tests.js
-      - name: V4 final decision dashboard regressions
+      - name: Capital OS decision regressions
         run: node tests/run-v4-tests.js
-      - name: Canonical UI JavaScript syntax
+      - name: Capital OS UI JavaScript syntax
         run: node --check v4-ui.js
-      - name: Focused polish JavaScript syntax
+      - name: Canonical Capital OS domain syntax
+        run: node --check v4-domain.js
+      - name: Scoped legacy editor JavaScript syntax
         run: node --check v4-polish.js
-      - name: Canonical mockup UI contract
+      - name: Capital OS UI contract
         run: node tests/run-ui-contract-tests.js
-      - name: Account edit and cashflow polish contract
+      - name: Legacy editor compatibility contract
         run: node tests/run-polish-tests.js

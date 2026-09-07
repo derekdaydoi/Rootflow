@@ -1,115 +1,162 @@
 # Rootflow
 
-Rootflow là personal finance / treasury system chạy local-first trên trình duyệt/PWA. Ledger accounting-grade nằm bên dưới, nhưng trải nghiệm mặc định được thiết kế để trả lời trực tiếp các câu hỏi quản trị:
+Rootflow là **hệ thống điều hành vốn và dòng tiền cá nhân** chạy local-first trên trình duyệt/PWA.
 
-- Tôi có bao nhiêu tài sản, bao nhiêu là vốn ròng của mình và bao nhiêu đến từ vay nợ?
-- Nợ nào ngắn hạn, nợ nào dài hạn, 30 ngày tới cần trả bao nhiêu và buffer có đủ không?
-- Hoạt động vay để cho vay có tạo lợi nhuận không, và lợi nhuận đó có đi kèm vấn đề thanh khoản hay không?
-- Kế hoạch chi tiêu tháng đang trong hạn mức hay vượt kế hoạch?
-- Tôi đang có những khoản đầu tư/tài sản nào và còn bao nhiêu tiền có thể triển khai sau buffer?
+Rootflow không được thiết kế như một ứng dụng kế toán hay một dashboard tài chính nhiều KPI. Ledger và các nguyên tắc đối soát có thể tồn tại bên dưới để giữ dữ liệu nhất quán, nhưng mental model của người dùng chỉ xoay quanh các câu hỏi vận hành:
 
-Bộ nhận diện Rootflow, logo, source dot, ba flow bo tròn và opening splash/animation được giữ nguyên. Giao diện dùng xanh Rootflow làm accent chính, giảm decorative copy và giữ depth/shadow ở mức nhẹ thay vì flat dashboard.
+- Hôm nay tôi thực sự có bao nhiêu tiền?
+- Bao nhiêu trong số đó phải được giữ lại cho các nghĩa vụ tương lai?
+- Tại sao Rootflow yêu cầu giữ số tiền đó?
+- Sau buffer, tôi còn bao nhiêu tiền có thể sử dụng?
+- Sinh hoạt tháng này chiếm bao nhiêu quyền sử dụng tiền?
+- Còn bao nhiêu vốn có thể đưa vào cho vay, đầu tư hoặc hoạt động kinh doanh khác?
+- Tiền sắp vào từ đâu, tiền sắp phải ra đâu, và ngày nào tạo áp lực lớn nhất?
+- Vốn đang nằm ở đâu và nguồn vốn nào đang tạo chi phí/áp lực?
 
-## Final decision dashboard
+## Triết lý sản phẩm
 
-Màn **Tổng quan** ưu tiên bốn khối, theo đúng thứ tự ra quyết định:
+Rootflow quản lý **quyền sử dụng tiền theo thời gian**, không chỉ quản lý số dư.
 
-1. **Tài sản & nguồn vốn** — tổng tài sản, vốn ròng của user, vay nợ.
-2. **Nợ & thanh khoản** — nợ ngắn/dài hạn, nghĩa vụ 30 ngày, cash hiện có, inflow đã chốt, buffer và shortfall nếu có.
-3. **Hoạt động kinh doanh** — lãi cho vay, chi phí vốn đã biết, lợi nhuận lõi và trạng thái cashflow. Salary không được dùng để làm đẹp business profit.
-4. **Chi tiêu & đầu tư** — ngân sách tháng, mức đã chi, phần còn lại, đầu tư tài chính, tài sản sở hữu và cash dư sau buffer.
-
-Các treasury metrics cũ vẫn tồn tại cho power user nhưng được đưa xuống **Chi tiết nâng cao** thay vì chiếm Home mặc định.
-
-Primary navigation được rút gọn để dễ đọc trên mobile và tránh overflow:
+Mental model chính:
 
 ```text
-Tổng quan · Dòng tiền · Tài sản · Kế hoạch
-Overview · Cashflow · Assets · Plan
+CURRENT CASH
+    ↓
+REQUIRED CASH
+    ↓
+RECOMMENDED CASH
+    ↓
+AVAILABLE CASH
+    ↓
+LIVING ALLOCATION
+    ↓
+DEPLOYABLE CAPITAL
 ```
 
-## Nguyên tắc tài chính
+Trong đó:
 
-- `Vốn ròng = Tổng tài sản - Tổng nợ`.
-- Nợ thẻ được xem là short-term; khoản vay có exact maturity được phân short/long theo horizon 12 tháng; kỳ hạn không đủ dữ liệu được giữ `unknown`, không đoán.
-- Debt calendar chỉ chứa financing obligations thực: repayment, contract interest/fee, undated debt obligation và rollover control cost. Chi tiêu sinh hoạt hoặc một khoản cho vay mới không được gọi là “lịch trả nợ”.
-- Business profitability được tách khỏi personal liquidity:
-  - `core lending profit = recurring lending income - known funding cost`.
-  - funding cost gồm interest/fee có thể xác định và revolving rollover control assumption.
-  - salary là personal inflow, không phải lending profit.
-  - nếu cost terms chưa đủ, UI phải ghi rõ đây là estimate thay vì giả định bằng 0.
-- Profitability và liquidity là hai trạng thái độc lập: business có thể có lãi nhưng vẫn cash-tight do maturity mismatch.
-- Spending plan đối chiếu budget theo category với actual expense trong tháng.
-- Investment position tách `investment` khỏi `fixed_asset` để user thấy đầu tư tài chính và tài sản sở hữu riêng.
+- **Current Cash**: cash/liquid balance hiện có tại ngày hôm nay.
+- **Required Cash**: số tiền tối thiểu cần giữ hôm nay để timeline dòng tiền chắc chắn không tạo funding gap, cộng nghĩa vụ tháng chưa có exact date và rollover control cost.
+- **Recommended Cash**: Required Cash + phần dự phòng vận hành do user chọn.
+- **Available Cash**: phần Current Cash còn lại sau Recommended Cash. Đây là hero metric của Home.
+- **Living Allocation**: mức sinh hoạt user chủ động dành cho tháng; đây là biến số, không phải nghĩa vụ kế toán.
+- **Deployable Capital**: phần Available Cash còn có thể đưa vào cho vay/đầu tư sau khi dành phần sinh hoạt chưa được phản ánh bằng dated cashflow.
 
-## Snapshot, forecast và buffer
+Net worth vẫn có thể được tính dưới domain nhưng không phải hero của trải nghiệm mặc định.
 
-Rootflow giữ semantics V3:
+## Thời gian quan trọng hơn tổng nghĩa vụ
 
-- `opening_balance`: flow cùng ngày baseline được replay.
-- `closing_snapshot`: mọi flow `date <= balanceAsOf` đã nằm trong snapshot và không replay lần nữa.
-- `confirmed=true` = **Actual / Đã xảy ra**.
-- Future `CERTAIN` = **Committed / Đã chốt lịch**, không tự biến thành Actual chỉ vì tới ngày.
-- Expected inflow không được dùng để chứng minh conservative safety.
-- Nghĩa vụ tháng chưa biết exact date vẫn được tính trong planning nhưng không bị gán ngày giả.
-- Rollover cost là control assumption, chỉ áp lên revolving principal; nó không phải fake ledger transaction.
-
-Minimum cash requirement giữ nguyên logic explainable:
+Rootflow không tính buffer theo kiểu:
 
 ```text
-minimum required cash
-= maximum cumulative funding gap on dated cashflows
-+ undated monthly obligations
-+ rollover control cost
+30 ngày tới nợ 15M → hôm nay phải giữ 15M
 ```
 
-Nếu có operating reserve, phần này được cộng riêng vào `recommendedCashToKeep`.
+Thay vào đó engine chạy timeline. Ví dụ:
+
+```text
+Hôm nay      20M
+12/09       +5M
+15/09       -8M
+20/09       +3M
+25/09       -7M
+```
+
+Required Cash dựa trên **maximum cumulative funding gap** của timeline, không phải tổng nghĩa vụ.
+
+Dòng tiền tương lai có confidence:
+
+- `CERTAIN`: được phép hỗ trợ conservative projection.
+- `EXPECTED` / `INFERRED`: chỉ hỗ trợ expected scenario.
+- `UNCERTAIN` / `UNKNOWN`: không được dùng để chứng minh trạng thái an toàn.
+
+Thu nhập định kỳ có ngày nhận và confidence cũng được đưa vào projection theo nguyên tắc trên. Mỗi tháng có thể có `monthlyOverrides` để thay đổi mức lương/thu nhập mà không làm mất default.
+
+## Vốn và nguồn vốn
+
+Rootflow coi cho vay, đầu tư, kinh doanh và tài sản khác là cùng một họ bài toán: **đưa vốn vào một position để tạo giá trị hoặc dòng tiền tương lai**.
+
+Không có giả định vay 50M thì phải map 50M sang một position duy nhất. Một khoản vốn có thể đồng thời được dùng cho lending, sinh hoạt và giữ cash.
+
+Nguồn vốn hiện hỗ trợ semantics cho:
+
+- **Thẻ tín dụng**: revolving/installment exposure, statement/due date, rollover control cost; ngày sao kê, ngày đến hạn và số ngày miễn lãi là các concept độc lập.
+- **Vay trả góp**: principal, outstanding, kỳ hạn, phương pháp lãi, lịch principal/interest.
+- **Agent/cá nhân**: có thể miễn lãi, lãi cố định hoặc lãi theo tỷ lệ tùy dữ liệu contract.
+
+Lãi suất mới có thể khai báo period rõ (`annual`/APR hoặc legacy monthly). Dữ liệu legacy không bị tự reinterpret để tránh phá tính đúng của backup cũ.
+
+## Giao diện mặc định
+
+Primary navigation:
+
+```text
+Hôm nay · Dòng tiền · Vốn · Kế hoạch
+```
+
+### Hôm nay
+
+Ưu tiên:
+
+1. Tiền có thể dùng.
+2. Tiền hiện có và mức cần giữ.
+3. Trạng thái thanh khoản + projected low.
+4. Các dòng tiền sắp tới.
+5. Sinh hoạt còn lại và vốn có thể triển khai.
+
+`Xem cách tính` là explainability layer: giải thích Required/Recommended Cash bằng ngôn ngữ đời thường, không expose debit/credit/ledger.
+
+### Dòng tiền
+
+Future-first với 7 ngày / 30 ngày / 3 tháng, biểu đồ conservative vs expected và timeline event có confidence.
+
+### Vốn
+
+Hai góc nhìn:
+
+- **Tổng quan**: capital positions và hiệu quả vốn.
+- **Nguồn vốn**: thẻ, khoản vay, Agent và chi phí vốn.
+
+### Kế hoạch
+
+Cho phép chỉnh trực tiếp các assumption vận hành:
+
+- thu nhập mặc định;
+- ngày nhận;
+- override riêng từng tháng;
+- mức sinh hoạt mặc định/riêng từng tháng;
+- dự phòng an toàn thêm.
+
+Sau khi lưu, Available Cash và Deployable Capital được tính lại ngay.
+
+## Snapshot, forecast và dữ liệu
+
+Rootflow tiếp tục giữ semantics V3:
+
+- `opening_balance`: replay flow từ baseline theo semantics hiện hữu.
+- `closing_snapshot`: flow đã phản ánh vào snapshot không bị replay lần hai.
+- `confirmed=true`: Actual/đã xảy ra; future certainty dùng field confidence, không biến thành Actual chỉ vì tới ngày.
+- Nghĩa vụ tháng chưa có ngày chính xác không bị gán fake date.
+- Rollover cost là control assumption, không phải fake ledger transaction.
+
+Dữ liệu vẫn local-first trong `localStorage`, schema hiện tại là **v9**. Capital OS bổ sung derived semantics và các property optional trong `settings` / recurring income nên không cần schema bump.
+
+Không commit backup tài chính thật vào repository public. Nên export backup trước khi xoá Website Data, gỡ PWA hoặc đổi browser profile.
 
 ## Kiến trúc
 
-Core hiện hữu vẫn được giữ:
+Core:
 
-- `index.html` — app shell + opening splash
-- `styles.css` — visual system gốc
-- `app.js` — React UI/forms/timeline/calendar/simulator hiện hữu
-- `domain.js` — finance engine gốc
-- `store.js` — local storage, migration, backup/restore
-- `selftest.js` — in-app business-rule tests
-- `sw.js` — PWA/offline cache
-- `brand/`, `icon-*` — logo và PWA assets
+- `domain.js` — finance primitives và contract schedule.
+- `v3-domain.js` — snapshot-aware balances, confidence projection, debt calendar, liquidity primitives.
+- `v4-domain.js` — canonical Capital OS decision layer: Required/Available/Deployable, planning, capital và funding summaries.
+- `store.js` / `v3-store.js` — local persistence và compatibility.
+- `app.js` — React shell, forms và legacy data-entry workflows.
+- `v4-ui.js` — decision-first presentation cho 4 primary views.
+- `v4-polish.js` / `v4-polish.css` — compatibility polish chỉ cho account editor cũ trong giai đoạn consolidation.
+- `sw.js` — PWA cache/offline strategy.
 
-Snapshot/compatibility layer:
-
-- `v3-domain.js` — closing snapshot, forecast, explainable liquidity primitives
-- `v3-compat.js` — route legacy simulation qua snapshot-aware model
-- `v3-store.js` — Committed vs Actual normalization
-- `v3-i18n.js` — bilingual base dictionary
-
-Final decision layer:
-
-- `v4-domain.js` — balance sheet, debt health, core lending profit, spending and investment summaries
-- `v4-i18n.js` — VI/EN copy cho decision dashboard
-- `v4-ui.js` — presentation layer ưu tiên 5 câu hỏi quản trị
-- `v4.css` — responsive modern-minimal UI; green-first, subtle depth, overflow/wrapping guards
-
-V4 không thay schema và không rewrite framework. Rootflow vẫn không cần build step; GitHub Pages phục vụ trực tiếp các file tĩnh.
-
-## Schema và migration
-
-Store hiện tại dùng **schema v9**. V4 là derived/presentation layer nên không cần bump schema. Existing v9 backups vẫn import theo migration guard hiện hữu.
-
-Các field snapshot/control quan trọng vẫn được đọc khi có:
-
-```text
-account.balanceSemantics
-flow.cashflowPhase
-flow.alreadyReflectedInSnapshot
-flow.affectsProjectedCash
-flow.forecastCashImpact
-settings.snapshotDate
-settings.forecastStartDate
-settings.ignoreHistoricalFlowsForProjection
-```
+`v4-refinements.js` đã được consolidate vào `v4-domain.js`; không tiếp tục tạo thêm patch layer `v5-*`.
 
 ## Kiểm tra
 
@@ -119,10 +166,16 @@ node tests/run-v3-tests.js
 node tests/run-v3-store-tests.js
 node tests/run-v3-compat-tests.js
 node tests/run-v4-tests.js
+node tests/run-ui-contract-tests.js
+node tests/run-polish-tests.js
+node --check v4-ui.js
+node --check v4-polish.js
 ```
 
-V4 regressions kiểm tra balance sheet/vốn ròng, short-vs-long debt, debt-calendar filtering, business profit không cộng salary, spending budget và investment summary.
+CI phải chạy cả trên `main` và pull request.
 
-## Dữ liệu
+## Bản quyền
 
-Dữ liệu được lưu local trên thiết bị/browser. Không commit backup tài chính thật vào repository public. Nên xuất backup trước khi xoá Website Data, gỡ PWA hoặc đổi browser profile.
+Rootflow và brand assets:
+
+**© 2026 @derekdaydoi. All rights reserved.**

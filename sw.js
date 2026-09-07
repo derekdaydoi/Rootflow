@@ -1,6 +1,6 @@
 /* Rootflow — sw.js
-   Cache key đổi theo deploy để PWA Home Screen nhận code mới. */
-var CACHE = 'rootflow-cache-v19-2026-09-07-smart-treasury-logo';
+   Cache key changes per deploy so installed PWA receives one coherent asset set. */
+var CACHE = 'rootflow-cache-v20-2026-09-07-capital-os';
 
 var ASSETS = [
   './',
@@ -12,7 +12,6 @@ var ASSETS = [
   './domain.js',
   './v3-domain.js',
   './v4-domain.js',
-  './v4-refinements.js',
   './v3-compat.js',
   './v3-i18n.js',
   './v4-i18n.js',
@@ -36,61 +35,58 @@ var ASSETS = [
   './brand/rootflow-logo.svg'
 ];
 
-self.addEventListener('install', function (e) {
-  e.waitUntil(
+self.addEventListener('install', function (event) {
+  event.waitUntil(
     caches.open(CACHE)
-      .then(function (c) { return c.addAll(ASSETS); })
+      .then(function (cache) { return cache.addAll(ASSETS); })
       .then(function () { return self.skipWaiting(); })
   );
 });
 
-self.addEventListener('activate', function (e) {
-  e.waitUntil(
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
     caches.keys()
       .then(function (keys) {
-        return Promise.all(keys.map(function (k) {
-          return k === CACHE ? null : caches.delete(k);
-        }));
+        return Promise.all(keys.map(function (key) { return key === CACHE ? null : caches.delete(key); }));
       })
       .then(function () { return self.clients.claim(); })
   );
 });
 
-function networkFirst(req) {
-  return fetch(req).then(function (res) {
-    if (res && res.status === 200 && res.type === 'basic') {
-      var copy = res.clone();
-      caches.open(CACHE).then(function (c) { c.put(req, copy); });
-    }
-    return res;
-  }).catch(function () {
-    return caches.match(req).then(function (hit) {
-      return hit || caches.match('./index.html');
+function remember(req, res) {
+  if (res && res.status === 200 && res.type === 'basic') {
+    var copy = res.clone();
+    caches.open(CACHE).then(function (cache) { cache.put(req, copy); });
+  }
+  return res;
+}
+
+function networkFirst(req, navigation) {
+  return fetch(req)
+    .then(function (res) { return remember(req, res); })
+    .catch(function () {
+      return caches.match(req).then(function (hit) {
+        if (hit) return hit;
+        if (navigation) return caches.match('./index.html');
+        return Response.error();
+      });
     });
-  });
 }
 
 function cacheFirst(req) {
   return caches.match(req).then(function (hit) {
     if (hit) return hit;
-    return fetch(req).then(function (res) {
-      if (res && res.status === 200 && res.type === 'basic') {
-        var copy = res.clone();
-        caches.open(CACHE).then(function (c) { c.put(req, copy); });
-      }
-      return res;
-    });
+    return fetch(req).then(function (res) { return remember(req, res); });
   });
 }
 
-self.addEventListener('fetch', function (e) {
-  var req = e.request;
+self.addEventListener('fetch', function (event) {
+  var req = event.request;
   if (req.method !== 'GET') return;
-  var u = new URL(req.url);
-  if (u.origin !== location.origin) return;
+  var url = new URL(req.url);
+  if (url.origin !== location.origin) return;
 
-  /* Navigation + app code ưu tiên mạng để refresh Home Screen chỉ cần một lần.
-     Khi offline vẫn fallback về cache. Vendor/icon giữ cache-first. */
-  var core = req.mode === 'navigate' || /\/(index\.html|styles\.css|v4\.css|v4-polish\.css|rootflow-splash\.css|app\.js|v4-ui\.js|v4-polish\.js|domain\.js|v3-domain\.js|v4-domain\.js|v4-refinements\.js|v3-compat\.js|v3-i18n\.js|v4-i18n\.js|store\.js|v3-store\.js|selftest\.js|manifest\.json)$/.test(u.pathname);
-  e.respondWith(core ? networkFirst(req) : cacheFirst(req));
+  var navigation = req.mode === 'navigate';
+  var coreAsset = /\/(index\.html|styles\.css|v4\.css|v4-polish\.css|rootflow-splash\.css|app\.js|v4-ui\.js|v4-polish\.js|domain\.js|v3-domain\.js|v4-domain\.js|v3-compat\.js|v3-i18n\.js|v4-i18n\.js|store\.js|v3-store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });

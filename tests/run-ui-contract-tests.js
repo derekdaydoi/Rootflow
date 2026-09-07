@@ -1,50 +1,47 @@
-/* Rootflow canonical mockup + content-aware layout contract tests. */
+/* Rootflow Capital OS UI + responsive contract tests. */
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
-
-function read(name) {
-  return fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
-}
+function read(name) { return fs.readFileSync(path.join(__dirname, '..', name), 'utf8'); }
 
 const index = read('index.html');
 const css = read('v4.css');
 const ui = read('v4-ui.js');
 const sw = read('sw.js');
 
-assert(index.includes('v4.css'), 'canonical UI stylesheet must load');
-assert(!index.includes('v4-glass.css'), 'obsolete glass layer must not load');
-assert(!index.includes('v4-nav-contrast.css'), 'obsolete nav layer must not load');
-assert(ui.includes('Chào ngày mới Bro!'), 'approved greeting must be present');
-assert(ui.includes('TÀI SẢN RÒNG'), 'mockup hero must be net assets');
-assert(ui.includes('Nợ & Thanh khoản'), 'debt decision block must exist');
-assert(ui.includes('Hoạt động kinh doanh'), 'business decision block must exist');
-assert(ui.includes('Chi tiêu & Kế hoạch'), 'planning decision block must exist');
-assert(ui.includes("detail:'assets'"), 'asset/investment drilldown must exist');
-assert(!ui.includes('data-v4-toggle-advanced'), 'legacy advanced dashboard toggle should be removed');
+assert(index.includes('v4.css'), 'Capital OS stylesheet must load');
+assert(!index.includes('v4-refinements.js'), 'refinement patch layer must be consolidated into canonical domain');
+assert(!index.includes('user-scalable=no'), 'standalone PWA must not disable user zoom');
+assert(!index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
 
-assert(ui.includes("'is-dated' : 'is-undated'"), 'obligations must have semantic date variants');
-assert(ui.includes('rf-period-badge'), 'month-only obligation period badge must exist');
-assert(css.includes('.rf-obligation.is-dated .rf-obligation-copy'), 'exact-date obligation layout must exist');
-assert(css.includes('.rf-obligation.is-undated .rf-obligation-copy'), 'month-only obligation layout must exist');
-assert(css.includes('grid-template-columns:1fr;gap:5px'), 'undated obligation must not reserve the exact-date rail');
+assert(ui.includes('TIỀN CÓ THỂ DÙNG'), 'Home hero must be available cash');
+assert(!ui.includes('TÀI SẢN RÒNG'), 'net worth must not return as Home hero');
+assert(ui.includes("['Hôm nay', 'Dòng tiền', 'Vốn', 'Kế hoạch']"), 'primary navigation must follow Capital OS mental model');
+assert(ui.includes('Xem cách tính'), 'available cash must be explainable');
+assert(ui.includes('data-rf-horizon'), 'cashflow must support time horizons');
+assert(ui.includes('Kịch bản chắc chắn'), 'cashflow must expose conservative projection');
+assert(ui.includes('Có dòng tiền dự kiến'), 'expected projection must be visually separate');
+assert(ui.includes('Nguồn vốn'), 'capital view must expose funding sources');
+assert(ui.includes('Vốn đang chạy'), 'capital positions must be a primary concept');
+assert(ui.includes('data-rf-edit-plan="salary"'), 'salary must be editable from planning');
+assert(ui.includes('data-rf-edit-plan="living"'), 'living allocation must be editable from planning');
+assert(ui.includes('data-rf-edit-plan="buffer"'), 'buffer reserve must be editable from planning');
+assert(ui.includes('monthlyOverrides'), 'monthly income override must be persisted explicitly');
+assert(ui.includes('monthlyLivingTargets'), 'living target overrides must be persisted explicitly');
+assert(!ui.includes('var originalSave = S.save'), 'presentation must not monkey-patch persistence');
 
-assert(ui.includes("miniKpi('Tiền chắc chắn về'"), 'cashflow KPI must use compact consumer copy');
-assert(ui.includes("miniKpi('Nợ 30 ngày'"), 'debt KPI must use compact consumer copy');
-assert(!ui.includes("miniKpi('Dòng tiền chắc chắn về'"), 'long KPI label should not return');
-assert(!ui.includes("miniKpi('Nợ cần trả 30 ngày'"), 'long debt KPI label should not return');
-
-assert(css.includes('container-type:inline-size'), 'components must size from their own container');
-assert(css.includes('@container rfpanel'), 'container query fallback must exist');
-assert(css.includes('minmax(0,1fr)'), 'fluid grid columns must use minmax');
-assert(css.includes('white-space:nowrap'), 'money values and compact chrome must be protected from ugly wraps');
-assert(!css.includes('overflow-wrap:anywhere'), 'UI must not split Vietnamese words arbitrarily');
-assert(css.includes('text-wrap:pretty'), 'meaningful copy must wrap at natural word boundaries');
+assert(css.includes('container-type:inline-size'), 'financial blocks must size from their own container');
+assert(css.includes('minmax(0,1fr)'), 'fluid layouts must protect shrinkable text columns');
+assert(css.includes('clamp('), 'money typography must scale responsively');
+assert(css.includes('font-variant-numeric:tabular-nums'), 'money values must use stable numeral widths');
+assert(css.includes('@container rfpanel (max-width:320px)'), '320px fit fallback must exist');
 assert(css.includes('@media(max-width:640px)'), 'mobile form fallback must exist');
-assert(css.includes('.sheet .form-grid{grid-template-columns:1fr!important}'), 'mobile input forms must collapse instead of wrapping badly');
+assert(css.includes('font-size:16px'), 'mobile inputs must avoid iOS focus zoom');
+assert(!css.includes('overflow-wrap:anywhere'), 'Vietnamese words must not be broken arbitrarily');
 
-assert(!sw.includes('v4-glass.css'), 'service worker must not cache removed glass CSS');
-assert(!sw.includes('v4-nav-contrast.css'), 'service worker must not cache removed nav CSS');
-assert(sw.includes('canonical-mockup'), 'service worker cache must remain on canonical UI family');
+assert(sw.includes('capital-os'), 'PWA cache must be bumped for Capital OS deploy');
+assert(!sw.includes('v4-refinements.js'), 'service worker must not cache removed patch layer');
+assert(sw.includes('if (navigation) return caches.match(\'./index.html\')'), 'HTML fallback must be navigation-only');
+assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
-console.log('Rootflow content-aware canonical UI contract tests passed.');
+console.log('Rootflow Capital OS UI contract tests passed.');
