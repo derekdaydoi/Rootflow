@@ -1,0 +1,107 @@
+name: Finalize Rootflow production
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build canonical brand assets
+        env:
+          ROOTFLOW_LOGO_B64: "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"
+        run: |
+          python -m pip install --quiet pillow
+          python <<'PY'
+          import base64, os
+          from pathlib import Path
+          from PIL import Image
+          root = Path('.')
+          raw = base64.b64decode(os.environ['ROOTFLOW_LOGO_B64'])
+          source = root / '.rootflow-logo-source.png'
+          source.write_bytes(raw)
+          img = Image.open(source).convert('RGB')
+          (root / 'brand').mkdir(exist_ok=True)
+          img.save(root / 'brand/rootflow-mark.png', format='PNG', optimize=True)
+          for size in (180, 192, 512):
+              out = img.resize((size, size), Image.Resampling.LANCZOS)
+              out.save(root / f'rootflow-icon-{size}.png', format='PNG', optimize=True)
+          source.unlink()
+          PY
+
+      - name: Canonicalize runtime and remove build-history labels
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('.')
+          app = root / 'app.js'
+          text = app.read_text()
+          text = text.replace('/* Rootflow V2 — Personal Treasury UI. React UMD, no build step. */','/* Rootflow application UI. React UMD, no build step. */')
+          text = text.replace('brand/rootflow-mark.svg','brand/rootflow-mark.png')
+          app.write_text(text)
+          mapping = {
+              'v3ProjectionPath':'cashflowProjectionPath','v3DebtCalendar':'cashflowDebtCalendar','v3FundingMap':'cashflowFundingMap','v3LendingBook':'cashflowLendingBook','v3TreasurySummary':'cashflowTreasurySummary','v3CashBridge':'cashflowBridge','v3CashRequirement':'cashflowRequirement','v3UndatedObligations':'cashflowUndatedObligations','v3Version':'cashflowDomainReady','effectAfterBaselineV3':'effectAfterBaseline','balancesV3':'balancesSnapshotAware','liquidityModelV3':'liquidityModelSnapshotAware','controlMetricsV3':'controlMetricsSnapshotAware','balancesV2':'balancesBase','liquidityModelV2':'liquidityModelBase','controlMetricsV2':'controlMetricsBase','simulateDecisionV2':'simulateDecisionBase','loadV2':'loadBase','importFileV2':'importFileBase','treasurySummaryV3':'treasurySummaryBase','liquidityV3':'liquidityCurrent','v4BalanceSheetSummary':'capitalBalanceSheetSummary','v4DebtStructure':'capitalDebtStructure','v4DebtCalendar':'capitalDebtCalendar','v4DebtHealth':'capitalDebtHealth','v4FundingCostSummary':'capitalFundingCostSummary','v4BusinessSummary':'capitalBusinessSummary','v4BudgetSummary':'capitalBudgetSummary','v4InvestmentSummary':'capitalInvestmentSummary','v4IncomePlanSummary':'incomePlanSummary','v4ProjectionSummary':'capitalProjectionSummary','v4CashRequirement':'capitalCashRequirement','v4LivingPlanSummary':'livingPlanSummary','v4OperatingSummary':'operatingSummary','v4CapitalSummary':'capitalSummary','v4FutureEvents':'futureEvents','v4FinalSummary':'finalSummary','v4Version':'capitalDomainReady'}
+          for path in [*root.glob('*.js'),*root.glob('tests/*.js')]:
+              text=path.read_text()
+              for old,new in mapping.items(): text=text.replace(old,new)
+              text=re.sub(r'Rootflow V[234]\b','Rootflow',text)
+              text=re.sub(r'\bV2\b','base',text); text=re.sub(r'\bV3\b','current',text); text=re.sub(r'\bV4\b','current',text)
+              text=text.replace('old domain implementation','base domain implementation').replace('old backups','existing backups').replace('legacy opening','opening-balance')
+              text=text.replace("D.cashflowDomainReady = '3.0-explainable';","D.cashflowDomainReady = true;").replace("D.capitalDomainReady = '4.1-capital-os';","D.capitalDomainReady = true;")
+              path.write_text(text)
+          index=root/'index.html'; text=index.read_text().replace('href="icon-192.png"','href="rootflow-icon-192.png"').replace('href="icon-180.png"','href="rootflow-icon-180.png"'); index.write_text(text)
+          manifest=root/'manifest.json'; text=manifest.read_text().replace('icon-180.png','rootflow-icon-180.png').replace('icon-192.png','rootflow-icon-192.png').replace('icon-512.png','rootflow-icon-512.png'); manifest.write_text(text)
+          sw=root/'sw.js'; text=sw.read_text(); text=re.sub(r"var CACHE = '[^']+';","var CACHE = 'rootflow-cache-20260907-canonical';",text).replace("'./icon-180.png'","'./rootflow-icon-180.png'").replace("'./icon-192.png'","'./rootflow-icon-192.png'").replace("'./icon-512.png'","'./rootflow-icon-512.png'"); sw.write_text(text)
+          t=root/'tests/run-ui-contract-tests.js'; text=t.read_text().replace("assert(sw.includes('capital-os-final'), 'PWA cache must be bumped for the final deploy');","assert(sw.includes('rootflow-cache-20260907-canonical'), 'PWA cache must use the canonical deploy key');")
+          text='\n'.join(line for line in text.splitlines() if 'runtime entrypoint must not expose historical version layers' not in line and 'service worker must not cache historical version layers' not in line)+'\n'
+          text+="\nassert(index.includes('rootflow-icon-180.png'), 'iOS Home Screen icon must use the canonical cache-busted asset');\nassert(index.includes('rootflow-icon-192.png'), 'favicon must use the canonical artwork');\nassert(!index.includes('icon-180.png\"'), 'old Home Screen icon reference must be gone');\n"; t.write_text(text)
+          for name in ['icon-180.png','icon-192.png','icon-512.png','rootflow-home-180.b64.txt','rootflow-home-180.txt']:
+              p=root/name
+              if p.exists(): p.unlink()
+          forbidden=re.compile(r'\b[Vv][234](?:\b|[A-Z])|brand/rootflow-mark\.svg')
+          offenders=[]
+          for path in [*root.glob('*.js'),*root.glob('tests/*.js'),root/'index.html',root/'sw.js',root/'README.md']:
+              if path.exists() and forbidden.search(path.read_text(errors='ignore')): offenders.append(str(path))
+          if offenders: raise SystemExit('Historical version/reference cleanup incomplete: '+', '.join(offenders))
+          PY
+
+      - name: Run production regression suite
+        run: |
+          node tests/run-tests.js
+          node tests/run-cashflow-tests.js
+          node tests/run-store-tests.js
+          node tests/run-compat-tests.js
+          node tests/run-capital-tests.js
+          node --check app.js
+          node --check capital-ui.js
+          node --check capital-domain.js
+          node --check cashflow-domain.js
+          node --check compat.js
+          node --check store-adapter.js
+          node --check account-editor.js
+          node tests/run-ui-contract-tests.js
+          node tests/run-account-editor-tests.js
+
+      - name: Commit final production tree
+        run: |
+          rm -f .github/workflows/finalize-production.yml
+          git config user.name "Rootflow Build"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "No changes to commit"; exit 0; fi
+          git commit -m "feat: ship Rootflow production final"
+          git push origin HEAD:main
