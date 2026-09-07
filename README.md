@@ -2,54 +2,30 @@
 
 **Rootflow là hệ thống điều hành vốn và dòng tiền cá nhân.**
 
-Mục tiêu của Rootflow không phải biến người dùng thành kế toán. Ứng dụng tập trung vào một câu hỏi thực tế hơn:
+Rootflow tập trung vào một câu hỏi vận hành:
 
 > Hôm nay tôi thực sự có thể sử dụng bao nhiêu tiền mà vẫn an toàn cho các nghĩa vụ sắp tới?
 
-## Nguyên lý sản phẩm
+## Mental model
 
-Rootflow vận hành theo chuỗi quyết định:
+**Tiền hiện có → Tiền cần giữ → Tiền nên giữ → Tiền có thể dùng → Tiền sinh hoạt → Vốn có thể triển khai**
 
-**Tiền hiện có → Tiền cần giữ → Tiền nên giữ → Tiền có thể dùng → Sinh hoạt → Vốn có thể triển khai**
-
-Hệ thống coi thời gian là một phần của tiền. Một nghĩa vụ trong tương lai không đồng nghĩa với việc phải khóa toàn bộ số tiền đó ngay hôm nay nếu trước ngày đến hạn có dòng tiền đáng tin cậy đi vào.
-
-Rootflow vì vậy ưu tiên:
-
-- dòng tiền tương lai theo ngày;
-- mức độ chắc chắn của tiền vào;
-- nghĩa vụ phải trả;
-- mức sinh hoạt có thể thay đổi;
-- chi phí vốn;
-- vốn đang được triển khai vào cho vay, đầu tư, kinh doanh hoặc tài sản khác;
-- khả năng giải thích vì sao một phần tiền cần được giữ lại.
+Thời gian là một phần của tiền. Dòng tiền đáng tin cậy đến trước ngày nghĩa vụ đáo hạn có thể giảm số tiền cần bảo vệ ngay hôm nay; dòng tiền Expected/Uncertain chỉ dùng cho dự phóng và không được biến một trạng thái thiếu an toàn thành an toàn.
 
 ## Bốn màn hình chính
 
 - **Hôm nay** — tiền hiện có, tiền cần giữ, tiền có thể dùng và các việc sắp tới.
-- **Dòng tiền** — dự phóng 7 ngày, 30 ngày hoặc 3 tháng và điểm thanh khoản thấp nhất.
-- **Vốn** — vốn đang chạy và nguồn vốn đang tạo áp lực.
-- **Kế hoạch** — thu nhập, mức sinh hoạt và safety margin có thể điều chỉnh.
+- **Dòng tiền** — dự phóng 7/30/90 ngày, Conservative/Expected và điểm thanh khoản thấp nhất.
+- **Vốn** — capital positions và funding sources, bao gồm chi phí vốn và lịch nghĩa vụ.
+- **Kế hoạch** — thu nhập, mức sinh hoạt và Safety Margin có thể điều chỉnh theo tháng.
 
-## Mô hình dữ liệu
+## Dữ liệu
 
-Dữ liệu được lưu cục bộ trên trình duyệt. Rootflow hiện dùng schema `9` và duy trì migration để không làm mất dữ liệu đã có.
+Rootflow là local-first PWA. Dữ liệu được lưu cục bộ trên trình duyệt, dùng schema `9` và giữ compatibility/migration để không làm mất dữ liệu đã có.
 
-Các khái niệm chính:
+## Kiến trúc
 
-- account / cash position;
-- flow;
-- contract;
-- recurring income;
-- capital position;
-- funding source;
-- planning assumptions.
-
-Các nguyên lý kế toán hoặc đối soát chỉ tồn tại bên dưới khi cần để giữ dữ liệu nhất quán; chúng không phải mental model chính của giao diện.
-
-## Kiến trúc hiện tại
-
-Rootflow là PWA tĩnh, không cần build step.
+Rootflow là static React PWA, không cần build step. React sở hữu toàn bộ vùng giao diện; presentation không tự sửa DOM do React quản lý và không tự ghi persistence.
 
 ```text
 domain.js
@@ -60,29 +36,19 @@ store.js
 store-adapter.js
 app.js
 capital-ui.js
-account-editor.js
 styles.css
 capital.css
-account-editor.css
 ```
 
-React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache và GitHub Pages phục vụ ứng dụng.
+React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.
 
 ## Brand
 
-Artwork canonical:
+Canonical artwork: `brand/rootflow-mark.png`.
 
-```text
-brand/rootflow-mark.png
-```
-
-Bộ icon PWA được sinh trực tiếp từ artwork này, không redraw.
-
-© 2026 @derekdaydoi. All rights reserved.
+Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-home-180.png`, `rootflow-home-192.png`, `rootflow-home-512.png` chỉ là bản resize từ artwork đó, không redraw.
 
 ## Kiểm thử
-
-Chạy toàn bộ regression suite:
 
 ```bash
 node tests/run-tests.js
@@ -90,8 +56,13 @@ node tests/run-cashflow-tests.js
 node tests/run-store-tests.js
 node tests/run-compat-tests.js
 node tests/run-capital-tests.js
+node --check app.js
+node --check capital-ui.js
+node --check capital-domain.js
 node tests/run-ui-contract-tests.js
 node tests/run-account-editor-tests.js
 ```
 
 CI chạy trên mọi push vào `main` và pull request.
+
+© 2026 @derekdaydoi. All rights reserved.

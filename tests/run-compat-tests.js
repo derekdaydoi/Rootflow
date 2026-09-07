@@ -25,7 +25,7 @@ assert.strictEqual(sim.after.current, 80);
 assert.strictEqual(sim.after.projectedLow, sim.before.projectedLow - 20);
 
 function matchedSummary(rows) {
-  return D.v3TreasurySummary({
+  return D.cashflowTreasurySummary({
     accounts: [{ id: 'cash', name: 'Cash', type: 'bank', openingBalance: 0, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }],
     flows: rows,
     contracts: [], recurringIncomes: [], controlAssumptions: {},

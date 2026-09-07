@@ -1,4 +1,4 @@
-/* Rootflow V3 — explainable treasury extensions.
+/* Rootflow — explainable treasury extensions.
    Additive layer: keeps the V2 ledger intact while fixing snapshot semantics
    and exposing human-readable cash requirements, obligations and funding links. */
 (function (global) {
@@ -32,7 +32,7 @@
     return validDate(value) ? value : null;
   }
 
-  function effectAfterBaselineV3(flow, account) {
+  function effectAfterBaseline(flow, account) {
     var asOf = accountAsOf(account);
     if (!asOf) return true;
     var date = String(flow && flow.date || '');
@@ -40,7 +40,7 @@
     return balanceSemantics(account) === 'closing_snapshot' ? date > asOf : date >= asOf;
   }
 
-  function balancesV3(accounts, flows, opts) {
+  function balancesSnapshotAware(accounts, flows, opts) {
     opts = opts || {};
     var accMap = D.byId(accounts || []);
     var out = {};
@@ -56,7 +56,7 @@
       D.effects(flow, accMap).forEach(function (effect) {
         if (out[effect.accountId] === undefined) return;
         var target = accMap[effect.accountId];
-        if (!effectAfterBaselineV3(flow, target)) return;
+        if (!effectAfterBaseline(flow, target)) return;
         out[effect.accountId] += effect.delta;
       });
     });
@@ -104,7 +104,7 @@
     var days = Math.max(1, Number(opts.horizonDays || settings.horizonDays) || 90);
     var end = D.addDays(start, days);
     var accMap = D.byId(accounts || []);
-    var currentBal = balancesV3(accounts || [], flows || [], { upto: start });
+    var currentBal = balancesSnapshotAware(accounts || [], flows || [], { upto: start });
     var current = D.totals(accounts || [], currentBal).liquid + (Number(opts.initialAdjustment) || 0);
     var planned = live(flows).filter(function (flow) {
       if (!includeProjectedFlow(flow, settings)) return false;
@@ -142,7 +142,7 @@
     return low;
   }
 
-  function liquidityModelV3(accounts, flows, settings, opts) {
+  function liquidityModelSnapshotAware(accounts, flows, settings, opts) {
     settings = settings || {};
     opts = opts || {};
     var start = forecastStart(settings, opts.baseDate);
@@ -295,7 +295,7 @@
     });
     rows = rows.concat(undatedObligations(data, horizon));
 
-    var bal = balancesV3(data.accounts || [], data.flows || []);
+    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
     var rollover = monthlyRolloverCost(data, bal);
     if (rollover > 0) rows.push({
       id: 'control-rollover', date: null, datePrecision: 'month', type: 'control', contractId: null,
@@ -356,7 +356,7 @@
     });
     var debtRows = undatedObligations(data, days);
     bridge.undatedDebt = debtRows.reduce(function (sum, row) { return sum + row.total; }, 0);
-    var bal = balancesV3(data.accounts || [], data.flows || []);
+    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
     bridge.rolloverCost = monthlyRolloverCost(data, bal);
     return bridge;
   }
@@ -376,7 +376,7 @@
       }
     });
     var undated = undatedObligations(data, horizon).reduce(function (sum, row) { return sum + row.total; }, 0);
-    var bal = balancesV3(data.accounts || [], data.flows || []);
+    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
     var rollover = monthlyRolloverCost(data, bal);
     return {
       requiredForDatedTimeline: Math.max(0, -minimum),
@@ -427,14 +427,14 @@
     data = data || {};
     opts = opts || {};
     var days = Math.max(1, Number(opts.days) || 30);
-    var bal = balancesV3(data.accounts || [], data.flows || []);
+    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
     var totals = D.totals(data.accounts || [], bal);
     var conservative = cashRequirement(data, days, 'confirmed');
     var expected = cashRequirement(data, days, 'expected');
     var operatingReserve = Math.max(0, Number(data.settings && data.settings.operatingBuffer) || 0);
     var recommended = conservative.minimumRequiredCash + operatingReserve;
     var bridge = cashBridge(data, days);
-    var liquidity = liquidityModelV3(data.accounts || [], data.flows || [], data.settings || {}, { horizonDays: days });
+    var liquidity = liquidityModelSnapshotAware(data.accounts || [], data.flows || [], data.settings || {}, { horizonDays: days });
     return {
       horizonDays: days,
       currentCash: totals.liquid,
@@ -466,11 +466,11 @@
     };
   }
 
-  function controlMetricsV3(data, opts) {
+  function controlMetricsSnapshotAware(data, opts) {
     data = data || {};
     opts = opts || {};
     var baseDate = opts.baseDate || forecastStart(data.settings || {});
-    var bal = balancesV3(data.accounts || [], data.flows || []);
+    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
     var total = D.totals(data.accounts || [], bal);
     var revolving = revolvingExposure(data, bal);
     var installment = (data.accounts || []).reduce(function (sum, account) {
@@ -508,20 +508,20 @@
 
   /* Export the corrected functions without rewriting the stable V2 code. */
   D.balanceSemantics = balanceSemantics;
-  D.effectAfterBaselineV3 = effectAfterBaselineV3;
-  D.balancesV2 = originalBalances;
-  D.balances = balancesV3;
-  D.liquidityModelV2 = originalLiquidityModel;
-  D.liquidityModel = liquidityModelV3;
-  D.controlMetricsV2 = originalControlMetrics;
-  D.controlMetrics = controlMetricsV3;
-  D.v3ProjectionPath = projectionPathV3;
-  D.v3DebtCalendar = debtCalendar;
-  D.v3FundingMap = fundingMap;
-  D.v3LendingBook = lendingBook;
-  D.v3TreasurySummary = treasurySummary;
-  D.v3CashBridge = cashBridge;
-  D.v3CashRequirement = cashRequirement;
-  D.v3UndatedObligations = undatedObligations;
-  D.v3Version = '3.0-explainable';
+  D.effectAfterBaseline = effectAfterBaseline;
+  D.balancesBase = originalBalances;
+  D.balances = balancesSnapshotAware;
+  D.liquidityModelBase = originalLiquidityModel;
+  D.liquidityModel = liquidityModelSnapshotAware;
+  D.controlMetricsBase = originalControlMetrics;
+  D.controlMetrics = controlMetricsSnapshotAware;
+  D.cashflowProjectionPath = projectionPathV3;
+  D.cashflowDebtCalendar = debtCalendar;
+  D.cashflowFundingMap = fundingMap;
+  D.cashflowLendingBook = lendingBook;
+  D.cashflowTreasurySummary = treasurySummary;
+  D.cashflowBridge = cashBridge;
+  D.cashflowRequirement = cashRequirement;
+  D.cashflowUndatedObligations = undatedObligations;
+  D.cashflowDomainReady = true;
 })(window);

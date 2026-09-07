@@ -1,6 +1,6 @@
-/* Rootflow V3 — persistence semantics patch.
-   V2 historically auto-posted CERTAIN planned flows when their date arrived.
-   V3 separates "committed" from "actual": confirmed=true only means the cash
+/* Rootflow — persistence semantics patch.
+   Earlier builds historically auto-posted CERTAIN planned flows when their date arrived.
+   The canonical model separates "committed" from "actual": confirmed=true only means the cash
    event actually happened. This wrapper normalizes legacy auto-posted rows
    without rewriting store.js or the backup format. */
 (function (global) {
@@ -20,7 +20,7 @@
     (data.accounts || []).forEach(function (account) {
       if (!account) return;
       /* Explicit values always win. Final v9 backups already carry this field.
-         New liquid accounts created by the current UI still keep legacy opening
+         New liquid accounts created by the current UI still keep compatibility opening
          behavior until the user explicitly imports/sets a closing snapshot. */
       if (account.balanceSemantics !== 'opening_balance' && account.balanceSemantics !== 'closing_snapshot') {
         if (!D.isLiquid(account) && Math.abs(Number(account.openingBalance) || 0) > 0) account.balanceSemantics = 'closing_snapshot';
@@ -32,7 +32,7 @@
       if (flow.autoPosted === true) {
         flow.confirmed = false;
         flow.autoPosted = false;
-        flow.autoPostedLegacy = true;
+        flow.autoPostedCompatibility = true;
         flow.confidence = flow.confidence || 'CERTAIN';
         flow.updatedAt = S.now();
         changed = true;
@@ -59,14 +59,14 @@
     return data;
   }
 
-  S.loadV2 = originalLoad;
+  S.loadBase = originalLoad;
   S.load = function () {
     var result = originalLoad.apply(S, arguments);
     if (result && result.data) result.data = normalize(result.data);
     return result;
   };
 
-  S.importFileV2 = originalImport;
+  S.importFileBase = originalImport;
   S.importFile = function (file, cb) {
     return originalImport.call(S, file, function (error, data) {
       if (error) return cb(error);

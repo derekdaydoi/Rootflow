@@ -1,4 +1,4 @@
-/* Rootflow V2 — Personal Treasury UI. React UMD, no build step. */
+/* Rootflow — Personal Treasury UI. React UMD, no build step. */
 (function (global) {
   'use strict';
 

@@ -9,10 +9,10 @@
   if (!React || !D || !S) return;
 
   var h = React.createElement;
-  var finalSummary = D.finalSummary || D.v4FinalSummary;
-  var operatingSummary = D.operatingSummary || D.v4OperatingSummary;
-  var projectionSummary = D.capitalProjectionSummary || D.v4ProjectionSummary;
-  var futureEvents = D.futureEvents || D.v4FutureEvents;
+  var finalSummary = D.finalSummary;
+  var operatingSummary = D.operatingSummary;
+  var projectionSummary = D.capitalProjectionSummary;
+  var futureEvents = D.futureEvents;
   if (!finalSummary || !operatingSummary || !projectionSummary || !futureEvents) return;
 
   function cx() { return Array.prototype.slice.call(arguments).filter(Boolean).join(' '); }

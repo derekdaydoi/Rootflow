@@ -60,7 +60,7 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
     contracts: [], recurringIncomes: [], controlAssumptions: {},
     settings: { snapshotDate: '2026-08-24', forecastStartDate: '2026-08-25', ignoreHistoricalFlowsForProjection: true }
   };
-  const bridge = D.v3CashBridge(data, 30);
+  const bridge = D.cashflowBridge(data, 30);
   assert.strictEqual(bridge.reliableInflows, 33);
   assert.strictEqual(bridge.mandatoryOutflows, 30);
   assert.strictEqual(bridge.principalCollected, 30);
@@ -74,7 +74,7 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
     contracts: [], recurringIncomes: [], controlAssumptions: {},
     settings: { snapshotDate: '2026-08-24', forecastStartDate: '2026-08-25', ignoreHistoricalFlowsForProjection: true }
   };
-  const summary = D.v3TreasurySummary(data, { days: 30 });
+  const summary = D.cashflowTreasurySummary(data, { days: 30 });
   assert.strictEqual(summary.minimumRequiredCash, 15);
   assert.strictEqual(summary.additionalCashNeeded, 0);
 }
@@ -89,8 +89,8 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
     contracts: [], recurringIncomes: [], controlAssumptions: {},
     settings: { snapshotDate: '2026-08-24', forecastStartDate: '2026-08-25', ignoreHistoricalFlowsForProjection: true }
   };
-  const conservative = D.v3CashRequirement(data, 30, 'confirmed');
-  const expected = D.v3CashRequirement(data, 30, 'expected');
+  const conservative = D.cashflowRequirement(data, 30, 'confirmed');
+  const expected = D.cashflowRequirement(data, 30, 'expected');
   assert.strictEqual(conservative.minimumRequiredCash, 15);
   assert.strictEqual(expected.minimumRequiredCash, 5);
 }

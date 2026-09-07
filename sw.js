@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-07-production-integration';
+var CACHE = 'rootflow-cache-2026-09-07-production-final';
 
 var ASSETS = [
   './',
@@ -21,9 +21,9 @@ var ASSETS = [
   './manifest.json',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
-  './icon-180.png',
-  './icon-192.png',
-  './icon-512.png',
+  './rootflow-home-180.png',
+  './rootflow-home-192.png',
+  './rootflow-home-512.png',
   './brand/rootflow-mark.png'
 ];
 
