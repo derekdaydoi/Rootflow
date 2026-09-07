@@ -1,4 +1,4 @@
-/* Rootflow V3 regression tests. Run: node tests/run-v3-tests.js */
+/* Rootflow cashflow regression tests. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -9,7 +9,7 @@ function load(file) {
   vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), { filename: file });
 }
 load('domain.js');
-load('v3-domain.js');
+load('cashflow-domain.js');
 const D = global.RootflowDomain;
 
 function bank(semantics) {
@@ -19,21 +19,18 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   return Object.assign({ id, date, kind, amount, confirmed, confidence: confidence || 'CERTAIN', skipped: false, accountId: 'cash', counterAccountId: null }, extra || {});
 }
 
-// 1) Closing snapshot must not replay same-day history.
 {
   const accounts = [bank('closing_snapshot')];
   const flows = [flow('hist', '2026-08-24', 'income', 20, true, 'CERTAIN', { alreadyReflectedInSnapshot: true })];
   assert.strictEqual(D.balances(accounts, flows).cash, 100);
 }
 
-// 2) Explicit opening balance keeps legacy same-day replay behavior.
 {
   const accounts = [bank('opening_balance')];
   const flows = [flow('same-day', '2026-08-24', 'income', 20, true)];
   assert.strictEqual(D.balances(accounts, flows).cash, 120);
 }
 
-// 3) Future flow starts after closing snapshot and affects projection only once.
 {
   const accounts = [bank('closing_snapshot')];
   const flows = [flow('future', '2026-08-25', 'income', 30, false, 'CERTAIN', { affectsProjectedCash: true, forecastCashImpact: 30 })];
@@ -42,7 +39,6 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   assert.strictEqual(model.forecastStartDate, '2026-08-25');
 }
 
-// 4) Interest-only collection increases cash but never reduces receivable principal.
 {
   const accounts = [
     bank('closing_snapshot'),
@@ -54,7 +50,6 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   assert.strictEqual(bal.recv, 90);
 }
 
-// 5) Matched funding stays gross: +33 and -30 are both visible.
 {
   const data = {
     accounts: [bank('closing_snapshot'), { id: 'loan', type: 'loan', name: 'Lender A', openingBalance: 30, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }, { id: 'recv', type: 'receivable', name: 'Borrower A', openingBalance: 30, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }],
@@ -72,7 +67,6 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   assert.strictEqual(bridge.lendingInterest, 3);
 }
 
-// 6) Buffer = maximum cumulative funding gap when no undated obligations exist.
 {
   const data = {
     accounts: [bank('closing_snapshot')],
@@ -82,10 +76,9 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   };
   const summary = D.v3TreasurySummary(data, { days: 30 });
   assert.strictEqual(summary.minimumRequiredCash, 15);
-  assert.strictEqual(summary.additionalCashNeeded, 0); // current cash is 100
+  assert.strictEqual(summary.additionalCashNeeded, 0);
 }
 
-// 7) Expected inflow must not improve the conservative minimum cash requirement.
 {
   const data = {
     accounts: [{ id: 'cash', name: 'Cash', type: 'bank', openingBalance: 10, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }],
@@ -102,4 +95,4 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   assert.strictEqual(expected.minimumRequiredCash, 5);
 }
 
-console.log('Rootflow V3 regression tests passed.');
+console.log('Rootflow cashflow regression tests passed.');

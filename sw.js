@@ -1,39 +1,32 @@
-/* Rootflow — sw.js
-   Cache key changes per deploy so installed PWA receives one coherent asset set. */
-var CACHE = 'rootflow-cache-v21-2026-09-07-capital-os-brand-fix';
+/* Rootflow service worker. */
+var CACHE = 'rootflow-cache-v22-2026-09-07-capital-os-final';
 
 var ASSETS = [
   './',
   './index.html',
   './styles.css',
-  './v4.css',
-  './v4-polish.css',
+  './capital.css',
+  './account-editor.css',
   './brand/rootflow-splash.css',
   './domain.js',
-  './v3-domain.js',
-  './v4-domain.js',
-  './v3-compat.js',
-  './v3-i18n.js',
-  './v4-i18n.js',
+  './cashflow-domain.js',
+  './capital-domain.js',
+  './compat.js',
+  './i18n-base.js',
+  './i18n-capital.js',
   './store.js',
-  './v3-store.js',
+  './store-adapter.js',
   './selftest.js',
   './app.js',
-  './v4-ui.js',
-  './v4-polish.js',
+  './capital-ui.js',
+  './account-editor.js',
   './manifest.json',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
   './icon-180.png',
   './icon-192.png',
-  './icon-256.png',
   './icon-512.png',
-  './icon-1024.png',
-  './brand/rootflow-symbol.svg',
-  './brand/rootflow-mark.svg',
-  './brand/rootflow-wordmark.svg',
-  './brand/rootflow-logo.svg',
-  './brand/rootflow-icon-master.svg'
+  './brand/rootflow-mark.png'
 ];
 
 self.addEventListener('install', function (event) {
@@ -88,6 +81,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|v4\.css|v4-polish\.css|rootflow-splash\.css|app\.js|v4-ui\.js|v4-polish\.js|domain\.js|v3-domain\.js|v4-domain\.js|v3-compat\.js|v3-i18n\.js|v4-i18n\.js|store\.js|v3-store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|account-editor\.css|rootflow-splash\.css|app\.js|capital-ui\.js|account-editor\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|compat\.js|i18n-base\.js|i18n-capital\.js|store\.js|store-adapter\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });

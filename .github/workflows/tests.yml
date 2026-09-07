@@ -1,0 +1,36 @@
+name: Rootflow regression tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Financial invariants
+        run: node tests/run-tests.js
+      - name: Cashflow regressions
+        run: node tests/run-cashflow-tests.js
+      - name: Store regressions
+        run: node tests/run-store-tests.js
+      - name: Compatibility regressions
+        run: node tests/run-compat-tests.js
+      - name: Capital decision regressions
+        run: node tests/run-capital-tests.js
+      - name: Capital UI syntax
+        run: node --check capital-ui.js
+      - name: Capital domain syntax
+        run: node --check capital-domain.js
+      - name: Account editor syntax
+        run: node --check account-editor.js
+      - name: UI contract
+        run: node tests/run-ui-contract-tests.js
+      - name: Account editor contract
+        run: node tests/run-account-editor-tests.js
