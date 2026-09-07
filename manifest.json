@@ -17,19 +17,19 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "rootflow-home-180.png",
+      "src": "rootflow-touch-180.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "rootflow-home-192.png",
+      "src": "rootflow-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "rootflow-home-512.png",
+      "src": "rootflow-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
