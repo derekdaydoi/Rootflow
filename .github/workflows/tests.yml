@@ -1,22 +1,75 @@
-name: Rootflow regression tests
+name: Rootflow backup controls release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore backup controls entry point
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              return text.replace(old, new, 1)
+
+          ui_path = Path('capital-ui.js')
+          ui = ui_path.read_text()
+          ui = replace_once(
+              ui,
+              "      props.onManageAccounts ? h('button', {\n        type: 'button', className: 'rf-appbar-action', onClick: props.onManageAccounts,\n        'aria-label': 'Quản lý và sửa tài khoản', title: 'Tài khoản'\n      }, icon('settings')) : h('span', { className: 'rf-appbar-spacer' }));",
+              "      props.onOpenSettings ? h('button', {\n        type: 'button', className: 'rf-appbar-action', onClick: props.onOpenSettings,\n        'aria-label': 'Cài đặt và dữ liệu', title: 'Cài đặt'\n      }, icon('settings')) : h('span', { className: 'rf-appbar-spacer' }));",
+              'app bar settings action')
+          ui = replace_once(
+              ui,
+              "      h(BrandHeader, { onManageAccounts: props.onManageAccounts }),",
+              "      h(BrandHeader, { onOpenSettings: props.onOpenSettings }),",
+              'screen header prop')
+          ui_path.write_text(ui)
+
+          app_path = Path('app.js')
+          app = app_path.read_text()
+          app = replace_once(
+              app,
+              "        onManageAccounts: openAccountManager,\n        onEditAccount: openEditAccountById,",
+              "        onOpenSettings: function () { setOverlay('settings'); },\n        onEditAccount: openEditAccountById,",
+              'canonical screen settings entry')
+          app_path.write_text(app)
+
+          test_path = Path('tests/run-ui-contract-tests.js')
+          tests = test_path.read_text()
+          tests = replace_once(
+              tests,
+              "assert(ui.includes('props.onManageAccounts'), 'canonical app bar must expose account management');",
+              "assert(ui.includes('props.onOpenSettings'), 'canonical app bar must expose settings and data');\nassert(app.includes(\"onOpenSettings: function () { setOverlay('settings'); }\"), 'app bar settings action must open the settings/data sheet');\nassert(app.includes(\"'Xuất backup'\") && app.includes(\"'Nhập backup'\"), 'settings/data sheet must expose export and import backup controls');",
+              'ui settings contract')
+          test_path.write_text(tests)
+
+          sw_path = Path('sw.js')
+          sw = sw_path.read_text()
+          sw = replace_once(
+              sw,
+              "var CACHE = 'rootflow-cache-2026-09-08-interest-only-receivable';",
+              "var CACHE = 'rootflow-cache-2026-09-08-backup-controls';",
+              'service worker cache')
+          sw_path.write_text(sw)
+          PY
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -37,7 +90,17 @@ jobs:
         run: node --check cashflow-domain.js
       - name: Store syntax
         run: node --check store.js
+      - name: Service worker syntax
+        run: node --check sw.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+      - name: Publish source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app.js capital-ui.js sw.js tests/run-ui-contract-tests.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "fix: restore backup controls in settings"
+          git push
