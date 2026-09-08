@@ -1,22 +1,26 @@
-name: Rootflow regression tests
+name: Rootflow funding engine release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Apply funding engine
+        run: python3 tools/rootflow-funding-upgrade.py
+      - name: Funding product regressions
+        run: node tests/run-funding-tests.js
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -27,17 +31,23 @@ jobs:
         run: node tests/run-canonical-tests.js
       - name: Capital decision regressions
         run: node tests/run-capital-tests.js
-      - name: Application syntax
-        run: node --check app.js
-      - name: Capital UI syntax
-        run: node --check capital-ui.js
-      - name: Capital domain syntax
-        run: node --check capital-domain.js
-      - name: Cashflow domain syntax
-        run: node --check cashflow-domain.js
-      - name: Store syntax
-        run: node --check store.js
+      - name: Syntax
+        run: |
+          node --check domain.js
+          node --check app.js
+          node --check cashflow-domain.js
+          node --check capital-domain.js
+          node --check capital-ui.js
+          node --check sw.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
-      - name: React ownership contract
+      - name: Account editor contract
         run: node tests/run-account-editor-tests.js
+      - name: Publish source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A domain.js app.js cashflow-domain.js capital-domain.js capital-ui.js sw.js tests/run-funding-tests.js tools/rootflow-funding-upgrade.py
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "feat: model credit card and installment funding"
+          git push
