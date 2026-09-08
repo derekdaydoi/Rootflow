@@ -1,46 +1,95 @@
-name: Rootflow regression tests
+name: Rootflow canonical release
 
 on:
   push:
     branches:
       - main
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Canonicalize production markers
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'rootflow-production-integration' && hashFiles('tools/cleanup-production-markers.py') != ''
+
+      - name: Apply canonical rebuild once
+        shell: bash
         run: |
-          python tools/cleanup-production-markers.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "chore: canonicalize production markers"
-          git push origin HEAD:rootflow-production-integration
-      - name: Apply one-shot Rootflow canonical rebuild
-        if: hashFiles('tools/rootflow-canonicalize.py') != ''
-        run: python tools/rootflow-canonicalize.py
-      - name: Package canonical rebuild
-        if: hashFiles('tools/rootflow-canonicalize.py') == ''
-        run: tar --exclude=.git -czf /tmp/rootflow-canonical.tgz .
-      - uses: actions/upload-artifact@v4
-        if: hashFiles('tools/rootflow-canonicalize.py') == ''
-        with:
-          name: rootflow-canonical
-          path: /tmp/rootflow-canonical.tgz
-          retention-days: 1
+          set -euo pipefail
+          if [ -f tools/rootflow-canonicalize.py ]; then
+            python tools/rootflow-canonicalize.py
+            git checkout HEAD -- .github/workflows/tests.yml
+            python - <<'PY'
+          from pathlib import Path
+
+          root = Path('.')
+
+          app = root / 'app.js'
+          text = app.read_text()
+          old = "props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, 'Được tính từ hợp đồng và lịch sử giao dịch; không chỉnh tay tại đây.'))"
+          new = "props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : showContract && form.type === 'receivable' ? 'Phải thu hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, showContract ? 'Đây là số đang tính từ lịch sử. Muốn sửa số nhập sai, chỉnh trường “Dư gốc hiện tại” ở phần chi tiết bên dưới.' : 'Được tính từ lịch sử giao dịch.'))"
+          if old not in text:
+              raise SystemExit('account current-card patch target missing')
+          app.write_text(text.replace(old, new, 1))
+
+          tests = root / 'tests/run-tests.js'
+          text = tests.read_text()
+          old = "assert.equal(matured.data.flows[0].confirmed, true);\nassert.equal(matured.data.flows[0].autoPosted, true);\nassert.equal(matured.data.contracts[0].status, 'closed');"
+          new = "assert.equal(matured.data.flows[0].confirmed, false);\nassert.equal(matured.data.flows[0].autoPosted, undefined);\nassert.equal(matured.data.contracts[0].status, 'active');"
+          if old not in text:
+              raise SystemExit('maturity regression patch target missing')
+          tests.write_text(text.replace(old, new, 1))
+
+          cash_tests = root / 'tests/run-cashflow-tests.js'
+          text = cash_tests.read_text()
+          old = 'assert.strictEqual(model.current, 130);'
+          if old not in text:
+              raise SystemExit('cashflow current regression patch target missing')
+          cash_tests.write_text(text.replace(old, 'assert.strictEqual(model.current, 100);', 1))
+
+          readme = root / 'README.md'
+          text = readme.read_text()
+          replacements = [
+              ("""domain.js
+          cashflow-domain.js
+          capital-domain.js
+          compat.js
+          store.js
+          store-adapter.js
+          app.js
+          capital-ui.js
+          styles.css
+          capital.css
+          effects.css""", """domain.js             # ledger + financial invariants
+          cashflow-domain.js    # cashflow / treasury semantics
+          capital-domain.js     # decision layer
+          store.js              # local persistence + schema migration
+          app.js                # controller, forms, overlays
+          capital-ui.js         # 4 màn hình sản phẩm duy nhất
+          styles.css            # app chrome + forms
+          capital.css           # canonical operating UI"""),
+              ("`effects.css` chỉ chứa motion/interaction feedback, không chứa business logic. Toàn bộ animation có `prefers-reduced-motion` fallback. React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.", "React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng. Không còn compatibility bridge hoặc presentation generation cũ chạy song song."),
+              ("Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork.", "Header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork. Ứng dụng mở thẳng vào giao diện, không giữ splash animation dài."),
+              ("Rootflow intentionally keeps one product presentation: `capital-ui.js` owns the four operating screens and `app.js` owns controller/forms/overlays. Legacy screen generations, compatibility bridge files, the old bilingual V3 layer and the long animated splash have been removed. Data migrations in `store.js` remain because deleting them would corrupt or strand existing user backups.", "Rootflow chỉ giữ một presentation: `capital-ui.js` sở hữu bốn màn hình vận hành, còn `app.js` sở hữu controller, form và overlay. Các screen generation cũ, compatibility bridge, lớp song ngữ V3 cũ và splash animation dài đã được bỏ. Migration dữ liệu vẫn nằm trong `store.js` vì xóa migration sẽ làm hỏng hoặc bỏ rơi backup/localStorage của người dùng hiện tại.")
+          ]
+          for before, after in replacements:
+              if before not in text:
+                  raise SystemExit('README canonical patch target missing')
+              text = text.replace(before, after, 1)
+          readme.write_text(text)
+          PY
+          fi
+          git checkout HEAD -- .github/workflows/tests.yml
+
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -57,7 +106,25 @@ jobs:
         run: node --check capital-ui.js
       - name: Capital domain syntax
         run: node --check capital-domain.js
+      - name: Cashflow domain syntax
+        run: node --check cashflow-domain.js
+      - name: Store syntax
+        run: node --check store.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+
+      - name: Publish canonical source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout HEAD -- .github/workflows/tests.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git reset -- .github/workflows/tests.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "refactor: rebuild Rootflow on one canonical runtime"
+            git push origin HEAD:main
+          fi
