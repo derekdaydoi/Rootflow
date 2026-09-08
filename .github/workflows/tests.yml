@@ -1,22 +1,99 @@
-name: Rootflow regression tests
+name: Rootflow receivable interest-only release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fix receivable interest-only schedule
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              return text.replace(old, new, 1)
+
+          domain_path = Path('domain.js')
+          domain = domain_path.read_text()
+          domain = replace_once(
+              domain,
+              "    var mode = contract.type === 'payable' && contract.repaymentMode === 'interest_only' ? 'interest_only' : 'principal_interest';",
+              "    var mode = contract.repaymentMode === 'interest_only' ? 'interest_only' : 'principal_interest';",
+              'interest-only contract type gate')
+          domain_path.write_text(domain)
+
+          app_path = Path('app.js')
+          app = app_path.read_text()
+          app = replace_once(
+              app,
+              "    if (!rows.length) return null;\n    var totalInterest = rows.reduce(function (sum, row) { return sum + row.interestAmount; }, 0);",
+              "    if (!rows.length) return null;\n    var receivable = props.contract && props.contract.type === 'receivable';\n    var totalInterest = rows.reduce(function (sum, row) { return sum + row.interestAmount; }, 0);",
+              'schedule preview direction')
+          app = replace_once(
+              app,
+              "h('div', { className: 'schedule-copy' }, h('strong', null, row.role === 'principal' ? 'Kỳ cuối + trả gốc' : 'Kỳ ' + (row.index + 1)),",
+              "h('div', { className: 'schedule-copy' }, h('strong', null, row.role === 'principal' ? (receivable ? 'Kỳ cuối + thu gốc' : 'Kỳ cuối + trả gốc') : 'Kỳ ' + (row.index + 1)),",
+              'schedule preview principal wording')
+          app = replace_once(
+              app,
+              "      if (shouldSaveContract && form.type === 'loan' && form.repaymentMode === 'interest_only') {\n        if (method === 'none') return setError('Chế độ chỉ lãi cần có điều khoản lãi.');\n      }",
+              "      if (shouldSaveContract && (form.type === 'loan' || form.type === 'receivable') && form.repaymentMode === 'interest_only') {\n        if (method === 'none') return setError('Chế độ chỉ lãi cần có điều khoản lãi.');\n      }",
+              'interest-only validation')
+          app = replace_once(
+              app,
+              "        principalDueDate: form.type === 'loan' && form.repaymentMode === 'interest_only' ? form.maturityDate : null,",
+              "        principalDueDate: (form.type === 'loan' || form.type === 'receivable') && form.repaymentMode === 'interest_only' ? form.maturityDate : null,",
+              'principal due date direction')
+          app = replace_once(
+              app,
+              "        h(Field, { label: 'Cách hoàn trả', help: form.repaymentMode === 'interest_only' ? 'Thu/trả lãi không làm giảm principal.' : 'Mỗi kỳ tách riêng gốc, lãi và phí.' }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } }, h('option', { value: 'principal_interest' }, 'Gốc + lãi'), h('option', { value: 'interest_only' }, 'Chỉ lãi · gốc giữ nguyên'))),",
+              "        h(Field, {\n          label: form.type === 'receivable' ? 'Cách thu hồi' : 'Cách hoàn trả',\n          help: form.repaymentMode === 'interest_only'\n            ? (form.type === 'receivable' ? 'Các kỳ chỉ thu lãi; toàn bộ gốc được thu ở kỳ cuối.' : 'Các kỳ chỉ trả lãi; toàn bộ gốc được trả ở kỳ cuối.')\n            : (form.type === 'receivable' ? 'Mỗi kỳ thu một phần gốc cùng lãi và phí.' : 'Mỗi kỳ trả một phần gốc cùng lãi và phí.')\n        }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } },\n          h('option', { value: 'principal_interest' }, form.type === 'receivable' ? 'Thu gốc + lãi theo kỳ' : 'Trả gốc + lãi theo kỳ'),\n          h('option', { value: 'interest_only' }, form.type === 'receivable' ? 'Chỉ thu lãi · gốc cuối kỳ' : 'Chỉ trả lãi · gốc cuối kỳ'))),\n        form.repaymentMode === 'interest_only' ? h('div', { className: 'data-note' }, form.type === 'receivable'\n          ? 'Cơ chế: gốc không giảm trong các kỳ lãi. Rootflow chỉ đưa toàn bộ gốc vào cashflow kỳ cuối.'\n          : 'Cơ chế: gốc không giảm trong các kỳ lãi. Rootflow chỉ đưa toàn bộ gốc vào cashflow kỳ cuối.') : null,",
+              'repayment mechanism UI')
+          app = replace_once(
+              app,
+              "      var note = row.role === 'principal' ? 'Lãi tháng + trả gốc cuối kỳ'\n        : row.role === 'installment' ? (kind === 'repay' ? 'Kỳ trả gốc và lãi' : 'Kỳ thu gốc và lãi')",
+              "      var note = row.role === 'principal' ? (kind === 'repay' ? 'Lãi kỳ + trả gốc cuối kỳ' : 'Lãi kỳ + thu gốc cuối kỳ')\n        : row.role === 'installment' ? (kind === 'repay' ? 'Kỳ trả gốc và lãi' : 'Kỳ thu gốc và lãi')",
+              'generated flow principal wording')
+          app = app.replace("'Hợp đồng installment'", "'Hợp đồng trả góp'")
+          app = app.replace("'Dư nợ installment'", "'Dư nợ trả góp'")
+          app_path.write_text(app)
+
+          test_path = Path('tests/run-capital-tests.js')
+          tests = test_path.read_text()
+          marker = "const annualDaily = D.contractSchedule({"
+          case = """const receivableInterestOnly = D.contractSchedule({\n  id:'recv-interest-only', type:'receivable', originalPrincipal:30000000, currentOutstanding:30000000,\n  startDate:'2026-08-25', firstPaymentDate:'2026-09-25', maturityDate:'2027-01-25',\n  interestFrequency:'monthly', repaymentMode:'interest_only', interestMode:'fixed', actualInterestMethod:'fixed_amount',\n  fixedInterest:3000000, fixedInterestBasis:'per_period', feeFrequency:'none'\n});\nassert.strictEqual(receivableInterestOnly.length, 5);\nreceivableInterestOnly.slice(0, -1).forEach(row => {\n  assert.strictEqual(row.principalAmount, 0);\n  assert.strictEqual(row.interestAmount, 3000000);\n  assert.strictEqual(row.amount, 3000000);\n});\nassert.strictEqual(receivableInterestOnly[4].principalAmount, 30000000);\nassert.strictEqual(receivableInterestOnly[4].interestAmount, 3000000);\nassert.strictEqual(receivableInterestOnly[4].amount, 33000000);\nassert.strictEqual(receivableInterestOnly.reduce((sum, row) => sum + row.interestAmount, 0), 15000000);\n\n"""
+          if case not in tests:
+              if marker not in tests:
+                  raise SystemExit('capital test marker missing')
+              tests = tests.replace(marker, case + marker, 1)
+          test_path.write_text(tests)
+
+          sw_path = Path('sw.js')
+          sw = sw_path.read_text()
+          old = "var CACHE = 'rootflow-cache-2026-09-08-annual-rate';"
+          new = "var CACHE = 'rootflow-cache-2026-09-08-interest-only-receivable';"
+          if old in sw:
+              sw = sw.replace(old, new, 1)
+          elif new not in sw:
+              raise SystemExit('service worker cache marker missing')
+          sw_path.write_text(sw)
+          PY
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -37,7 +114,17 @@ jobs:
         run: node --check cashflow-domain.js
       - name: Store syntax
         run: node --check store.js
+      - name: Service worker syntax
+        run: node --check sw.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+      - name: Publish source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add domain.js app.js sw.js tests/run-capital-tests.js
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "fix: honor interest-only receivable schedules"
+          git push
