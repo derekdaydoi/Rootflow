@@ -30,11 +30,22 @@ jobs:
           git commit -m "chore: canonicalize production markers"
           git push origin HEAD:rootflow-production-integration
       - name: Apply one-shot Rootflow canonical rebuild
-        if: hashFiles('tools/rootflow-canonicalize.py') != ''
+        if: hashFiles('tools/rootflow-canonicalize.py') != '' && hashFiles('tools/rootflow-canonicalize-error.txt') == ''
         run: |
-          python tools/rootflow-canonicalize.py
+          set +e
+          python tools/rootflow-canonicalize.py 2> /tmp/rootflow-canonicalize-error.txt
+          code=$?
+          set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$code" -ne 0 ]; then
+            git reset --hard HEAD
+            cp /tmp/rootflow-canonicalize-error.txt tools/rootflow-canonicalize-error.txt
+            git add tools/rootflow-canonicalize-error.txt
+            git commit -m "ci: capture canonical rebuild failure"
+            git push origin HEAD:main
+            exit 1
+          fi
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "refactor: rebuild Rootflow on one canonical runtime"
