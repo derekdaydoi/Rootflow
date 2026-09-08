@@ -159,6 +159,7 @@
     var allPoints = projectionPath(accounts, flows, settings, config, 'full');
     var confirmedLow = lowest(confirmedPoints);
     var expectedLow = lowest(expectedPoints);
+    var actualCurrent = D.totals(accounts || [], balancesSnapshotAware(accounts || [], flows || [])).liquid + (Number(opts.initialAdjustment) || 0);
     var state = D.liquidityStatus(confirmedLow.value, hard, operating);
     var expectedState = D.liquidityStatus(expectedLow.value, hard, operating);
     var zeroPoint = null;
@@ -169,7 +170,7 @@
       points: confirmedPoints,
       expectedPoints: expectedPoints,
       allPoints: allPoints,
-      current: confirmedPoints[0] ? confirmedPoints[0].value : 0,
+      current: actualCurrent,
       projectedLow: confirmedLow.value,
       pressurePointDate: confirmedLow.date,
       expectedLow: expectedLow.value,
@@ -362,28 +363,23 @@
   }
 
   function cashRequirement(data, days, mode) {
+    data = data || {};
     var settings = data.settings || {};
     var horizon = Math.max(1, Number(days) || 30);
-    var setup = projectionRows(data.accounts || [], data.flows || [], settings, { horizonDays: horizon }, mode || 'confirmed');
-    var running = 0;
-    var minimum = 0;
-    var pressureDate = setup.start;
-    setup.rows.forEach(function (row) {
-      running += row.delta;
-      if (running < minimum) {
-        minimum = running;
-        pressureDate = row.flow.date || pressureDate;
-      }
-    });
+    var start = forecastStart(settings);
+    var currentBal = balancesSnapshotAware(data.accounts || [], data.flows || []);
+    var current = D.totals(data.accounts || [], currentBal).liquid;
+    var points = projectionPath(data.accounts || [], data.flows || [], settings, { horizonDays: horizon }, mode || 'confirmed');
+    var low = lowest(points);
+    var dated = Math.max(0, current - Number(low.value || 0));
     var undated = undatedObligations(data, horizon).reduce(function (sum, row) { return sum + row.total; }, 0);
-    var bal = balancesSnapshotAware(data.accounts || [], data.flows || []);
-    var rollover = monthlyRolloverCost(data, bal);
+    var rollover = monthlyRolloverCost(data, currentBal);
     return {
-      requiredForDatedTimeline: Math.max(0, -minimum),
+      requiredForDatedTimeline: dated,
       undatedObligations: undated,
       rolloverCost: rollover,
-      minimumRequiredCash: Math.max(0, -minimum) + undated + rollover,
-      pressureDate: pressureDate
+      minimumRequiredCash: dated + undated + rollover,
+      pressureDate: low.date || start
     };
   }
 
@@ -523,5 +519,14 @@
   D.cashflowBridge = cashBridge;
   D.cashflowRequirement = cashRequirement;
   D.cashflowUndatedObligations = undatedObligations;
+  D.simulateDecisionBase = D.simulateDecision;
+  D.simulateDecision = function (accounts, flows, settings, decision, opts) {
+    opts = opts || {};
+    var before = D.liquidityModel(accounts, flows, settings, opts);
+    var afterOpts = Object.assign({}, opts, {
+      initialAdjustment: (Number(opts.initialAdjustment) || 0) + D.decisionLiquidityImpact(decision && decision.kind, decision && decision.amount)
+    });
+    return { before: before, after: D.liquidityModel(accounts, flows, settings, afterOpts) };
+  };
   D.cashflowDomainReady = true;
 })(window);

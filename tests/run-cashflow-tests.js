@@ -35,7 +35,7 @@ function flow(id, date, kind, amount, confirmed, confidence, extra) {
   const accounts = [bank('closing_snapshot')];
   const flows = [flow('future', '2026-08-25', 'income', 30, false, 'CERTAIN', { affectsProjectedCash: true, forecastCashImpact: 30 })];
   const model = D.liquidityModel(accounts, flows, { snapshotDate: '2026-08-24', forecastStartDate: '2026-08-25', ignoreHistoricalFlowsForProjection: true, horizonDays: 2 }, {});
-  assert.strictEqual(model.current, 130);
+  assert.strictEqual(model.current, 100);
   assert.strictEqual(model.forecastStartDate, '2026-08-25');
 }
 

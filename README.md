@@ -28,26 +28,23 @@ Rootflow là local-first PWA. Dữ liệu được lưu cục bộ trên trình 
 Rootflow là static React PWA, không cần build step. React sở hữu toàn bộ vùng giao diện; presentation không tự sửa DOM do React quản lý và không tự ghi persistence.
 
 ```text
-domain.js
-cashflow-domain.js
-capital-domain.js
-compat.js
-store.js
-store-adapter.js
-app.js
-capital-ui.js
-styles.css
-capital.css
-effects.css
+domain.js             # ledger + financial invariants
+cashflow-domain.js    # cashflow / treasury semantics
+capital-domain.js     # decision layer
+store.js              # local persistence + schema migration
+app.js                # controller, forms, overlays
+capital-ui.js         # 4 màn hình sản phẩm duy nhất
+styles.css            # app chrome + forms
+capital.css           # canonical operating UI
 ```
 
-`effects.css` chỉ chứa motion/interaction feedback, không chứa business logic. Toàn bộ animation có `prefers-reduced-motion` fallback. React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.
+React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng. Không còn compatibility bridge hoặc presentation generation cũ chạy song song.
 
 ## Brand
 
 Canonical artwork: `brand/rootflow-mark.png`.
 
-Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork.
+Header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork. Ứng dụng mở thẳng vào giao diện, không giữ splash animation dài.
 
 ## Kiểm thử
 
@@ -55,7 +52,7 @@ Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflo
 node tests/run-tests.js
 node tests/run-cashflow-tests.js
 node tests/run-store-tests.js
-node tests/run-compat-tests.js
+node tests/run-canonical-tests.js
 node tests/run-capital-tests.js
 node --check app.js
 node --check capital-ui.js
@@ -67,3 +64,8 @@ node tests/run-account-editor-tests.js
 CI chạy trên mọi push vào `main` và pull request.
 
 © 2026 @derekdaydoi. All rights reserved.
+
+
+## Canonical runtime
+
+Rootflow chỉ giữ một presentation: `capital-ui.js` sở hữu bốn màn hình vận hành, còn `app.js` sở hữu controller, form và overlay. Các screen generation cũ, compatibility bridge, lớp song ngữ V3 cũ và splash animation dài đã được bỏ. Migration dữ liệu vẫn nằm trong `store.js` vì xóa migration sẽ làm hỏng hoặc bỏ rơi backup/localStorage của người dùng hiện tại.

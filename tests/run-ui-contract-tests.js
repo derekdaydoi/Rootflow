@@ -8,20 +8,20 @@ const index = read('index.html');
 const app = read('app.js');
 const css = read('capital.css');
 const baseCss = read('styles.css');
-const effects = read('effects.css');
 const ui = read('capital-ui.js');
 const sw = read('sw.js');
 
 assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
-assert(index.includes('effects.css'), 'production motion stylesheet must load');
+assert(!index.includes('effects.css'), 'retired motion-template stylesheet must not load');
 assert(!index.includes('user-scalable=no') && !index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
-assert(index.includes('brand/rootflow-mark.png'), 'splash must use the canonical raster artwork');
-assert(index.includes('4150'), 'splash timing must preserve the approved final cadence');
+assert(!index.includes('opening-splash') && !index.includes('splash-active'), 'runtime must open directly without the legacy animated splash');
 assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');
 assert(!index.includes('account-editor.js') && !index.includes('account-editor.css'), 'runtime must not load imperative account-editor bridges');
+assert(!index.includes('compat.js') && !index.includes('store-adapter.js') && !index.includes('i18n-base.js') && !index.includes('i18n-capital.js'), 'retired compatibility scripts must not load');
 
 assert(app.includes('RootflowCapitalUI.Screen'), 'application controller must mount the canonical React-owned screens');
 assert(app.includes('RootflowCapitalUI.BottomNav'), 'application controller must mount the canonical React-owned bottom navigation');
+assert(!app.includes('function Home(props)') && !app.includes('function FlowScreen(props)') && !app.includes('function PositionScreen(props)') && !app.includes('function DecideScreen(props)'), 'legacy screen functions must be removed, not hidden behind a runtime branch');
 assert(app.includes('brand/rootflow-mark.png'), 'application artwork must use the canonical raster source');
 assert(!app.includes('brand/rootflow-mark.svg'), 'application must not reference the retired SVG redraw');
 
@@ -57,16 +57,12 @@ assert(css.includes('@media(max-width:640px)'), 'mobile form fallback must exist
 assert(css.includes('font-size:16px'), 'mobile inputs must avoid iOS focus zoom');
 assert(css.includes('env(safe-area-inset-bottom'), 'mobile chrome must respect safe areas');
 assert(!css.includes('overflow-wrap:anywhere'), 'Vietnamese words must not be broken arbitrarily');
-assert(baseCss.includes('-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif'), 'UI must use a native system font stack');
+assert(baseCss.includes('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif'), 'UI must use a conventional native app font stack');
 const numericWeights = (baseCss + '\n' + css).match(/font-weight:\s*(\d+)/g) || [];
 numericWeights.forEach(rule => assert(/(?:400|500|600|700)$/.test(rule), `typography must use a deliberate native weight: ${rule}`));
 
-assert(effects.includes('@keyframes rf-surface-enter'), 'screen surfaces must have restrained entry motion');
-assert(effects.includes('@keyframes rf-nav-select'), 'navigation state changes must have feedback');
-assert(effects.includes('prefers-reduced-motion:reduce'), 'motion must respect reduced-motion preferences');
-assert(!effects.includes('linear-gradient') && !effects.includes('radial-gradient'), 'motion layer must not introduce decorative gradients');
 
-assert(sw.includes("'./effects.css'"), 'service worker must cache the motion stylesheet');
+assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 

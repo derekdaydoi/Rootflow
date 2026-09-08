@@ -24,7 +24,7 @@
   --z-sheet: 90;
   --z-toast: 100;
   color-scheme: light;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-synthesis: none;
 }
 
@@ -47,117 +47,12 @@ body {
   margin: 0;
   color: var(--text);
   background: var(--bg);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.45;
   overflow-x: hidden;
   overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-
-body.splash-active { overflow: hidden; }
-
-.opening-splash {
-  pointer-events: none;
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  min-width: 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(224, 239, 229, .58), rgba(245, 246, 242, 0) 34%),
-    #f5f6f2;
-  animation: splash-screen 3.05s cubic-bezier(.22, .72, .25, 1) both;
-}
-.splash-lockup {
-  position: relative;
-  z-index: 1;
-  width: min(82vw, 360px);
-  display: grid;
-  justify-items: center;
-  transform: translateY(-3vh);
-}
-.splash-halo {
-  position: absolute;
-  left: 50%;
-  top: 46%;
-  width: min(54vw, 210px);
-  aspect-ratio: 1;
-  border: 1px solid rgba(23, 107, 69, .1);
-  border-radius: 50%;
-  opacity: 0;
-  transform: translate(-50%, -64%) scale(.62);
-  box-shadow: 0 0 0 22px rgba(23, 107, 69, .025), 0 20px 70px rgba(15, 79, 53, .08);
-  animation: splash-halo-pulse .72s 1.12s cubic-bezier(.18, .82, .28, 1) both;
-}
-.splash-mark {
-  width: 116px;
-  height: 116px;
-  overflow: visible;
-  filter: drop-shadow(0 8px 16px rgba(15, 79, 53, .08));
-  animation: splash-mark-settle .62s 1.04s cubic-bezier(.2, .8, .25, 1) both;
-}
-.splash-source {
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: splash-source-in .38s .2s cubic-bezier(.2, .9, .28, 1.25) both;
-}
-.splash-flow {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  opacity: 0;
-  animation: splash-flow-draw .56s cubic-bezier(.36, .02, .18, 1) both;
-}
-.splash-flow-one { animation-delay: .44s; }
-.splash-flow-two { animation-delay: .66s; }
-.splash-flow-three { animation-delay: .88s; }
-.splash-wordmark {
-  margin-top: 8px;
-  opacity: 0;
-  color: var(--text);
-  font-size: 43px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -2.7px;
-  transform: translateY(9px);
-  animation: splash-copy-in .46s 1.32s cubic-bezier(.22, .8, .25, 1) both;
-}
-.splash-wordmark span { color: var(--text); }
-.splash-wordmark strong { color: var(--green); font-weight: inherit; }
-.splash-subtitle {
-  margin-top: 12px;
-  opacity: 0;
-  color: var(--secondary);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: .08em;
-  text-align: center;
-  transform: translateY(7px);
-  animation: splash-copy-in .42s 1.6s cubic-bezier(.22, .8, .25, 1) both;
-}
-.splash-copyright {
-  margin-top: 18px;
-  opacity: 0;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: .035em;
-  text-align: center;
-  transform: translateY(6px);
-  animation: splash-copy-in .4s 1.82s cubic-bezier(.22, .8, .25, 1) both;
-}
-.splash-copyright strong { color: var(--green-deep); font-weight: 700; }
-
-@keyframes splash-source-in { from { opacity: 0; transform: scale(.25); } to { opacity: 1; transform: scale(1); } }
-@keyframes splash-flow-draw { 0% { opacity: 0; stroke-dashoffset: 1; } 12% { opacity: 1; } 100% { opacity: 1; stroke-dashoffset: 0; } }
-@keyframes splash-mark-settle { 0% { transform: scale(.96); } 55% { transform: scale(1.045); } 100% { transform: scale(1); } }
-@keyframes splash-halo-pulse { 0% { opacity: 0; transform: translate(-50%, -64%) scale(.62); } 48% { opacity: .9; } 100% { opacity: 0; transform: translate(-50%, -64%) scale(1.12); } }
-@keyframes splash-copy-in { to { opacity: 1; transform: translateY(0); } }
-@keyframes splash-screen { 0% { opacity: 0; } 5% { opacity: 1; } 88% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
 
 button, input, select, textarea { font: inherit; }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
@@ -1004,3 +899,11 @@ button { color: inherit; }
 }
 
 @keyframes splash-screen-reduced { 0%, 70% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+
+
+.form-help {
+  margin: -2px 0 4px;
+  color: var(--secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}

@@ -38,6 +38,29 @@
     };
   }
 
+  function normalizeCommittedVsActual(data) {
+    if (!data || typeof data !== 'object') return data;
+    var changed = false;
+    (data.accounts || []).forEach(function (account) {
+      if (!account) return;
+      if (account.balanceSemantics !== 'opening_balance' && account.balanceSemantics !== 'closing_snapshot' && !D.isLiquid(account) && Math.abs(Number(account.openingBalance) || 0) > 0) {
+        account.balanceSemantics = 'closing_snapshot';
+        changed = true;
+      }
+    });
+    (data.flows || []).forEach(function (flow) {
+      if (!flow || flow.autoPosted !== true) return;
+      flow.confirmed = false;
+      flow.autoPosted = false;
+      flow.autoPostedLegacy = true;
+      flow.confidence = flow.confidence || 'CERTAIN';
+      flow.updatedAt = now();
+      changed = true;
+    });
+    if (changed) data.updatedAt = now();
+    return data;
+  }
+
   function migrate(raw) {
     var data = raw;
     if (!data || typeof data !== 'object') return empty();
@@ -249,17 +272,9 @@
       }
     });
 
-    /* Chỉ nghĩa vụ CERTAIN mới được auto-post khi tới hạn. EXPECTED/UNCERTAIN
-       phải chờ người dùng xác nhận, nếu không một khoản thu trễ sẽ làm số dư
-       hiện tại an toàn giả. */
-    var t = D.today();
-    data.flows.forEach(function (f) {
-      if (!f || f.deletedAt || f.skipped || f.confirmed) return;
-      if (String(f.date || '') <= t && f.confidence === 'CERTAIN') {
-        f.confirmed = true;
-        f.autoPosted = true;
-      }
-    });
+    /* Dữ liệu cũ từng auto-post nghĩa vụ CERTAIN. Runtime hiện tại tách
+       committed khỏi actual; normalize ngay trong canonical store thay vì dùng adapter. */
+    normalizeCommittedVsActual(data);
 
     /* Khi lịch chắc chắn đã tự ghi đủ gốc và lãi, đóng hợp đồng ngay để không
        còn xuất hiện như một khoản đang mở trong form trả/thu nợ. */
@@ -415,6 +430,7 @@
   global.RootflowStore = {
     KEY: KEY, SCHEMA: SCHEMA, TRASH_DAYS: TRASH_DAYS,
     uid: uid, now: now, empty: empty, load: load, save: save, persist: persist,
-    clearAll: clearAll, exportFile: exportFile, importFile: importFile
+    clearAll: clearAll, exportFile: exportFile, importFile: importFile,
+    normalizeCommittedVsActual: normalizeCommittedVsActual
   };
 })(window);

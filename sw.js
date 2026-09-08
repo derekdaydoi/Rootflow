@@ -1,21 +1,15 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-08-typography-and-editing';
+var CACHE = 'rootflow-cache-2026-09-08-canonical';
 
 var ASSETS = [
   './',
   './index.html',
   './styles.css',
   './capital.css',
-  './effects.css',
-  './brand/rootflow-splash.css',
   './domain.js',
   './cashflow-domain.js',
   './capital-domain.js',
-  './compat.js',
-  './i18n-base.js',
-  './i18n-capital.js',
   './store.js',
-  './store-adapter.js',
   './selftest.js',
   './capital-ui.js',
   './app.js',
@@ -80,6 +74,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|effects\.css|rootflow-splash\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|compat\.js|i18n-base\.js|i18n-capital\.js|store\.js|store-adapter\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });

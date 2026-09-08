@@ -82,9 +82,9 @@ localStorage.setItem('rootflow.data', JSON.stringify({
   contracts: [{ id: 'paid', type: 'payable', originalPrincipal: 100, interestMode: 'none', settlementAccountId: 'bank', status: 'active' }]
 }));
 const matured = context.RootflowStore.load();
-assert.equal(matured.data.flows[0].confirmed, true);
-assert.equal(matured.data.flows[0].autoPosted, true);
-assert.equal(matured.data.contracts[0].status, 'closed');
+assert.equal(matured.data.flows[0].confirmed, false);
+assert.equal(matured.data.flows[0].autoPosted, undefined);
+assert.equal(matured.data.contracts[0].status, 'active');
 
 memory.clear();
 localStorage.setItem('rootflow.data', JSON.stringify({

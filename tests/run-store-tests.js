@@ -24,7 +24,6 @@ function load(file) {
 load('domain.js');
 load('cashflow-domain.js');
 load('store.js');
-load('store-adapter.js');
 
 const D = global.RootflowDomain;
 const S = global.RootflowStore;

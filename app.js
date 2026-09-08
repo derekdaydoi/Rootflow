@@ -282,22 +282,6 @@
     return h('span', { className: 'status-pill ' + statusClass(props.status) }, props.label || statusVi(props.status));
   }
 
-  function BottomNav(props) {
-    var items = [
-      ['home', 'home', 'Home'], ['flow', 'flow', 'Flow'], ['position', 'position', 'Position'], ['decide', 'decide', 'Decide']
-    ];
-    return h('div', { className: 'bottom-nav-wrap' }, h('nav', { className: 'bottom-nav', 'aria-label': 'Điều hướng chính' },
-      items.slice(0, 2).map(function (item) {
-        return h('button', { key: item[0], type: 'button', className: 'nav-button ' + (props.view === item[0] ? 'on' : ''), onClick: function () { props.onGo(item[0]); } },
-          h(Icon, { name: item[1] }), h('span', null, item[2]));
-      }),
-      h('button', { type: 'button', className: 'nav-add', onClick: props.onAdd, 'aria-label': 'Thêm giao dịch' }, h(Icon, { name: 'plus' })),
-      items.slice(2).map(function (item) {
-        return h('button', { key: item[0], type: 'button', className: 'nav-button ' + (props.view === item[0] ? 'on' : ''), onClick: function () { props.onGo(item[0]); } },
-          h(Icon, { name: item[1] }), h('span', null, item[2]));
-      })));
-  }
-
   function Sheet(props) {
     React.useEffect(function () {
       function key(event) { if (event.key === 'Escape') props.onClose(); }
@@ -346,319 +330,6 @@
     return h('select', attrs, props.children);
   }
 
-  function LiquidityChart(props) {
-    var model = props.model;
-    var points = model.points || [];
-    var expected = model.expectedPoints || [];
-    var W = 340, H = 136, left = 4, right = 4, top = 12, bottom = 22;
-    var values = points.map(function (p) { return p.value; }).concat([model.hardFloor, model.operatingBuffer]);
-    var min = Math.min.apply(Math, values), max = Math.max.apply(Math, values);
-    if (min === max) { min -= 1; max += 1; }
-    var pad = Math.max(1, (max - min) * .12); min -= pad; max += pad;
-    function x(i) { return left + (points.length < 2 ? 0 : i / (points.length - 1) * (W - left - right)); }
-    function y(v) { return top + (max - v) / (max - min) * (H - top - bottom); }
-    function path(rows) { return rows.map(function (p, i) { return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.value).toFixed(1); }).join(' '); }
-    var lowIndex = 0;
-    points.forEach(function (p, i) { if (p.value < points[lowIndex].value) lowIndex = i; });
-    return h('div', { className: 'chart-card' },
-      h('div', { className: 'chart-title' }, h('strong', null, 'Thanh khoản dự phóng'), h('span', null, model.horizonDays + ' ngày')),
-      h('svg', { className: 'liquidity-chart', viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Đường tiền khả dụng dự phóng và các ngưỡng an toàn' },
-        h('line', { x1: left, x2: W - right, y1: y(model.operatingBuffer), y2: y(model.operatingBuffer), stroke: '#a9b0ac', strokeWidth: 1, strokeDasharray: '4 4' }),
-        h('line', { x1: left, x2: W - right, y1: y(model.hardFloor), y2: y(model.hardFloor), stroke: '#b34a43', strokeWidth: 1.2 }),
-        model.dependsOnExpected ? h('path', { d: path(expected), fill: 'none', stroke: '#78ad90', strokeWidth: 1.6, strokeDasharray: '4 4' }) : null,
-        h('path', { d: path(points), fill: 'none', stroke: '#176b45', strokeWidth: 2.5, strokeLinecap: 'round', strokeLinejoin: 'round' }),
-        points.length ? h('circle', { cx: x(0), cy: y(points[0].value), r: 3.5, fill: '#176b45' }) : null,
-        points.length ? h('circle', { cx: x(lowIndex), cy: y(points[lowIndex].value), r: 4, fill: model.status === 'UNSAFE' ? '#b34a43' : '#176b45', stroke: '#fff', strokeWidth: 2 }) : null,
-        h('text', { className: 'chart-label risk', x: W - right, y: y(model.hardFloor) - 5, textAnchor: 'end' }, 'Floor ' + compactMoney(model.hardFloor)),
-        h('text', { className: 'chart-label', x: left, y: H - 4 }, D.fmtDate(points[0] && points[0].date)),
-        h('text', { className: 'chart-label', x: W - right, y: H - 4, textAnchor: 'end' }, D.fmtDate(points[points.length - 1] && points[points.length - 1].date))),
-      h('div', { className: 'chart-legend' },
-        h('span', { className: 'legend-item' }, h('i', { className: 'legend-line' }), 'Confirmed path'),
-        model.dependsOnExpected ? h('span', { className: 'legend-item' }, h('i', { className: 'legend-line', style: { background: '#78ad90' } }), 'Expected inflow') : null,
-        h('span', { className: 'legend-item' }, h('i', { className: 'legend-line floor' }), 'Hard floor')));
-  }
-
-  function EmptyState(props) {
-    return h('div', { className: 'empty-state' },
-      h('div', { className: 'empty-icon' }, h(Icon, { name: props.icon || 'wallet' })),
-      h('h2', null, props.title), h('p', null, props.copy),
-      props.action ? h('button', { type: 'button', className: 'primary-button', onClick: props.onAction }, props.action) : null);
-  }
-
-  function FlowRow(props) {
-    var flow = props.flow;
-    var amount = flowAmount(flow, props.accounts);
-    return h('div', { className: 'flow-row' },
-      h('div', { className: 'flow-date' }, D.fmtDate(flow.date)),
-      h('div', { className: 'flow-icon' }, h(Icon, { name: kindIcon(flow.kind) })),
-      h('div', { className: 'flow-copy' },
-        h('div', { className: 'flow-title', title: flowName(flow, props.accounts) }, flowName(flow, props.accounts)),
-        h('div', { className: 'flow-meta' }, flow.confirmed ? 'Đã ghi nhận' : confidenceLabel(flow))),
-      h('div', { className: 'flow-amount ' + (amount < 0 ? 'negative' : amount > 0 ? 'positive' : '') }, compactMoney(amount, true)));
-  }
-
-  function Home(props) {
-    var d = props.derived;
-    var model = d.liquidity;
-    if (!d.liquidAccounts.length) {
-      return h('main', { className: 'page' },
-        h(AppBar, { title: h(BrandTitle), brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
-        h('div', { className: 'content' },
-          h('div', { className: 'eyebrow' }, 'Personal Treasury'),
-          h('h2', { style: { margin: '7px 0 4px', fontSize: 25, lineHeight: 1.2 } }, 'Biết tiền của bạn có an toàn hay không.'),
-          h('p', { className: 'section-copy', style: { marginTop: 6 } }, 'Thêm số dư tiền đầu tiên. Rootflow sẽ dựng vị thế, timeline và buffer ngay trên thiết bị này.'),
-          h(EmptyState, { title: 'Bắt đầu bằng số dư hiện tại', copy: 'Tiền mặt, ngân hàng hoặc ví điện tử. Bạn có thể thêm nợ và khoản phải thu sau.', action: 'Thiết lập số dư', onAction: props.onAddAccount })));
-    }
-    var status = model.status;
-    var pressure = d.pressureFlows;
-    var gap = Math.max(0, -model.liquidityBuffer);
-    var monthlyBudgets = budgetRows(props.data, D.monthOf(D.today()));
-    var activeBudgets = monthlyBudgets.filter(function (row) { return row.limit > 0; });
-    return h('main', { className: 'page' },
-      h(AppBar, { title: h(BrandTitle), brand: true }, h(IconButton, { icon: 'settings', label: 'Cài đặt', onClick: props.onSettings })),
-      h('div', { className: 'content' },
-        h('section', { className: 'hero' },
-          h('div', { className: 'hero-top' },
-            h('div', null, h('div', { className: 'eyebrow' }, 'Liquidity buffer'),
-              h('div', { className: 'hero-amount ' + (model.liquidityBuffer < 0 ? 'negative' : '') }, compactMoney(model.liquidityBuffer, true)),
-              h('div', { className: 'hero-summary' }, status === 'SAFE' ? 'Dòng tiền đã xác nhận vẫn trên mức vận hành.' : status === 'TIGHT' ? 'Không thủng sàn, nhưng đi dưới mức vận hành.' : 'Dòng tiền đã xác nhận sẽ thủng sàn an toàn.')),
-            h(StatusPill, { status: status })),
-          h('div', { className: 'hero-meta' },
-            h('div', null, h('span', null, 'Projected low'), h('strong', null, compactMoney(model.projectedLow))),
-            h('div', null, h('span', null, 'Hard floor'), h('strong', null, compactMoney(model.hardFloor))),
-            h('div', null, h('span', null, status === 'SAFE' ? 'Safe through' : 'Pressure date'), h('strong', null, D.fmtDate(model.pressurePointDate))))),
-        h(LiquidityChart, { model: model }),
-        model.hardFloor === 0 ? h('div', { className: 'data-note' }, 'Bạn chưa đặt hard floor. Kết quả hiện dùng 0 làm sàn tuyệt đối. Mở Cài đặt để đặt ngưỡng thật.') : null,
-        h('section', { className: 'section' },
-          h('div', { className: 'section-kicker' }, 'Next pressure point'),
-          h('h2', { className: 'section-heading', style: { marginTop: 4 } }, D.fmtDateFull(model.pressurePointDate)),
-          h('div', { className: 'pressure-card' },
-            h('div', { className: 'pressure-head' },
-              h('div', null, h('div', { className: 'pressure-date' }, pressure.length ? flowName(pressure[0], props.data.accounts) : 'Mức tiền thấp nhất'),
-                h('div', { className: 'pressure-note' }, statusVi(status) + ' theo dòng đã xác nhận')),
-              h(StatusPill, { status: status })),
-            pressure.slice(0, 3).map(function (flow) {
-              var amount = flowAmount(flow, props.data.accounts);
-              return h('div', { className: 'pressure-row', key: flow.id },
-                h('div', { className: 'row-label' }, h('strong', null, flowName(flow, props.data.accounts)), h('span', null, confidenceLabel(flow))),
-                h('div', { className: 'row-value ' + (amount < 0 ? 'negative' : 'positive') }, compactMoney(amount, true)));
-            }),
-            h('div', { className: 'pressure-row' },
-              h('div', { className: 'row-label' }, h('strong', null, gap ? 'Thiếu hụt tạm tính' : 'Buffer còn lại'), h('span', null, 'So với hard floor')),
-              h('div', { className: 'row-value ' + (gap ? 'negative' : 'positive') }, compactMoney(gap || model.liquidityBuffer, !gap))))),
-        h('section', { className: 'section' },
-          h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } },
-            h('h2', { className: 'section-heading', style: { margin: 0 } }, 'Dòng tiền sắp tới'),
-            h('button', { type: 'button', className: 'text-button', onClick: props.onFlow }, 'Xem tất cả')),
-          d.upcoming.length ? h('div', { className: 'flow-list' }, d.upcoming.slice(0, 5).map(function (flow) { return h(FlowRow, { key: flow.id, flow: flow, accounts: props.data.accounts }); }))
-            : h('p', { className: 'section-copy', style: { marginTop: 8 } }, 'Chưa có nghĩa vụ hay khoản thu nào trong 30 ngày tới.')),
-        h('section', { className: 'section' },
-          h('div', { className: 'section-head-row' },
-            h('div', null, h('h2', { className: 'section-heading', style: { margin: 0 } }, 'Kế hoạch chi tiêu tháng'), h('p', { className: 'section-copy budget-section-copy' }, D.fmtMonth(D.monthOf(D.today())))),
-            h('button', { type: 'button', className: 'text-button', onClick: props.onBudgets }, activeBudgets.length ? 'Quản lý' : 'Thiết lập')),
-          activeBudgets.length ? h('div', { className: 'budget-preview-grid' }, activeBudgets.slice(0, 4).map(function (row) {
-            var pct = row.limit ? Math.min(100, row.spent / row.limit * 100) : 0;
-            return h('button', { type: 'button', className: 'budget-preview ' + (row.spent > row.limit ? 'over' : row.spent >= row.limit * .8 ? 'warning' : ''), key: row.category.id, onClick: props.onBudgets },
-              h('div', { className: 'budget-icon' }, h(Icon, { name: row.category.icon })),
-              h('div', { className: 'budget-preview-copy' }, h('strong', null, row.category.label), h('span', null, compactMoney(row.spent) + ' / ' + compactMoney(row.limit))),
-              h('div', { className: 'budget-progress' }, h('i', { style: { width: pct + '%' } })));
-          })) : h('button', { type: 'button', className: 'budget-empty-cta', onClick: props.onBudgets },
-            h('div', { className: 'budget-empty-icons' }, ['food', 'coffee', 'shopping', 'fuel'].map(function (name) { return h('span', { key: name }, h(Icon, { name: name })); })),
-            h('strong', null, 'Đặt hạn mức theo từng nhóm'),
-            h('span', null, 'Theo dõi ăn uống, cafe, mua sắm, nhà cửa và các chi phí định kỳ.'))),
-        h('section', { className: 'section' },
-          h('button', { type: 'button', className: 'secondary-button', onClick: props.onRisk }, 'Mở Buffer & Risk'),
-          h('div', { className: 'net-card' }, h('div', { className: 'net-card-row' },
-            h('div', null, h('div', { className: 'section-kicker' }, 'Cash hiện tại'), h('p', null, d.liquidAccounts.length + ' tài khoản khả dụng')),
-            h('strong', null, compactMoney(d.totals.liquid)))))));
-  }
-
-  function FlowScreen(props) {
-    var today = D.today();
-    var tabState = React.useState('timeline'), tab = tabState[0], setTab = tabState[1];
-    var ymState = React.useState(D.monthOf(today)), ym = ymState[0], setYm = ymState[1];
-    var selectedState = React.useState(today), selectedDate = selectedState[0], setSelectedDate = selectedState[1];
-    var filterState = React.useState('all'), filter = filterState[0], setFilter = filterState[1];
-    var bounds = D.monthBounds(ym);
-    var allLive = props.data.flows.filter(function (f) {
-      return !f.deletedAt && !f.skipped && (filter === 'all' || f.confirmed || D.confidenceOf(f) === 'CERTAIN');
-    }).slice().sort(function (a, b) {
-      return String(a.date).localeCompare(String(b.date));
-    });
-    var live = allLive.filter(function (f) { return f.date >= bounds.from && f.date <= bounds.to; });
-    var past = allLive.filter(function (f) { return f.confirmed && f.date < today; }).slice(-8);
-    var current = allLive.filter(function (f) { return f.date === today; });
-    var future = allLive.filter(function (f) { return !f.confirmed && f.date > today; }).slice(0, 18);
-    var month = D.monthSummary(props.data.accounts, props.data.flows, ym);
-    var selectedFlows = live.filter(function (f) { return f.date === selectedDate; });
-    var parts = ym.split('-'), year = Number(parts[0]), monthNumber = Number(parts[1]);
-    var dayCount = new Date(year, monthNumber, 0).getDate();
-    var firstOffset = (new Date(year, monthNumber - 1, 1).getDay() + 6) % 7;
-    var calendarCells = [];
-    for (var blank = 0; blank < firstOffset; blank++) calendarCells.push(null);
-    for (var day = 1; day <= dayCount; day++) calendarCells.push(ym + '-' + String(day).padStart(2, '0'));
-    function changeMonth(step) {
-      var next = D.addMonthsToYm(ym, step);
-      setYm(next); setSelectedDate(next === D.monthOf(today) ? today : next + '-01');
-    }
-    function timelineRow(flow, isToday) {
-      var amount = flowAmount(flow, props.data.accounts);
-      return h('div', { className: 'timeline-row', key: flow.id },
-        h('div', { className: 'flow-date' }, D.fmtDate(flow.date)),
-        h('div', { className: 'timeline-dot ' + (isToday ? 'today' : '') }),
-        h('div', { className: 'timeline-copy' }, h('div', { className: 'timeline-title', title: flowName(flow, props.data.accounts) }, flowName(flow, props.data.accounts)),
-          h('div', { className: 'timeline-meta' }, flow.confirmed ? 'Actual' : confidenceLabel(flow))),
-        h('div', { className: 'flow-amount ' + (amount < 0 ? 'negative' : 'positive') }, compactMoney(amount, true)));
-    }
-    function timelineView() {
-      if (!allLive.length) return h(EmptyState, { icon: 'flow', title: 'Chưa có dòng tiền', copy: 'Dùng nút + để ghi tiền vào, tiền ra, vay, cho vay hoặc nghĩa vụ sắp tới.', action: 'Thêm giao dịch', onAction: props.onAdd });
-      var isCurrentMonth = ym === D.monthOf(today);
-      return h('div', { className: 'timeline' },
-        past.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, isCurrentMonth ? 'Quá khứ' : 'Đã ghi nhận'), past.map(function (f) { return timelineRow(f, false); })) : null,
-        isCurrentMonth ? h(React.Fragment, null,
-          h('div', { className: 'timeline-group' }, 'Hôm nay'),
-          current.length ? current.map(function (f) { return timelineRow(f, true); }) : h('div', { className: 'timeline-row' }, h('div', { className: 'flow-date' }, D.fmtDate(today)), h('div', { className: 'timeline-dot today' }), h('div', { className: 'timeline-copy' }, h('div', { className: 'timeline-title' }, 'Hôm nay'), h('div', { className: 'timeline-meta' }, 'Không có dòng tiền')), h('div'))) : null,
-        future.length ? h(React.Fragment, null, h('div', { className: 'timeline-group' }, 'Tương lai'), future.map(function (f) { return timelineRow(f, false); })) : null);
-    }
-    function calendarView() {
-      return h('div', null,
-        h('div', { className: 'calendar-weekdays' }, ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(function (label) { return h('span', { key: label }, label); })),
-        h('div', { className: 'calendar-grid' }, calendarCells.map(function (date, index) {
-          if (!date) return h('span', { className: 'calendar-blank', key: 'b' + index });
-          var rows = live.filter(function (f) { return f.date === date; });
-          return h('button', { type: 'button', key: date, className: 'calendar-day ' + (date === selectedDate ? 'selected ' : '') + (date === today ? 'today' : ''), onClick: function () { setSelectedDate(date); } },
-            h('span', null, Number(date.slice(-2))), rows.length ? h('i', { className: rows.some(function (f) { return flowAmount(f, props.data.accounts) < 0; }) ? 'out' : 'in' }) : null);
-        })),
-        h('div', { className: 'calendar-events' }, h('h3', null, D.fmtDateFull(selectedDate)),
-          selectedFlows.length ? h('div', { className: 'flow-list' }, selectedFlows.map(function (flow) { return h(FlowRow, { key: flow.id, flow: flow, accounts: props.data.accounts }); })) : h('p', { className: 'section-copy' }, 'Không có dòng tiền trong ngày này.')));
-    }
-    return h('main', { className: 'page' },
-      h(AppBar, { title: 'Flow', subtitle: filter === 'certain' ? 'Chỉ dòng đã xác nhận' : 'Quá khứ · hiện tại · tương lai' }, h(IconButton, { icon: 'filter', label: filter === 'all' ? 'Chỉ hiện dòng đã xác nhận' : 'Hiện tất cả dòng tiền', onClick: function () { setFilter(filter === 'all' ? 'certain' : 'all'); } })),
-      h('div', { className: 'content' },
-        h('div', { className: 'segmented' }, h('button', { type: 'button', className: 'seg-button ' + (tab === 'timeline' ? 'on' : ''), onClick: function () { setTab('timeline'); } }, 'Timeline'), h('button', { type: 'button', className: 'seg-button ' + (tab === 'calendar' ? 'on' : ''), onClick: function () { setTab('calendar'); } }, 'Calendar')),
-        h('div', { className: 'month-control' }, h(IconButton, { icon: 'back', label: 'Tháng trước', onClick: function () { changeMonth(-1); } }), h('strong', null, D.fmtMonth(ym)), h(IconButton, { icon: 'chevron', label: 'Tháng sau', onClick: function () { changeMonth(1); } })),
-        tab === 'calendar' ? calendarView() : timelineView(),
-        h('div', { className: 'metric-strip' },
-          h('div', { className: 'metric-box' }, h('div', { className: 'metric-label' }, 'Thu tháng'), h('div', { className: 'metric-value positive' }, compactMoney(month.income, true))),
-          h('div', { className: 'metric-box' }, h('div', { className: 'metric-label' }, 'Chi tháng'), h('div', { className: 'metric-value negative' }, compactMoney(-month.expense, true))),
-          h('div', { className: 'metric-box' }, h('div', { className: 'metric-label' }, 'Dòng tiền ròng'), h('div', { className: 'metric-value ' + (month.netCash < 0 ? 'negative' : 'positive') }, compactMoney(month.netCash, true))))));
-  }
-
-  function PositionScreen(props) {
-    var d = props.derived;
-    var metrics = d.metrics;
-    var total = Math.max(1, d.totals.assets);
-    var slices = [d.totals.liquid, d.totals.investment, d.totals.receivable, d.totals.fixedAsset];
-    var colors = ['#176b45', '#3c8b61', '#74a985', '#b7cdbb'];
-    var cursor = 0, stops = [];
-    slices.forEach(function (value, i) { var next = cursor + value / total * 100; stops.push(colors[i] + ' ' + cursor + '% ' + next + '%'); cursor = next; });
-    if (cursor < 100) stops.push('#e1e5e1 ' + cursor + '% 100%');
-    var have = [
-      ['cash', 'Tiền sẵn sàng', d.totals.liquid], ['work', 'Tiền đang làm việc', d.totals.investment],
-      ['people', 'Người khác nợ bạn', d.totals.receivable], ['asset', 'Tài sản khác', d.totals.fixedAsset]
-    ];
-    var owe = props.data.accounts.filter(function (a) { return !a.archived && D.isLiability(a); });
-    var interestSchedule = props.data.flows.filter(function (flow) {
-      return flow && !flow.deletedAt && !flow.skipped && !flow.confirmed && flow.kind === 'repay' && D.repayCost(flow) > 0 && flow.date >= D.today();
-    }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); }).slice(0, 6);
-    return h('main', { className: 'page' },
-      h(AppBar, { title: 'Position', subtitle: 'Vị thế tài chính hiện tại' }, h(IconButton, { icon: 'info', label: 'Giải thích vị thế', onClick: props.onSettings })),
-      h('div', { className: 'content' },
-        h('div', { className: 'segmented' }, h('button', { className: 'seg-button on', type: 'button' }, 'Tóm tắt'), h('button', { className: 'seg-button', type: 'button' }, 'Chi tiết')),
-        h('section', null,
-          h('div', { className: 'position-total' }, h('span', null, 'BẠN ĐANG CÓ'), h('strong', null, compactMoney(d.totals.assets))),
-          have.map(function (row) { return h('div', { className: 'position-row', key: row[1] }, h('div', { className: 'position-label' }, h('div', { className: 'flow-icon' }, h(Icon, { name: row[0] })), h('span', null, row[1])), h('div', { className: 'position-value' }, compactMoney(row[2]))); }),
-          h('div', { className: 'position-visual' },
-            h('div', { className: 'donut', style: { background: 'conic-gradient(' + stops.join(',') + ')' } }, h('div', { className: 'donut-center' }, h('strong', null, compactMoney(d.totals.assets)), h('span', null, 'Tổng tài sản'))),
-            h('div', { className: 'legend-list' }, have.map(function (row, i) { return h('div', { className: 'legend-row', key: row[1] }, h('i', { className: 'legend-dot', style: { background: colors[i] } }), h('span', null, row[1]), h('strong', null, Math.round(row[2] / total * 100) + '%')); })) )),
-        h('section', { className: 'section' },
-          h('div', { className: 'position-total' }, h('span', null, 'BẠN ĐANG NỢ'), h('strong', { style: { color: 'var(--text)' } }, compactMoney(d.totals.liability))),
-          owe.length ? owe.map(function (account) { return h('div', { className: 'position-row', key: account.id }, h('div', { className: 'position-label' }, h('div', { className: 'flow-icon' }, h(Icon, { name: account.type === 'credit_card' ? 'wallet' : 'borrow' })), h('span', { title: account.name }, account.name)), h('div', { className: 'position-value' }, compactMoney(d.balances[account.id] || 0))); }) : h('p', { className: 'section-copy' }, 'Không có khoản nợ đang hoạt động.'),
-          h('div', { className: 'net-card' }, h('div', { className: 'net-card-row' }, h('div', null, h('div', { className: 'section-kicker' }, 'Giá trị ròng của bạn'), h('p', null, 'Tài sản − các khoản đang nợ')), h('strong', null, compactMoney(d.totals.netWorth))))),
-        h('section', { className: 'section' },
-          h('div', { className: 'section-kicker' }, 'Treasury control'),
-          h('h2', { className: 'section-heading', style: { marginTop: 4 } }, 'Chi phí nợ & thu nhập tháng'),
-          h('div', { className: 'control-metric-grid' }, [
-            ['Revolving debt', metrics.revolvingDebt], ['Installment debt', metrics.installmentDebt],
-            ['Debt service', metrics.monthlyDebtService], ['Lãi phải trả', metrics.monthlyInterestExpense],
-            ['Phí theo lịch', metrics.monthlyFees], ['Phí chưa có ngày', metrics.unallocatedFees], ['Rollover exposure', metrics.rolloverCostExposure],
-            ['Thu nhập kỳ vọng', metrics.expectedMonthlyIncome], ['Lãi cho vay', metrics.expectedLendingInterestIncome],
-            ['Net cashflow kỳ vọng', metrics.netExpectedMonthlyCashflow], ['Receivable dùng vốn vay', metrics.fundingLinkedReceivables]
-          ].map(function (row) { return h('div', { className: 'control-metric', key: row[0] }, h('span', null, row[0]), h('strong', { className: row[1] < 0 ? 'negative' : '' }, compactMoney(row[1], row[0] === 'Net cashflow kỳ vọng'))); }))),
-        interestSchedule.length ? h('section', { className: 'section loan-interest-section' },
-          h('div', { className: 'section-kicker' }, 'Cashflow nghĩa vụ'),
-          h('h2', { className: 'section-heading', style: { marginTop: 4 } }, 'Lịch trả lãi sắp tới'),
-          h('div', { className: 'interest-schedule-card' }, interestSchedule.map(function (flow) {
-            return h('div', { className: 'interest-schedule-row', key: flow.id },
-              h('div', { className: 'interest-date' }, D.fmtDate(flow.date)),
-              h('div', { className: 'row-label' }, h('strong', null, flow.counterpartyName || 'Khoản vay'), h('span', null, flow.note || 'Kỳ trả lãi')),
-              h('div', { className: 'interest-amount' }, h('span', null, D.repayFee(flow) ? 'Lãi + phí' : 'Lãi'), h('strong', null, compactMoney(D.repayCost(flow)))));
-          }))) : null,
-        h('button', { type: 'button', className: 'text-button', style: { width: '100%', marginTop: 10 }, onClick: props.onSettings }, 'Xem chi tiết kế toán')));
-  }
-
-  function BufferRisk(props) {
-    var model = props.derived.liquidity;
-    var pct = model.operatingBuffer > 0 ? Math.max(0, Math.min(100, model.projectedLow / model.operatingBuffer * 100)) : 100;
-    return h('main', { className: 'page' },
-      h(AppBar, { title: 'Buffer & Risk', subtitle: 'Vì sao trạng thái này xuất hiện', onBack: props.onBack }, h(IconButton, { icon: 'info', label: 'Giải thích buffer', onClick: props.onSettings })),
-      h('div', { className: 'content' },
-        h('div', { className: 'risk-grid' },
-          h('div', { className: 'risk-card wide' }, h('div', { className: 'risk-label' }, 'Liquidity runway'), h('div', { className: 'risk-value' }, model.runwayCapped ? '≥ ' + model.runwayDays : model.runwayDays, h('small', null, ' ngày')), h('div', { className: 'risk-note' }, model.runwayCapped ? 'Không chạm 0 trong kỳ dự phóng.' : 'Số ngày trước khi tiền khả dụng chạm 0.'), h('div', { className: 'buffer-track' }, h('div', { className: 'buffer-fill ' + statusClass(model.status), style: { width: pct + '%' } }))),
-          h('div', { className: 'risk-card' }, h('div', { className: 'risk-label' }, 'Projected low'), h('div', { className: 'risk-value' }, compactMoney(model.projectedLow)), h('div', { className: 'risk-note' }, D.fmtDateFull(model.pressurePointDate))),
-          h('div', { className: 'risk-card' }, h('div', { className: 'risk-label' }, 'Liquidity buffer'), h('div', { className: 'risk-value', style: model.liquidityBuffer < 0 ? { color: 'var(--danger)' } : null }, compactMoney(model.liquidityBuffer, true)), h('div', { className: 'risk-note' }, 'So với hard floor ' + compactMoney(model.hardFloor))),
-          h('div', { className: 'risk-card wide' }, h('div', { className: 'risk-label' }, 'Operating headroom'), h('div', { className: 'risk-value', style: model.operatingHeadroom < 0 ? { color: 'var(--warning)' } : null }, compactMoney(model.operatingHeadroom, true)), h('div', { className: 'risk-note' }, 'So với mức vận hành ' + compactMoney(model.operatingBuffer)), h('div', { className: 'buffer-track' }, h('div', { className: 'buffer-fill ' + statusClass(model.status), style: { width: pct + '%' } })))),
-        h('section', { className: 'section' }, h('h2', { className: 'section-heading' }, 'Điểm an toàn'),
-          h('div', { className: 'pressure-card' },
-            h('div', { className: 'summary-row' }, h('span', null, 'Tiền khả dụng hiện tại'), h('strong', { className: 'row-value' }, compactMoney(model.current))),
-            h('div', { className: 'summary-row' }, h('span', null, 'Hard floor'), h('strong', { className: 'row-value' }, compactMoney(model.hardFloor))),
-            h('div', { className: 'summary-row' }, h('span', null, 'Operating buffer'), h('strong', { className: 'row-value' }, compactMoney(model.operatingBuffer))),
-            h('div', { className: 'summary-row' }, h('span', null, 'Trạng thái'), h(StatusPill, { status: model.status })) )),
-        model.status !== 'SAFE' ? h('div', { className: 'alert-card' }, h(Icon, { name: 'warning' }), h('div', null, h('strong', null, model.status === 'UNSAFE' ? 'Có rủi ro thủng hard floor' : 'Buffer vận hành đang căng'), h('span', null, 'Điểm áp lực ' + D.fmtDateFull(model.pressurePointDate) + '. Kết quả chính không tính inflow Expected là tiền chắc chắn.'))) : null,
-        model.dependsOnExpected ? h('div', { className: 'data-note' }, 'Nếu các khoản Expected đến đúng hạn, projected low là ' + compactMoney(model.expectedLow) + '. Rootflow không dùng con số đó để chứng minh an toàn.') : null,
-        h('section', { className: 'section' }, h('div', { className: 'safe-deploy' }, h('span', null, 'SAFE TO DEPLOY NOW'), h('strong', null, '≤ ' + compactMoney(model.safeDeployableNow)), h('span', null, 'Giữ dòng tiền đã xác nhận trên hard floor.')))));
-  }
-
-  var DECISIONS = [
-    ['lend', 'lend', 'Cho vay'], ['buy_asset', 'asset', 'Mua tài sản'], ['borrow', 'borrow', 'Vay tiền'],
-    ['invest', 'work', 'Đầu tư'], ['repay', 'repay', 'Trả nợ sớm'], ['commitment', 'calendar', 'Thêm nghĩa vụ']
-  ];
-
-  function DecideScreen(props) {
-    var firstLiquid = props.derived.liquidAccounts[0];
-    var state = React.useState({ kind: 'lend', amount: '', counterparty: '', date: D.addDays(D.today(), 30), accountId: firstLiquid ? firstLiquid.id : '' });
-    var form = state[0], setForm = state[1];
-    function set(key, value) { setForm(function (prev) { var next = Object.assign({}, prev); next[key] = value; return next; }); }
-    var amount = D.parseMoney(form.amount);
-    var sim = D.simulateDecision(props.data.accounts, props.data.flows, props.data.settings, { kind: form.kind, amount: amount });
-    var after = sim.after;
-    function saveScenario() {
-      if (!amount) return props.onToast('Nhập số tiền cần mô phỏng.');
-      props.onSaveScenario({ name: DECISIONS.filter(function (x) { return x[0] === form.kind; })[0][2], kind: form.kind, amount: amount, date: form.date, counterpartyName: form.counterparty });
-    }
-    return h('main', { className: 'page' },
-      h(AppBar, { title: 'Decide', subtitle: 'Mô phỏng trước khi quyết định' }, h(IconButton, { icon: 'clock', label: 'Kịch bản đã lưu', onClick: props.onSettings })),
-      h('div', { className: 'content' },
-        h('div', { className: 'eyebrow' }, 'Bạn đang cân nhắc điều gì?'),
-        h('div', { className: 'decision-options', style: { marginTop: 10 } }, DECISIONS.map(function (item) {
-          return h('button', { key: item[0], type: 'button', className: 'decision-option ' + (form.kind === item[0] ? 'on' : ''), onClick: function () { set('kind', item[0]); } }, h(Icon, { name: item[1] }), h('span', null, item[2]));
-        })),
-        h('div', { className: 'decision-form' },
-          h(Field, { label: 'Số tiền' }, h(MoneyInput, { value: form.amount, onChange: function (v) { set('amount', v); }, placeholder: '30M' })),
-          (form.kind === 'lend' || form.kind === 'borrow') ? h(Field, { label: form.kind === 'lend' ? 'Người vay' : 'Người cho vay' }, h(TextInput, { value: form.counterparty, onChange: function (e) { set('counterparty', e.target.value); }, placeholder: 'Tên đối tác' })) : null,
-          h(Field, { label: form.kind === 'lend' ? 'Ngày dự kiến thu' : 'Ngày thực hiện' }, h(TextInput, { type: 'date', value: form.date, onChange: function (e) { set('date', e.target.value); } }))),
-        h('div', { className: 'result-card ' + statusClass(after.status) },
-          h('div', { className: 'result-head' }, h('strong', null, 'KẾT QUẢ MÔ PHỎNG'), h(StatusPill, { status: after.status })),
-          h('div', { className: 'result-row' }, h('span', null, 'Projected low trước'), h('span', { className: 'result-value' }, compactMoney(sim.before.projectedLow))),
-          h('div', { className: 'result-row' }, h('span', null, 'Projected low sau'), h('span', { className: 'result-value ' + (after.projectedLow < 0 ? 'negative' : '') }, compactMoney(after.projectedLow))),
-          h('div', { className: 'result-row' }, h('span', null, 'Hard floor'), h('span', { className: 'result-value' }, compactMoney(after.hardFloor))),
-          h('div', { className: 'result-row' }, h('span', null, 'Liquidity buffer'), h('span', { className: 'result-value', style: after.liquidityBuffer < 0 ? { color: 'var(--danger)' } : { color: 'var(--positive)' } }, compactMoney(after.liquidityBuffer, true))),
-          h('div', { className: 'result-row' }, h('span', null, 'Pressure point'), h('span', { className: 'result-value' }, D.fmtDate(after.pressurePointDate))),
-          after.status === 'UNSAFE' ? h('div', { className: 'alert-card' }, h(Icon, { name: 'warning' }), h('div', null, h('strong', null, 'Không an toàn với kế hoạch này'), h('span', null, 'Giảm số tiền xuống ≤ ' + compactMoney(sim.before.safeDeployableNow) + ' hoặc chờ thêm nguồn tiền đã xác nhận.'))) : null),
-        h('div', { className: 'safe-deploy' }, h('span', null, 'SAFE TO DEPLOY NOW'), h('strong', null, '≤ ' + compactMoney(sim.before.safeDeployableNow)), h('span', null, 'Không dùng inflow Expected để nâng mức này.')),
-        h('div', { className: 'button-row' }, h('button', { type: 'button', className: 'primary-button', onClick: saveScenario }, 'Lưu kịch bản'))));
-  }
-
   function ContractSchedulePreview(props) {
     var rows = D.contractSchedule(props.contract);
     if (!rows.length) return null;
@@ -696,8 +367,8 @@
       note: account && account.note ? account.note : '', archived: account ? !!account.archived : false,
       counterparty: contract ? contract.counterpartyName : '',
       originalPrincipal: contract && contract.originalPrincipal ? D.groupDigits(contract.originalPrincipal) : contractType && props.currentBalance ? D.groupDigits(props.currentBalance) : '',
-      currentOutstanding: contract && contract.currentOutstanding !== undefined && contract.currentOutstanding !== null ? D.groupDigits(contract.currentOutstanding) : contractType && props.currentBalance ? D.groupDigits(props.currentBalance) : '',
-      outstandingAsOf: contract && contract.outstandingAsOf ? contract.outstandingAsOf : account && account.balanceAsOf ? account.balanceAsOf : D.today(),
+      currentOutstanding: account && (account.type === 'loan' || account.type === 'receivable') ? D.groupDigits(Number(props.currentBalance) || 0) : contract && contract.currentOutstanding !== undefined && contract.currentOutstanding !== null ? D.groupDigits(contract.currentOutstanding) : contractType && props.currentBalance !== undefined ? D.groupDigits(props.currentBalance) : '',
+      outstandingAsOf: account && (account.type === 'loan' || account.type === 'receivable') ? D.today() : contract && contract.outstandingAsOf ? contract.outstandingAsOf : account && account.balanceAsOf ? account.balanceAsOf : D.today(),
       startDate: contract && contract.startDate ? contract.startDate : account && account.balanceAsOf ? account.balanceAsOf : D.today(),
       firstPaymentDate: contract && contract.firstPaymentDate ? contract.firstPaymentDate : '',
       maturityDate: contract && contract.maturityDate ? contract.maturityDate : '',
@@ -815,7 +486,7 @@
       h(Field, { label: 'Tên tài khoản' }, h(TextInput, { value: form.name, onChange: function (e) { set('name', e.target.value); }, placeholder: 'Ví dụ: VCB chính' })),
       h(Field, { label: 'Loại', help: account ? 'Đã khóa vì đổi loại sẽ làm sai đối ứng kế toán của lịch sử giao dịch.' : null }, h(Select, { value: form.type, disabled: !!account, onChange: function (v) { set('type', v); } },
         D.ACCOUNT_ORDER.map(function (type) { return h('option', { key: type, value: type }, D.ACCOUNT_TYPES[type].label); }))),
-      props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, 'Được tính từ hợp đồng và lịch sử giao dịch; không chỉnh tay tại đây.'))
+      props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : showContract && form.type === 'receivable' ? 'Phải thu hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, showContract ? 'Đây là số đang tính từ lịch sử. Muốn sửa số nhập sai, chỉnh trường “Dư gốc hiện tại” ở phần chi tiết bên dưới.' : 'Được tính từ lịch sử giao dịch.'))
         : h(Field, { label: showContract ? (form.type === 'loan' ? 'Dư nợ tại ngày đối chiếu' : 'Phải thu tại ngày đối chiếu') : 'Số dư tại ngày đối chiếu', help: showContract ? 'Đây là số dư snapshot hiện tại; số tiền gốc ban đầu được khai báo bên dưới.' : 'Các giao dịch sau ngày này sẽ được cộng/trừ để ra số dư hiện tại.' }, h(MoneyInput, { value: form.openingBalance, onChange: function (v) { set('openingBalance', v); }, placeholder: '67M' })),
       h(Field, { label: 'Ngày đối chiếu' }, h(TextInput, { type: 'date', value: form.balanceAsOf, onChange: function (e) { set('balanceAsOf', e.target.value); } })),
       (form.type === 'loan' || form.type === 'receivable' || form.type === 'investment') ? h(Field, { label: 'Phân loại kỳ hạn' }, h(Select, { value: form.termClass, onChange: function (v) { set('termClass', v); } }, h('option', { value: 'current' }, 'Ngắn hạn · trong 12 tháng'), h('option', { value: 'long' }, 'Dài hạn · trên 12 tháng'))) : null,
@@ -842,6 +513,7 @@
           h(Field, { label: 'Gốc ban đầu' }, h(MoneyInput, { value: form.originalPrincipal, onChange: function (v) { set('originalPrincipal', v); }, placeholder: '100M' })),
           h(Field, { label: 'Dư gốc hiện tại' }, h(MoneyInput, { value: form.currentOutstanding, onChange: function (v) { set('currentOutstanding', v); }, placeholder: 'Cần cập nhật' }))),
         h(Field, { label: 'Dư gốc tại ngày' }, h(TextInput, { type: 'date', value: form.outstandingAsOf, onChange: function (e) { set('outstandingAsOf', e.target.value); } })),
+        form.type === 'loan' || form.type === 'receivable' ? h('p', { className: 'form-help' }, 'Dư gốc hiện tại được lưu như snapshot cuối ngày. Các khoản trả/thu nợ trước ngày này sẽ không bị tính lại lần hai.') : null,
         h('div', { className: 'form-grid' },
           h(Field, { label: 'Ngày bắt đầu' }, h(TextInput, { type: 'date', value: form.startDate, onChange: function (e) { set('startDate', e.target.value); } })),
           h(Field, { label: 'Ngày tất toán · có thể chưa biết' }, h(TextInput, { type: 'date', value: form.maturityDate, onChange: function (e) { set('maturityDate', e.target.value); } }))),
@@ -1457,13 +1129,14 @@
       setOverlay(null); setBudgetEditor(null);
     }
     function deleteBudget(id) { commit(function (next) { next.budgets = next.budgets.filter(function (row) { return row.id !== id; }); }, 'Đã xóa hạn mức.'); setOverlay(null); setBudgetEditor(null); }
-    function saveScenario(scenario) { commit(function (next) { next.scenarios.push(Object.assign({ id: S.uid(), createdAt: S.now(), updatedAt: S.now() }, scenario)); }, 'Đã lưu kịch bản.'); }
     function importBackup(file) { S.importFile(file, function (err, imported) { if (err) return setToast(err); var saved = S.save(imported); if (saved.ok) { setData(imported); setOverlay(null); setToast('Đã khôi phục bản sao lưu.'); } else setToast(saved.error); }); }
     function diagnostics() { var result = global.rootflowSelfTest(); setToast(result.failed ? result.failed + ' kiểm tra chưa đạt.' : 'Tất cả ' + result.total + ' kiểm tra nghiệp vụ đều đạt.'); }
 
     var screen, bottom;
-    var hasOperatingData = data.accounts.some(function (account) { return account && !account.archived; });
-    if (!subview && hasOperatingData && global.RootflowCapitalUI) {
+    if (subview === 'budgets') {
+      screen = h(BudgetScreen, { data: data, derived: derived, onBack: function () { setSubview(null); }, onEdit: editBudget });
+      bottom = null;
+    } else {
       screen = h(global.RootflowCapitalUI.Screen, {
         data: data,
         view: view,
@@ -1475,14 +1148,6 @@
         onCommit: commit
       });
       bottom = h(global.RootflowCapitalUI.BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
-    } else {
-      if (subview === 'risk') screen = h(BufferRisk, { derived: derived, onBack: function () { setSubview(null); }, onSettings: function () { setOverlay('settings'); } });
-      else if (subview === 'budgets') screen = h(BudgetScreen, { data: data, derived: derived, onBack: function () { setSubview(null); }, onEdit: editBudget });
-      else if (view === 'flow') screen = h(FlowScreen, { data: data, derived: derived, onAdd: function () { setOverlay('composer'); }, onSettings: function () { setOverlay('settings'); } });
-      else if (view === 'position') screen = h(PositionScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); } });
-      else if (view === 'decide') screen = h(DecideScreen, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onToast: setToast, onSaveScenario: saveScenario });
-      else screen = h(Home, { data: data, derived: derived, onSettings: function () { setOverlay('settings'); }, onAddAccount: openAddAccount, onBudgets: openBudgets, onRisk: function () { setSubview('risk'); global.scrollTo(0, 0); }, onFlow: function () { go('flow'); } });
-      bottom = h(BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
     }
 
     return h('div', { className: 'app' }, screen,
@@ -1494,7 +1159,12 @@
         contract: editingAccount ? data.contracts.filter(function (row) { return row.accountId === editingAccount.id; })[0] : null,
         statement: editingAccount ? data.statements.filter(function (row) { return row.creditCardAccountId === editingAccount.id; }).sort(function (a, b) { return String(b.statementMonth || b.statementDate || '').localeCompare(String(a.statementMonth || a.statementDate || '')); })[0] : null,
         currentBalance: editingAccount ? derived.balances[editingAccount.id] || 0 : 0,
-        hasContractFlows: editingAccount ? data.flows.some(function (flow) { return flow.contractId && flow.counterAccountId === editingAccount.id && (flow.kind === 'borrow' || flow.kind === 'lend'); }) : false,
+        hasContractFlows: editingAccount ? data.flows.some(function (flow) {
+          if (!flow || flow.deletedAt) return false;
+          var linkedByAccount = flow.counterAccountId === editingAccount.id;
+          var linkedByContract = flow.contractId && data.contracts.some(function (contract) { return contract.id === flow.contractId && contract.accountId === editingAccount.id; });
+          return (linkedByAccount || linkedByContract) && (flow.kind === 'borrow' || flow.kind === 'lend' || flow.kind === 'repay' || flow.kind === 'collect');
+        }) : false,
         liquidAccounts: derived.liquidAccounts, payableContracts: data.contracts.filter(function (row) { return row.type === 'payable' && row.status !== 'closed'; }), onSave: saveAccount
       })) : null,
       overlay === 'flow-edit' && editingFlow ? h(Sheet, { title: 'Sửa giao dịch', onClose: function () { setEditingFlow(null); setOverlay(null); } }, h(FlowEditor, { flow: editingFlow, data: data, onSave: saveFlowEdit })) : null,

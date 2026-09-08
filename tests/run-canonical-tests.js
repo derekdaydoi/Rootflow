@@ -1,4 +1,4 @@
-/* Rootflow compatibility regression tests. */
+/* Rootflow canonical cashflow regression tests. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -8,7 +8,6 @@ global.window = global;
 function load(file) { vm.runInThisContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), { filename: file }); }
 load('domain.js');
 load('cashflow-domain.js');
-load('compat.js');
 const D = global.RootflowDomain;
 
 const accounts = [{ id: 'cash', name: 'Cash', type: 'bank', openingBalance: 100, balanceAsOf: '2026-08-24', balanceSemantics: 'closing_snapshot', archived: false }];
@@ -40,4 +39,4 @@ assert.strictEqual(firstIn.minimumRequiredCash, 0);
 assert.strictEqual(firstOut.minimumRequiredCash, 0);
 assert.strictEqual(firstIn.minimumRequiredCash, firstOut.minimumRequiredCash);
 
-console.log('Rootflow compatibility regression tests passed.');
+console.log('Rootflow canonical cashflow regression tests passed.');
