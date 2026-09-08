@@ -30,35 +30,25 @@ jobs:
           git commit -m "chore: canonicalize production markers"
           git push origin HEAD:rootflow-production-integration
       - name: Apply one-shot Rootflow canonical rebuild
-        if: hashFiles('tools/rootflow-canonicalize.py') != '' && hashFiles('tools/rootflow-canonicalize-error.txt') == ''
-        run: |
-          set +e
-          python tools/rootflow-canonicalize.py 2> /tmp/rootflow-canonicalize-error.txt
-          code=$?
-          set -e
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ "$code" -ne 0 ]; then
-            git reset --hard HEAD
-            cp /tmp/rootflow-canonicalize-error.txt tools/rootflow-canonicalize-error.txt
-            git add tools/rootflow-canonicalize-error.txt
-            git commit -m "ci: capture canonical rebuild failure"
-            git push origin HEAD:main
-            exit 1
-          fi
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "refactor: rebuild Rootflow on one canonical runtime"
-            git push origin HEAD:main
-          fi
+        if: hashFiles('tools/rootflow-canonicalize.py') != ''
+        run: python tools/rootflow-canonicalize.py
+      - name: Package canonical rebuild
+        if: hashFiles('tools/rootflow-canonicalize.py') == ''
+        run: tar --exclude=.git -czf /tmp/rootflow-canonical.tgz .
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('tools/rootflow-canonicalize.py') == ''
+        with:
+          name: rootflow-canonical
+          path: /tmp/rootflow-canonical.tgz
+          retention-days: 1
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
         run: node tests/run-cashflow-tests.js
       - name: Store regressions
         run: node tests/run-store-tests.js
-      - name: Compatibility regressions
-        run: node tests/run-compat-tests.js
+      - name: Canonical cashflow regressions
+        run: node tests/run-canonical-tests.js
       - name: Capital decision regressions
         run: node tests/run-capital-tests.js
       - name: Application syntax
