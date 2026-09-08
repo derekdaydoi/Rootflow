@@ -91,6 +91,23 @@ const annualLoan = {
 };
 assert.strictEqual(D.capitalFundingCostSummary(annualLoan).knownInterest, 1200000);
 
+const receivableInterestOnly = D.contractSchedule({
+  id:'recv-interest-only', type:'receivable', originalPrincipal:30000000, currentOutstanding:30000000,
+  startDate:'2026-08-25', firstPaymentDate:'2026-09-25', maturityDate:'2027-01-25',
+  interestFrequency:'monthly', repaymentMode:'interest_only', interestMode:'fixed', actualInterestMethod:'fixed_amount',
+  fixedInterest:3000000, fixedInterestBasis:'per_period', feeFrequency:'none'
+});
+assert.strictEqual(receivableInterestOnly.length, 5);
+receivableInterestOnly.slice(0, -1).forEach(row => {
+  assert.strictEqual(row.principalAmount, 0);
+  assert.strictEqual(row.interestAmount, 3000000);
+  assert.strictEqual(row.amount, 3000000);
+});
+assert.strictEqual(receivableInterestOnly[4].principalAmount, 30000000);
+assert.strictEqual(receivableInterestOnly[4].interestAmount, 3000000);
+assert.strictEqual(receivableInterestOnly[4].amount, 33000000);
+assert.strictEqual(receivableInterestOnly.reduce((sum, row) => sum + row.interestAmount, 0), 15000000);
+
 const annualDaily = D.contractSchedule({
   id:'daily-annual', type:'payable', originalPrincipal:22000000, currentOutstanding:22000000,
   startDate:'2026-06-25', firstPaymentDate:'2026-07-14', maturityDate:'2026-08-14',

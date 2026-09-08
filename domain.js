@@ -330,7 +330,7 @@
       }
       if (!dates.length || dates[dates.length - 1] < end) dates.push(end);
     }
-    var mode = contract.type === 'payable' && contract.repaymentMode === 'interest_only' ? 'interest_only' : 'principal_interest';
+    var mode = contract.repaymentMode === 'interest_only' ? 'interest_only' : 'principal_interest';
     var method = contract.planningInterestMethod || contract.actualInterestMethod;
     if (!/^(flat|reducing_balance|none|fixed_amount)$/.test(method)) {
       method = contract.interestMode === 'fixed' ? 'fixed_amount' : contract.interestMode === 'rate'

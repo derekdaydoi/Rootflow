@@ -235,7 +235,7 @@
       var principalAmount = row.principalAmount - principalUsed;
       var interestAmount = row.interestAmount - interestUsed;
       var feeAmount = (row.feeAmount || 0) - feeUsed;
-      var note = row.role === 'principal' ? 'Lãi tháng + trả gốc cuối kỳ'
+      var note = row.role === 'principal' ? (kind === 'repay' ? 'Lãi kỳ + trả gốc cuối kỳ' : 'Lãi kỳ + thu gốc cuối kỳ')
         : row.role === 'installment' ? (kind === 'repay' ? 'Kỳ trả gốc và lãi' : 'Kỳ thu gốc và lãi')
         : kind === 'repay' ? 'Đáo hạn khoản vay' : 'Dự kiến thu gốc và lãi';
       add(row.role, row.date, principalAmount, interestAmount, feeAmount, note);
@@ -333,6 +333,7 @@
   function ContractSchedulePreview(props) {
     var rows = D.contractSchedule(props.contract);
     if (!rows.length) return null;
+    var receivable = props.contract && props.contract.type === 'receivable';
     var totalInterest = rows.reduce(function (sum, row) { return sum + row.interestAmount; }, 0);
     var shown = rows.length <= 4 ? rows : rows.slice(0, 3).concat([null, rows[rows.length - 1]]);
     return h('div', { className: 'loan-schedule-preview' },
@@ -343,7 +344,7 @@
         if (!row) return h('div', { className: 'schedule-gap', key: 'gap' }, '•••');
         return h('div', { className: 'schedule-preview-row', key: row.date + '-' + index },
           h('div', { className: 'schedule-date' }, D.fmtDate(row.date)),
-          h('div', { className: 'schedule-copy' }, h('strong', null, row.role === 'principal' ? 'Kỳ cuối + trả gốc' : 'Kỳ ' + (row.index + 1)), h('span', null, 'Gốc ' + compactMoney(row.principalAmount) + ' · Lãi ' + compactMoney(row.interestAmount) + ((row.feeAmount || 0) ? ' · Phí ' + compactMoney(row.feeAmount) : ''))),
+          h('div', { className: 'schedule-copy' }, h('strong', null, row.role === 'principal' ? (receivable ? 'Kỳ cuối + thu gốc' : 'Kỳ cuối + trả gốc') : 'Kỳ ' + (row.index + 1)), h('span', null, 'Gốc ' + compactMoney(row.principalAmount) + ' · Lãi ' + compactMoney(row.interestAmount) + ((row.feeAmount || 0) ? ' · Phí ' + compactMoney(row.feeAmount) : ''))),
           h('strong', { className: 'schedule-total' }, compactMoney(row.amount)));
       })));
   }
@@ -433,7 +434,7 @@
       if (shouldSaveContract && (method === 'flat' || method === 'reducing_balance') && !(rate > 0)) return setError('Nhập lãi suất lớn hơn 0.');
       if (shouldSaveContract && method === 'fixed_amount' && !(fixed > 0)) return setError('Nhập tiền lãi cố định lớn hơn 0.');
       if (shouldSaveContract && form.fundingSource === 'borrowed' && !form.fundingContractId) return setError('Chọn khoản vay cấp vốn cho khoản phải thu.');
-      if (shouldSaveContract && form.type === 'loan' && form.repaymentMode === 'interest_only') {
+      if (shouldSaveContract && (form.type === 'loan' || form.type === 'receivable') && form.repaymentMode === 'interest_only') {
         if (method === 'none') return setError('Chế độ chỉ lãi cần có điều khoản lãi.');
       }
       if (shouldSaveContract && (form.type === 'loan' || form.type === 'receivable')) {
@@ -456,7 +457,7 @@
         fixedInterestBasis: form.fixedInterestBasis,
         feeAmount: fee, feeFrequency: fee ? form.feeFrequency : 'none', feePaid: !!form.feePaid, feeDueDate: form.feeDueDate || null,
         interestFrequency: form.interestFrequency, repaymentMode: form.type === 'receivable' ? form.repaymentMode : form.repaymentMode,
-        principalDueDate: form.type === 'loan' && form.repaymentMode === 'interest_only' ? form.maturityDate : null,
+        principalDueDate: (form.type === 'loan' || form.type === 'receivable') && form.repaymentMode === 'interest_only' ? form.maturityDate : null,
         settlementAccountId: form.settlementAccountId,
         confidence: contract ? contract.confidence || 'EXPECTED' : 'EXPECTED', status: contract ? contract.status : 'active',
         fundingSource: form.type === 'receivable' ? form.fundingSource : 'own',
@@ -498,7 +499,7 @@
         h(Field, { label: 'Hạn mức thẻ' }, h(MoneyInput, { value: form.creditLimit, onChange: function (v) { set('creditLimit', v); }, placeholder: '50M' })),
         h('div', { className: 'form-grid' },
           h(Field, { label: 'Dư nợ revolving' }, h(MoneyInput, { value: form.revolvingBalance, onChange: function (v) { set('revolvingBalance', v); }, placeholder: '20M' })),
-          h(Field, { label: 'Dư nợ installment' }, h(MoneyInput, { value: form.installmentBalance, onChange: function (v) { set('installmentBalance', v); }, placeholder: '0' }))),
+          h(Field, { label: 'Dư nợ trả góp' }, h(MoneyInput, { value: form.installmentBalance, onChange: function (v) { set('installmentBalance', v); }, placeholder: '0' }))),
         h(Field, { label: 'Rollover planning / tháng', help: 'Giả định quản trị, không phải lãi suất hợp đồng.' }, h(TextInput, { inputMode: 'decimal', value: form.rolloverPlanningRate, onChange: function (e) { set('rolloverPlanningRate', e.target.value); }, placeholder: '1.6%' })),
         h('h3', { style: { marginTop: 18 } }, 'Sao kê gần nhất'),
         h(Field, { label: 'Tháng sao kê' }, h(TextInput, { type: 'month', value: form.statementMonth, onChange: function (e) { set('statementMonth', e.target.value); } })),
@@ -510,7 +511,7 @@
           h(Field, { label: 'Thanh toán tối thiểu' }, h(MoneyInput, { value: form.minimumDue, onChange: function (v) { set('minimumDue', v); }, placeholder: 'Không rõ' })),
           h(Field, { label: 'Tổng phải trả' }, h(MoneyInput, { value: form.totalDue, onChange: function (v) { set('totalDue', v); }, placeholder: 'Không rõ' })))) : null,
       showContract ? h('div', { className: 'form-divider' },
-        h('h3', null, form.type === 'credit_card' ? 'Hợp đồng installment' : form.type === 'loan' ? 'Chi tiết khoản vay' : 'Chi tiết khoản phải thu'),
+        h('h3', null, form.type === 'credit_card' ? 'Hợp đồng trả góp' : form.type === 'loan' ? 'Chi tiết khoản vay' : 'Chi tiết khoản phải thu'),
         form.type !== 'credit_card' ? h(Field, { label: form.type === 'loan' ? 'Người cho vay' : 'Người vay' }, h(TextInput, { value: form.counterparty, onChange: function (e) { set('counterparty', e.target.value); }, placeholder: 'Tên đối tác' })) : null,
         h('div', { className: 'form-grid' },
           h(Field, { label: 'Gốc ban đầu' }, h(MoneyInput, { value: form.originalPrincipal, onChange: function (v) { set('originalPrincipal', v); }, placeholder: '100M' })),
@@ -530,7 +531,17 @@
         (form.actualInterestMethod === 'flat' || form.actualInterestMethod === 'reducing_balance') ? h(Field, { label: 'Lãi suất / năm' }, h(TextInput, { inputMode: 'decimal', value: form.interestRate, onChange: function (e) { set('interestRate', e.target.value); }, placeholder: '2.0%' })) : null,
         form.actualInterestMethod === 'fixed_amount' && form.interestFrequency === 'monthly' ? h(Field, { label: 'Cách áp dụng tiền lãi' }, h(Select, { value: form.fixedInterestBasis, onChange: function (v) { set('fixedInterestBasis', v); } }, h('option', { value: 'per_period' }, 'Cố định mỗi tháng'), h('option', { value: 'total' }, 'Tổng cố định toàn kỳ'))) : null,
         form.actualInterestMethod === 'fixed_amount' ? h(Field, { label: form.fixedInterestBasis === 'total' || form.interestFrequency === 'at_maturity' ? 'Tổng tiền lãi cố định' : 'Tiền lãi cố định mỗi tháng' }, h(MoneyInput, { value: form.fixedInterest, onChange: function (v) { set('fixedInterest', v); }, placeholder: '2M' })) : null,
-        h(Field, { label: 'Cách hoàn trả', help: form.repaymentMode === 'interest_only' ? 'Thu/trả lãi không làm giảm principal.' : 'Mỗi kỳ tách riêng gốc, lãi và phí.' }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } }, h('option', { value: 'principal_interest' }, 'Gốc + lãi'), h('option', { value: 'interest_only' }, 'Chỉ lãi · gốc giữ nguyên'))),
+        h(Field, {
+          label: form.type === 'receivable' ? 'Cách thu hồi' : 'Cách hoàn trả',
+          help: form.repaymentMode === 'interest_only'
+            ? (form.type === 'receivable' ? 'Các kỳ chỉ thu lãi; toàn bộ gốc được thu ở kỳ cuối.' : 'Các kỳ chỉ trả lãi; toàn bộ gốc được trả ở kỳ cuối.')
+            : (form.type === 'receivable' ? 'Mỗi kỳ thu một phần gốc cùng lãi và phí.' : 'Mỗi kỳ trả một phần gốc cùng lãi và phí.')
+        }, h(Select, { value: form.repaymentMode, onChange: function (v) { set('repaymentMode', v); } },
+          h('option', { value: 'principal_interest' }, form.type === 'receivable' ? 'Thu gốc + lãi theo kỳ' : 'Trả gốc + lãi theo kỳ'),
+          h('option', { value: 'interest_only' }, form.type === 'receivable' ? 'Chỉ thu lãi · gốc cuối kỳ' : 'Chỉ trả lãi · gốc cuối kỳ'))),
+        form.repaymentMode === 'interest_only' ? h('div', { className: 'data-note' }, form.type === 'receivable'
+          ? 'Cơ chế: gốc không giảm trong các kỳ lãi. Rootflow chỉ đưa toàn bộ gốc vào cashflow kỳ cuối.'
+          : 'Cơ chế: gốc không giảm trong các kỳ lãi. Rootflow chỉ đưa toàn bộ gốc vào cashflow kỳ cuối.') : null,
         h(Field, { label: 'Phí' }, h(MoneyInput, { value: form.feeAmount, onChange: function (v) { set('feeAmount', v); }, placeholder: '0' })),
         form.feeAmount ? h(Field, { label: 'Cách thu phí' }, h(Select, { value: form.feeFrequency, onChange: function (v) { set('feeFrequency', v); } }, h('option', { value: 'one_time' }, 'Một lần'), h('option', { value: 'per_period' }, 'Mỗi kỳ'), h('option', { value: 'none' }, 'Chưa lên lịch'))) : null,
         form.feeAmount && form.feeFrequency === 'one_time' ? h('div', { className: 'form-grid' },
