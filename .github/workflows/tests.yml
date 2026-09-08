@@ -1,4 +1,4 @@
-name: Rootflow funding engine release
+name: Rootflow annual interest release
 
 on:
   push:
@@ -17,10 +17,88 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply funding engine
-        run: python3 tools/rootflow-funding-upgrade.py
-      - name: Funding product regressions
-        run: node tests/run-funding-tests.js
+      - name: Convert loan rates to annual model
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected 1 match, found {count}')
+              return text.replace(old, new, 1)
+
+          domain_path = Path('domain.js')
+          domain = domain_path.read_text()
+          domain = replace_once(
+              domain,
+              "     Lãi suất là %/tháng; kỳ lẻ cuối cùng được quy đổi theo số ngày / 30. */",
+              "     Lãi suất mới là %/năm và accrual theo số ngày thực tế. Contract cũ chưa có\n     rate period vẫn giữ cách tính %/tháng để không làm đổi lịch sử. */",
+              'domain comment')
+          domain = replace_once(
+              domain,
+              "    var rate = Math.max(0, Number(contract.interestRate) || 0);\n    var fixed = Math.max(0, Number(contract.fixedInterest) || 0);",
+              "    var rate = Math.max(0, Number(contract.interestRate) || 0);\n    var ratePeriod = String(contract.interestRatePeriod || contract.ratePeriod || '').toLowerCase();\n    var annualRate = Math.max(0, Number(contract.annualInterestRate) || 0);\n    var annualDailyRate = annualRate > 0 || ratePeriod === 'annual' || ratePeriod === 'yearly' || ratePeriod === 'apr';\n    if (!(annualRate > 0) && annualDailyRate) annualRate = rate;\n    var fixed = Math.max(0, Number(contract.fixedInterest) || 0);",
+              'domain annual rate setup')
+          domain = replace_once(
+              domain,
+              "      else if (method === 'flat' || method === 'reducing_balance') {\n        var factor = 1;\n        var previous = index ? dates[index - 1] : start;\n        if (frequency === 'at_maturity') factor = Math.max(0, diffDays(start, date) / 30);\n        else if (date !== addMonths(previous, 1)) factor = Math.max(0, diffDays(previous, date) / 30);\n        var interestBase = method === 'flat' || contract.interestBasis === 'original_principal' ? original : balance;\n        interest = Math.round(interestBase * rate / 100 * factor);\n      }",
+              "      else if (method === 'flat' || method === 'reducing_balance') {\n        var previous = index ? dates[index - 1] : start;\n        var accrualDays = Math.max(0, diffDays(previous, date));\n        var interestBase = method === 'flat' || contract.interestBasis === 'original_principal' ? original : balance;\n        if (annualDailyRate) {\n          var denominator = String(contract.dayCountConvention || 'actual_365').toLowerCase() === 'actual_360' ? 360 : 365;\n          interest = Math.round(interestBase * annualRate / 100 * accrualDays / denominator);\n        } else {\n          var factor = 1;\n          if (frequency === 'at_maturity') factor = Math.max(0, diffDays(start, date) / 30);\n          else if (date !== addMonths(previous, 1)) factor = Math.max(0, accrualDays / 30);\n          interest = Math.round(interestBase * rate / 100 * factor);\n        }\n      }",
+              'domain annual daily accrual')
+          domain_path.write_text(domain)
+
+          app_path = Path('app.js')
+          app = app_path.read_text()
+          app = replace_once(
+              app,
+              "      interestRate: contract && contract.interestRate ? String(contract.interestRate) : '',",
+              "      interestRate: contract && Number(contract.annualInterestRate) > 0 ? String(contract.annualInterestRate)\n        : contract && /^(annual|yearly|apr)$/i.test(String(contract.interestRatePeriod || contract.ratePeriod || '')) ? String(contract.interestRate || '')\n        : contract && Number(contract.interestRate) > 0 ? String(Number(contract.interestRate) * 12) : '',",
+              'account form annual rate state')
+          app = replace_once(
+              app,
+              "        interestRate: method === 'flat' || method === 'reducing_balance' ? rate : 0,\n        fixedInterest: method === 'fixed_amount' ? fixed : 0,",
+              "        annualInterestRate: method === 'flat' || method === 'reducing_balance' ? rate : 0,\n        interestRate: method === 'flat' || method === 'reducing_balance' ? rate : 0, interestRatePeriod: 'annual', dayCountConvention: contract && contract.dayCountConvention ? contract.dayCountConvention : 'actual_365',\n        fixedInterest: method === 'fixed_amount' ? fixed : 0,",
+              'account contract annual persistence')
+          app = replace_once(
+              app,
+              "      interestMode: form.actualInterestMethod === 'fixed_amount' ? 'fixed' : form.actualInterestMethod === 'flat' || form.actualInterestMethod === 'reducing_balance' ? 'rate' : 'none', interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0,",
+              "      interestMode: form.actualInterestMethod === 'fixed_amount' ? 'fixed' : form.actualInterestMethod === 'flat' || form.actualInterestMethod === 'reducing_balance' ? 'rate' : 'none', annualInterestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0, interestRatePeriod: 'annual', dayCountConvention: 'actual_365',",
+              'account preview annual rate')
+          app = app.replace("label: 'Lãi suất / tháng'", "label: 'Lãi suất / năm'")
+          app = app.replace("'Lãi suất theo tháng'", "'Lãi suất theo năm'")
+          app = app.replace("label: 'Lãi suất đơn / tháng'", "label: 'Lãi suất / năm'")
+          app = replace_once(
+              app,
+              "interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, fixedInterest:",
+              "annualInterestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, interestRate: form.interestMode === 'rate' ? Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0 : 0, interestRatePeriod: 'annual', dayCountConvention: 'actual_365', fixedInterest:",
+              'borrow contract annual persistence')
+          app = replace_once(
+              app,
+              "interestMode: form.interestMode, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0,\n          fixedInterest:",
+              "interestMode: form.interestMode, annualInterestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0, interestRate: Number(String(form.interestRate).replace(',', '.').replace('%', '')) || 0, interestRatePeriod: 'annual', dayCountConvention: 'actual_365',\n          fixedInterest:",
+              'borrow preview annual rate')
+          app_path.write_text(app)
+
+          test_path = Path('tests/run-capital-tests.js')
+          tests = test_path.read_text()
+          marker = "const final = D.finalSummary(data);"
+          annual_case = """const annualDaily = D.contractSchedule({\n  id:'daily-annual', type:'payable', originalPrincipal:22000000, currentOutstanding:22000000,\n  startDate:'2026-06-25', firstPaymentDate:'2026-07-14', maturityDate:'2026-08-14',\n  interestFrequency:'monthly', repaymentMode:'principal_interest', actualInterestMethod:'reducing_balance',\n  interestBasis:'outstanding_principal', annualInterestRate:12, interestRate:12, interestRatePeriod:'annual',\n  dayCountConvention:'actual_365', feeFrequency:'none'\n});\nassert.strictEqual(annualDaily[0].interestAmount, Math.round(22000000 * 0.12 * 19 / 365));\nassert.strictEqual(annualDaily[1].interestAmount, Math.round(11000000 * 0.12 * 31 / 365));\n\n"""
+          if annual_case not in tests:
+              if marker not in tests:
+                  raise SystemExit('capital test marker missing')
+              tests = tests.replace(marker, annual_case + marker, 1)
+          test_path.write_text(tests)
+
+          sw_path = Path('sw.js')
+          sw = sw_path.read_text()
+          old = "var CACHE = 'rootflow-cache-2026-09-08-canonical';"
+          if old in sw:
+              sw = sw.replace(old, "var CACHE = 'rootflow-cache-2026-09-08-annual-rate';", 1)
+          elif "annual-rate" not in sw:
+              raise SystemExit('service worker cache marker missing')
+          sw_path.write_text(sw)
+          PY
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -43,11 +121,11 @@ jobs:
         run: node tests/run-ui-contract-tests.js
       - name: Account editor contract
         run: node tests/run-account-editor-tests.js
-      - name: Publish source
+      - name: Publish annual rate source
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A domain.js app.js cashflow-domain.js capital-domain.js capital-ui.js sw.js tests/run-funding-tests.js tools/rootflow-funding-upgrade.py
+          git add domain.js app.js sw.js tests/run-capital-tests.js
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "feat: model credit card and installment funding"
+          git commit -m "feat: use annual interest rates for loans"
           git push
