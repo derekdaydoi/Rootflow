@@ -21,74 +21,73 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Apply canonical rebuild once
+      - name: Prune retired UI selectors
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f tools/rootflow-canonicalize.py ]; then
-            python tools/rootflow-canonicalize.py
-            git checkout HEAD -- .github/workflows/tests.yml
-            python - <<'PY'
+          python -m pip install --quiet tinycss2
+          python - <<'PY'
           from pathlib import Path
+          import re
+          import tinycss2
 
-          root = Path('.')
+          used = '\n'.join(Path(path).read_text() for path in ('app.js', 'capital-ui.js', 'index.html'))
+          css_path = Path('styles.css')
+          css = css_path.read_text()
 
-          app = root / 'app.js'
-          text = app.read_text()
-          old = "props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, 'Được tính từ hợp đồng và lịch sử giao dịch; không chỉnh tay tại đây.'))"
-          new = "props.hasContractFlows ? h('div', { className: 'account-current-card' }, h('span', null, showContract && form.type === 'loan' ? 'Dư nợ hiện tại' : showContract && form.type === 'receivable' ? 'Phải thu hiện tại' : 'Số dư hiện tại'), h('strong', null, compactMoney(props.currentBalance || 0)), h('small', null, showContract ? 'Đây là số đang tính từ lịch sử. Muốn sửa số nhập sai, chỉnh trường “Dư gốc hiện tại” ở phần chi tiết bên dưới.' : 'Được tính từ lịch sử giao dịch.'))"
-          if old not in text:
-              raise SystemExit('account current-card patch target missing')
-          app.write_text(text.replace(old, new, 1))
+          def present(class_name):
+              return re.search(r'(?<![A-Za-z0-9_-])' + re.escape(class_name) + r'(?![A-Za-z0-9_-])', used) is not None
 
-          tests = root / 'tests/run-tests.js'
-          text = tests.read_text()
-          old = "assert.equal(matured.data.flows[0].confirmed, true);\nassert.equal(matured.data.flows[0].autoPosted, true);\nassert.equal(matured.data.contracts[0].status, 'closed');"
-          new = "assert.equal(matured.data.flows[0].confirmed, false);\nassert.equal(matured.data.flows[0].autoPosted, undefined);\nassert.equal(matured.data.contracts[0].status, 'active');"
-          if old not in text:
-              raise SystemExit('maturity regression patch target missing')
-          tests.write_text(text.replace(old, new, 1))
+          def split_selectors(tokens):
+              groups, current = [], []
+              for token in tokens:
+                  if token.type == 'literal' and token.value == ',':
+                      groups.append(current)
+                      current = []
+                  else:
+                      current.append(token)
+              groups.append(current)
+              return groups
 
-          cash_tests = root / 'tests/run-cashflow-tests.js'
-          text = cash_tests.read_text()
-          old = 'assert.strictEqual(model.current, 130);'
-          if old not in text:
-              raise SystemExit('cashflow current regression patch target missing')
-          cash_tests.write_text(text.replace(old, 'assert.strictEqual(model.current, 100);', 1))
+          def filter_rules(rules):
+              kept_rules = []
+              for rule in rules:
+                  if rule.type == 'qualified-rule':
+                      selectors = []
+                      for group in split_selectors(rule.prelude):
+                          selector = tinycss2.serialize(group).strip()
+                          classes = re.findall(r'\.([A-Za-z_][A-Za-z0-9_-]*)', selector)
+                          if not classes or any(present(name) for name in classes):
+                              selectors.append(selector)
+                      if not selectors:
+                          continue
+                      rule.prelude = tinycss2.parse_component_value_list(', '.join(selectors) + ' ')
+                      kept_rules.append(rule)
+                  elif rule.type == 'at-rule' and rule.content is not None and rule.lower_at_keyword in ('media', 'supports', 'layer', 'container'):
+                      nested = filter_rules(tinycss2.parse_rule_list(rule.content, skip_whitespace=False, skip_comments=False))
+                      if any(item.type in ('qualified-rule', 'at-rule') for item in nested):
+                          rule.content = tinycss2.parse_component_value_list(tinycss2.serialize(nested))
+                          kept_rules.append(rule)
+                  else:
+                      kept_rules.append(rule)
+              return kept_rules
 
-          readme = root / 'README.md'
-          text = readme.read_text()
-          replacements = [
-              ("""domain.js
-          cashflow-domain.js
-          capital-domain.js
-          compat.js
-          store.js
-          store-adapter.js
-          app.js
-          capital-ui.js
-          styles.css
-          capital.css
-          effects.css""", """domain.js             # ledger + financial invariants
-          cashflow-domain.js    # cashflow / treasury semantics
-          capital-domain.js     # decision layer
-          store.js              # local persistence + schema migration
-          app.js                # controller, forms, overlays
-          capital-ui.js         # 4 màn hình sản phẩm duy nhất
-          styles.css            # app chrome + forms
-          capital.css           # canonical operating UI"""),
-              ("`effects.css` chỉ chứa motion/interaction feedback, không chứa business logic. Toàn bộ animation có `prefers-reduced-motion` fallback. React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng.", "React/ReactDOM được vendored trong `vendor/`. Service worker quản lý offline cache; GitHub Pages phục vụ ứng dụng. Không còn compatibility bridge hoặc presentation generation cũ chạy song song."),
-              ("Splash, header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork.", "Header và PWA icons dùng cùng artwork đã được duyệt. `rootflow-touch-180.png`, `rootflow-icon-192.png`, `rootflow-icon-512.png` là các kích thước PWA từ cùng canonical artwork. Ứng dụng mở thẳng vào giao diện, không giữ splash animation dài."),
-              ("Rootflow intentionally keeps one product presentation: `capital-ui.js` owns the four operating screens and `app.js` owns controller/forms/overlays. Legacy screen generations, compatibility bridge files, the old bilingual V3 layer and the long animated splash have been removed. Data migrations in `store.js` remain because deleting them would corrupt or strand existing user backups.", "Rootflow chỉ giữ một presentation: `capital-ui.js` sở hữu bốn màn hình vận hành, còn `app.js` sở hữu controller, form và overlay. Các screen generation cũ, compatibility bridge, lớp song ngữ V3 cũ và splash animation dài đã được bỏ. Migration dữ liệu vẫn nằm trong `store.js` vì xóa migration sẽ làm hỏng hoặc bỏ rơi backup/localStorage của người dùng hiện tại.")
-          ]
-          for before, after in replacements:
-              if before not in text:
-                  raise SystemExit('README canonical patch target missing')
-              text = text.replace(before, after, 1)
-          readme.write_text(text)
+          text = tinycss2.serialize(filter_rules(tinycss2.parse_stylesheet(css, skip_whitespace=False, skip_comments=False)))
+          for _ in range(2):
+              rules = tinycss2.parse_stylesheet(text, skip_whitespace=False, skip_comments=False)
+              kept = []
+              for rule in rules:
+                  if rule.type == 'at-rule' and rule.lower_at_keyword in ('keyframes', '-webkit-keyframes'):
+                      name = tinycss2.serialize(rule.prelude).strip()
+                      other_css = tinycss2.serialize([item for item in rules if item is not rule])
+                      if not re.search(r'(?<![A-Za-z0-9_-])' + re.escape(name) + r'(?![A-Za-z0-9_-])', other_css):
+                          continue
+                  kept.append(rule)
+              text = tinycss2.serialize(kept)
+
+          text = re.sub(r'\n(?:[ \t]*\n){2,}', '\n\n', text)
+          css_path.write_text(text)
           PY
-          fi
-          git checkout HEAD -- .github/workflows/tests.yml
 
       - name: Financial invariants
         run: node tests/run-tests.js
@@ -119,12 +118,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git checkout HEAD -- .github/workflows/tests.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git reset -- .github/workflows/tests.yml
+          git add styles.css
           if ! git diff --cached --quiet; then
-            git commit -m "refactor: rebuild Rootflow on one canonical runtime"
+            git commit -m "style: remove retired Rootflow UI selectors"
             git push origin HEAD:main
           fi
