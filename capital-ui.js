@@ -83,11 +83,8 @@
   }
 
   function BrandHeader(props) {
-    var title = props.title || 'Rootflow';
     return h('header', { className: 'rf-appbar' },
-      h('div', { className: 'rf-brand-lockup' },
-        h('img', { src: 'brand/rootflow-mark.png', alt: '', draggable: false, className: 'rf-brand-mark' }),
-        h('div', null, h('strong', null, 'root', h('b', null, 'flow')), title !== 'Rootflow' ? h('span', null, title) : null)),
+      h('div', { className: 'rf-brand-lockup' }, h('strong', null, 'Rootflow')),
       props.onManageAccounts ? h('button', {
         type: 'button', className: 'rf-appbar-action', onClick: props.onManageAccounts,
         'aria-label': 'Quản lý và sửa tài khoản', title: 'Tài khoản'
@@ -362,13 +359,12 @@
     var overlayState = React.useState(null), localOverlay = overlayState[0], setLocalOverlay = overlayState[1];
     var summary = React.useMemo(function () { return finalSummary(props.data); }, [props.data]);
     var view = props.view === 'flow' ? 'flow' : props.view === 'position' ? 'position' : props.view === 'decide' ? 'plan' : 'home';
-    var title = view === 'flow' ? 'Dòng tiền' : view === 'position' ? 'Vốn' : view === 'plan' ? 'Kế hoạch' : 'Rootflow';
     var content = view === 'flow' ? h(CashflowScreen, { data: props.data, horizon: horizon, onHorizon: setHorizon, onEditFlow: props.onEditFlow }) :
       view === 'position' ? h(CapitalScreen, { summary: summary, mode: capitalMode, onMode: setCapitalMode, onAdd: props.onAdd, onEditAccount: props.onEditAccount }) :
       view === 'plan' ? h(PlanScreen, { summary: summary, onEdit: setLocalOverlay }) :
       h(HomeScreen, { data: props.data, summary: summary, onExplain: function () { setLocalOverlay('available'); }, onCashflow: function () { props.onView('flow'); }, onEditFlow: props.onEditFlow });
     return h('main', { className: 'page rf-page' },
-      h(BrandHeader, { title: title, onManageAccounts: props.onManageAccounts }),
+      h(BrandHeader, { onManageAccounts: props.onManageAccounts }),
       h('div', { className: 'content rf-capital-os' }, h('section', { className: 'rf-panel' }, content)),
       localOverlay === 'available' ? h(Overlay, { title: 'Tiền có thể dùng', onClose: function () { setLocalOverlay(null); } }, h(AvailableExplain, { summary: summary })) : null,
       localOverlay === 'salary' || localOverlay === 'living' || localOverlay === 'buffer' ? h(PlanEditor, { kind: localOverlay, summary: summary, onCommit: props.onCommit, onClose: function () { setLocalOverlay(null); } }) : null);

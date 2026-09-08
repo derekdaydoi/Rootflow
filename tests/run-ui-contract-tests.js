@@ -22,8 +22,9 @@ assert(!index.includes('compat.js') && !index.includes('store-adapter.js') && !i
 assert(app.includes('RootflowCapitalUI.Screen'), 'application controller must mount the canonical React-owned screens');
 assert(app.includes('RootflowCapitalUI.BottomNav'), 'application controller must mount the canonical React-owned bottom navigation');
 assert(!app.includes('function Home(props)') && !app.includes('function FlowScreen(props)') && !app.includes('function PositionScreen(props)') && !app.includes('function DecideScreen(props)'), 'legacy screen functions must be removed, not hidden behind a runtime branch');
-assert(app.includes('brand/rootflow-mark.png'), 'application artwork must use the canonical raster source');
-assert(!app.includes('brand/rootflow-mark.svg'), 'application must not reference the retired SVG redraw');
+assert(!ui.includes('brand/rootflow-mark.png') && !ui.includes('rf-brand-mark'), 'canonical app header must be text-only without an in-app logo');
+assert(ui.includes("h('strong', null, 'Rootflow')"), 'canonical app header must render the exact Rootflow wordmark');
+assert(!ui.includes("'root', h('b', null, 'flow')"), 'canonical app header must not split the brand into root + flow styling');
 
 assert(ui.includes("'Tiền có thể dùng'"), 'Home hero must be available cash');
 assert(!ui.includes('TÀI SẢN RÒNG'), 'net worth must not return as Home hero');
