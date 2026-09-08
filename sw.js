@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-08-interest-only-receivable';
+var CACHE = 'rootflow-cache-2026-09-08-backup-controls';
 
 var ASSETS = [
   './',

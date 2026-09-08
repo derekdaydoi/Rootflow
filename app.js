@@ -1156,7 +1156,7 @@
         view: view,
         onView: go,
         onAdd: function () { setOverlay('composer'); },
-        onManageAccounts: openAccountManager,
+        onOpenSettings: function () { setOverlay('settings'); },
         onEditAccount: openEditAccountById,
         onEditFlow: openEditFlow,
         onCommit: commit

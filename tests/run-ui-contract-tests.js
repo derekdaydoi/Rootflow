@@ -41,7 +41,9 @@ assert(ui.includes("onEdit: function () { props.onEdit('buffer'); }"), 'Safety M
 assert(ui.includes('monthlyOverrides'), 'monthly income override must be persisted explicitly');
 assert(ui.includes('monthlyLivingTargets'), 'living target overrides must be persisted explicitly');
 assert(ui.includes('props.onCommit'), 'presentation edits must delegate persistence to the App controller');
-assert(ui.includes('props.onManageAccounts'), 'canonical app bar must expose account management');
+assert(ui.includes('props.onOpenSettings'), 'canonical app bar must expose settings and data');
+assert(app.includes("onOpenSettings: function () { setOverlay('settings'); }"), 'app bar settings action must open the settings/data sheet');
+assert(app.includes("'Xuất backup'") && app.includes("'Nhập backup'"), 'settings/data sheet must expose export and import backup controls');
 assert(ui.includes('props.onEditAccount(row.accountId)') && ui.includes('props.onEditAccount(source.accountId)'), 'capital positions and funding sources must open their canonical account editor');
 assert(ui.includes('Giao dịch đã nhập') && ui.includes('props.onEditFlow'), 'recorded cashflows must expose correction from the canonical cashflow screen');
 assert(ui.includes("recordedAll.slice(0, 12)") && ui.includes("'Xem tất cả'"), 'cashflow history must stay compact without hiding older editable records');

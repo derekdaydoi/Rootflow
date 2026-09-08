@@ -85,9 +85,9 @@
   function BrandHeader(props) {
     return h('header', { className: 'rf-appbar' },
       h('div', { className: 'rf-brand-lockup' }, h('strong', null, 'Rootflow')),
-      props.onManageAccounts ? h('button', {
-        type: 'button', className: 'rf-appbar-action', onClick: props.onManageAccounts,
-        'aria-label': 'Quản lý và sửa tài khoản', title: 'Tài khoản'
+      props.onOpenSettings ? h('button', {
+        type: 'button', className: 'rf-appbar-action', onClick: props.onOpenSettings,
+        'aria-label': 'Cài đặt và dữ liệu', title: 'Cài đặt'
       }, icon('settings')) : h('span', { className: 'rf-appbar-spacer' }));
   }
 
@@ -364,7 +364,7 @@
       view === 'plan' ? h(PlanScreen, { summary: summary, onEdit: setLocalOverlay }) :
       h(HomeScreen, { data: props.data, summary: summary, onExplain: function () { setLocalOverlay('available'); }, onCashflow: function () { props.onView('flow'); }, onEditFlow: props.onEditFlow });
     return h('main', { className: 'page rf-page' },
-      h(BrandHeader, { onManageAccounts: props.onManageAccounts }),
+      h(BrandHeader, { onOpenSettings: props.onOpenSettings }),
       h('div', { className: 'content rf-capital-os' }, h('section', { className: 'rf-panel' }, content)),
       localOverlay === 'available' ? h(Overlay, { title: 'Tiền có thể dùng', onClose: function () { setLocalOverlay(null); } }, h(AvailableExplain, { summary: summary })) : null,
       localOverlay === 'salary' || localOverlay === 'living' || localOverlay === 'buffer' ? h(PlanEditor, { kind: localOverlay, summary: summary, onCommit: props.onCommit, onClose: function () { setLocalOverlay(null); } }) : null);
