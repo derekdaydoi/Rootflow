@@ -67,8 +67,9 @@ assert.strictEqual(operating.deployableCapital, 7920000);
 
 const capital = D.capitalSummary(data);
 assert.strictEqual(capital.earningCapital, 50000000);
-assert(capital.positions.some(row => row.kind === 'lending' && row.value === 40000000));
-assert(capital.fundingSources.some(row => row.kind === 'credit_card' && row.balance === 5000000));
+assert(capital.positions.some(row => row.kind === 'lending' && row.value === 40000000 && row.accountId === 'recv'));
+assert(capital.positions.some(row => row.kind === 'investment' && row.accountId === 'inv'));
+assert(capital.fundingSources.some(row => row.kind === 'credit_card' && row.balance === 5000000 && row.accountId === 'cc'));
 
 const certainCase = baseData();
 certainCase.accounts = [{ id:'cash2', name:'Cash', type:'bank', openingBalance:10000000, balanceAsOf:'2026-09-07', balanceSemantics:'closing_snapshot', archived:false }];

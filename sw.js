@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-07-production-white-homescreen';
+var CACHE = 'rootflow-cache-2026-09-08-typography-and-editing';
 
 var ASSETS = [
   './',

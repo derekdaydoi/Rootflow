@@ -561,6 +561,7 @@
       var value = Math.max(0, Number(contract.currentOutstanding != null ? contract.currentOutstanding : contract.originalPrincipal) || 0);
       positions.push({
         id: contract.id,
+        accountId: contract.accountId,
         kind: 'lending',
         name: contract.counterpartyName || 'Khoản cho vay',
         value: value,
@@ -573,8 +574,8 @@
     (data.accounts || []).forEach(function (account) {
       if (!account || account.archived) return;
       var value = Math.max(0, Number(bal[account.id]) || 0);
-      if (D.isInvestment(account)) positions.push({ id: account.id, kind: 'investment', name: account.name || 'Đầu tư', value: value, recurringIncome: 0, nextDate: null, status: 'active' });
-      else if (D.isFixedAsset(account)) positions.push({ id: account.id, kind: 'asset', name: account.name || 'Tài sản', value: value, recurringIncome: 0, nextDate: null, status: 'active' });
+      if (D.isInvestment(account)) positions.push({ id: account.id, accountId: account.id, kind: 'investment', name: account.name || 'Đầu tư', value: value, recurringIncome: 0, nextDate: null, status: 'active' });
+      else if (D.isFixedAsset(account)) positions.push({ id: account.id, accountId: account.id, kind: 'asset', name: account.name || 'Tài sản', value: value, recurringIncome: 0, nextDate: null, status: 'active' });
     });
     positions.sort(function (a, b) { return b.value - a.value; });
 
@@ -591,6 +592,7 @@
       var ratePeriod = contract && Number(contract.annualInterestRate) > 0 ? 'annual' : contract && String(contract.interestRatePeriod || contract.ratePeriod || 'legacy_monthly');
       fundingSources.push({
         id: account.id,
+        accountId: account.id,
         kind: kind,
         name: account.name || contract && contract.counterpartyName || 'Nguồn vốn',
         balance: amount,
@@ -648,7 +650,7 @@
         date: flow.date,
         amount: delta,
         kind: flow.kind,
-        name: flow.counterpartyName || flow.note || flow.category || (delta > 0 ? 'Tiền vào' : 'Tiền ra'),
+        name: flow.counterpartyName || flow.title || flow.category || flow.note || (delta > 0 ? 'Tiền vào' : 'Tiền ra'),
         confidence: D.confidenceOf(flow),
         synthetic: false
       });

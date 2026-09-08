@@ -1002,10 +1002,94 @@
     return h(Sheet, { title: type ? current[2] : 'Thêm giao dịch', onClose: props.onClose, onBack: type ? function () { setType(null); } : null },
       type ? h(EventForm, { type: type, data: props.data, onSave: props.onSave })
         : h(React.Fragment, null, h('p', { className: 'sheet-intro' }, 'Điều gì đã xảy ra? Rootflow tự xử lý phần kế toán phía sau.'),
+          h('button', { type: 'button', className: 'account-manager-entry', onClick: props.onManageAccounts },
+            h('div', { className: 'flow-icon' }, h(Icon, { name: 'settings' })),
+            h('div', { className: 'action-copy' }, h('strong', null, 'Tài khoản & nguồn vốn'), h('span', null, 'Thêm hoặc sửa tài khoản, khoản vay và khoản phải thu')),
+            h(Icon, { name: 'chevron' })),
           h('div', { className: 'action-list' }, EVENT_TYPES.map(function (item) {
             return h('button', { type: 'button', className: 'action-row', key: item[0], onClick: function () { setType(item[0]); } },
               h('div', { className: 'flow-icon' }, h(Icon, { name: item[1] })), h('div', { className: 'action-copy' }, h('strong', null, item[2]), h('span', null, item[3])), h(Icon, { name: 'chevron' }));
           }))));
+  }
+
+  function FlowEditor(props) {
+    var flow = props.flow;
+    var activeAccounts = props.data.accounts.filter(function (account) {
+      return account && (!account.archived || account.id === flow.accountId || account.id === flow.counterAccountId);
+    });
+    var liquidAccounts = activeAccounts.filter(function (account) { return D.isLiquid(account); });
+    var targetAccounts = activeAccounts.filter(function (account) {
+      return flow.kind === 'collect' ? D.isReceivable(account) : flow.kind === 'repay' ? D.isLiability(account) : true;
+    });
+    var splitPayment = flow.kind === 'collect' || flow.kind === 'repay';
+    var state = React.useState({
+      amount: D.groupDigits(Math.abs(Number(flow.amount) || 0)),
+      principal: D.groupDigits(Math.max(0, Number(flow.principalAmount) || 0)),
+      interest: D.groupDigits(Math.max(0, Number(flow.interestAmount) || 0)),
+      fee: D.groupDigits(Math.max(0, Number(flow.feeAmount) || 0)),
+      accountId: flow.accountId || '', counterAccountId: flow.counterAccountId || '',
+      date: flow.date || D.today(), confidence: flow.confidence || (flow.confirmed ? 'CERTAIN' : 'EXPECTED'),
+      category: flow.category || flow.title || '',
+      note: (flow.kind === 'income' || flow.kind === 'fee') && flow.note === flow.category ? '' : flow.note || ''
+    });
+    var form = state[0], setForm = state[1];
+    var errorState = React.useState(''), error = errorState[0], setError = errorState[1];
+    function set(key, value) {
+      setForm(function (previous) { var next = Object.assign({}, previous); next[key] = value; return next; });
+      setError('');
+    }
+    function save() {
+      if (!form.date) return setError('Chọn ngày giao dịch.');
+      if (!form.accountId) return setError('Chọn tài khoản tiền.');
+      if (flow.kind === 'transfer' && (!form.counterAccountId || form.counterAccountId === form.accountId)) return setError('Chọn tài khoản đích khác tài khoản nguồn.');
+      if (splitPayment && !form.counterAccountId) return setError('Chọn khoản cần xử lý.');
+      var principal = D.parseMoney(form.principal);
+      var interest = D.parseMoney(form.interest);
+      var fee = D.parseMoney(form.fee);
+      var amount = splitPayment ? principal + interest + fee : D.parseMoney(form.amount);
+      if (!(amount > 0)) return setError('Nhập số tiền lớn hơn 0.');
+      var contract = splitPayment ? props.data.contracts.filter(function (row) { return row.accountId === form.counterAccountId && row.status !== 'closed'; })[0] || props.data.contracts.filter(function (row) { return row.accountId === form.counterAccountId; })[0] : null;
+      if (splitPayment && !contract) return setError('Không tìm thấy hợp đồng của khoản đã chọn.');
+      var targetAccount = splitPayment ? props.data.accounts.filter(function (row) { return row.id === form.counterAccountId; })[0] : null;
+      props.onSave(Object.assign({}, flow, {
+        amount: amount,
+        principalAmount: splitPayment ? principal : flow.principalAmount,
+        interestAmount: splitPayment ? interest : flow.interestAmount,
+        feeAmount: splitPayment ? fee : flow.feeAmount,
+        accountId: form.accountId,
+        counterAccountId: flow.kind === 'transfer' || splitPayment ? form.counterAccountId : flow.counterAccountId,
+        contractId: splitPayment ? contract.id : flow.contractId,
+        counterpartyId: splitPayment ? contract.counterpartyId : flow.counterpartyId,
+        counterpartyName: splitPayment ? contract.counterpartyName || targetAccount && targetAccount.name || '' : flow.counterpartyName,
+        date: form.date,
+        confirmed: form.date <= D.today(),
+        confidence: form.date <= D.today() ? 'CERTAIN' : form.confidence,
+        category: form.category.trim(), note: form.note.trim(), updatedAt: S.now()
+      }));
+    }
+    var kindName = flow.kind === 'income' ? 'Tiền vào' : flow.kind === 'expense' ? 'Tiền ra' : flow.kind === 'collect' ? 'Thu nợ' : flow.kind === 'repay' ? 'Trả nợ' : flow.kind === 'transfer' ? 'Chuyển khoản' : 'Giao dịch';
+    return h(React.Fragment, null,
+      h('p', { className: 'sheet-intro' }, kindName + ' · thay đổi ở đây sẽ được tính lại vào số dư và dòng tiền.'),
+      splitPayment ? h('div', { className: 'form-grid' },
+        h(Field, { label: 'Phần gốc' }, h(MoneyInput, { value: form.principal, onChange: function (value) { set('principal', value); }, placeholder: '0' })),
+        h(Field, { label: 'Tiền lãi' }, h(MoneyInput, { value: form.interest, onChange: function (value) { set('interest', value); }, placeholder: '0' })),
+        h(Field, { label: 'Phí' }, h(MoneyInput, { value: form.fee, onChange: function (value) { set('fee', value); }, placeholder: '0' })))
+        : h(Field, { label: 'Số tiền' }, h(MoneyInput, { value: form.amount, onChange: function (value) { set('amount', value); }, placeholder: '10M' })),
+      h(Field, { label: flow.kind === 'income' || flow.kind === 'collect' ? 'Tài khoản nhận tiền' : 'Tài khoản tiền' }, h(Select, { value: form.accountId, onChange: function (value) { set('accountId', value); } },
+        h('option', { value: '' }, 'Chọn tài khoản'), liquidAccounts.map(function (account) { return h('option', { value: account.id, key: account.id }, account.name); }))),
+      splitPayment ? h(Field, { label: flow.kind === 'collect' ? 'Khoản phải thu' : 'Khoản phải trả' }, h(Select, { value: form.counterAccountId, onChange: function (value) { set('counterAccountId', value); } },
+        h('option', { value: '' }, 'Chọn khoản'), targetAccounts.map(function (account) { return h('option', { value: account.id, key: account.id }, account.name); }))) : null,
+      flow.kind === 'transfer' ? h(Field, { label: 'Tài khoản đích' }, h(Select, { value: form.counterAccountId, onChange: function (value) { set('counterAccountId', value); } },
+        h('option', { value: '' }, 'Chọn tài khoản'), targetAccounts.filter(function (account) { return account.id !== form.accountId; }).map(function (account) { return h('option', { value: account.id, key: account.id }, account.name); }))) : null,
+      flow.kind === 'expense' ? h(Field, { label: 'Nhóm chi tiêu' }, h(Select, { value: form.category, onChange: function (value) { set('category', value); } },
+        h('option', { value: '' }, 'Chọn nhóm'), BUDGET_CATEGORIES.map(function (item) { return h('option', { value: item.id, key: item.id }, item.label); })))
+        : flow.kind === 'income' || flow.kind === 'fee' ? h(Field, { label: 'Nội dung' }, h(TextInput, { value: form.category, onChange: function (event) { set('category', event.target.value); }, placeholder: flow.kind === 'income' ? 'Lương, thưởng…' : 'Mô tả giao dịch' })) : null,
+      h(Field, { label: 'Ngày giao dịch' }, h(TextInput, { type: 'date', value: form.date, onChange: function (event) { set('date', event.target.value); } })),
+      form.date > D.today() ? h(Field, { label: 'Độ chắc chắn' }, h(Select, { value: form.confidence, onChange: function (value) { set('confidence', value); } },
+        h('option', { value: 'CERTAIN' }, 'Chắc chắn'), h('option', { value: 'EXPECTED' }, 'Dự kiến'), h('option', { value: 'UNCERTAIN' }, 'Chưa chắc chắn'))) : null,
+      h(Field, { label: 'Ghi chú' }, h(TextInput, { value: form.note, onChange: function (event) { set('note', event.target.value); }, placeholder: 'Không bắt buộc' })),
+      error ? h('div', { className: 'field-error' }, error) : null,
+      h('button', { type: 'button', className: 'primary-button', onClick: save }, 'Lưu thay đổi'));
   }
 
   function BudgetForm(props) {
@@ -1095,6 +1179,40 @@
       h('button', { type: 'button', className: 'primary-button', onClick: save }, row ? 'Lưu thay đổi' : 'Thêm nguồn thu'));
   }
 
+  function AccountEditRow(props) {
+    var a = props.account;
+    var contract = props.data.contracts.filter(function (row) { return row.accountId === a.id; })[0];
+    var meta = D.ACCOUNT_TYPES[a.type] ? D.ACCOUNT_TYPES[a.type].label : a.type;
+    if (contract) {
+      meta += contract.status === 'closed' ? ' · Đã tất toán'
+        : contract.type === 'payable' && contract.repaymentMode === 'interest_only' ? ' · Chỉ lãi + gốc cuối kỳ'
+        : ' · Đang theo dõi';
+    }
+    return h('button', { type: 'button', className: 'account-edit-row', onClick: function () { props.onEdit(a); } },
+      h('div', { className: 'flow-icon' }, h(Icon, { name: D.isLiability(a) ? 'borrow' : D.isReceivable(a) ? 'people' : D.isLiquid(a) ? 'wallet' : 'asset' })),
+      h('div', { className: 'row-label' }, h('strong', { title: a.name }, a.name), h('span', null, meta)),
+      h('span', { className: 'row-value' }, compactMoney(props.balances[a.id] || 0)),
+      h(Icon, { name: 'chevron' }));
+  }
+
+  function AccountManager(props) {
+    var active = props.data.accounts.filter(function (account) { return !account.archived; });
+    var archived = props.data.accounts.filter(function (account) { return account.archived; });
+    function list(accounts, muted) {
+      return h('div', { className: 'account-list' + (muted ? ' muted-list' : '') }, accounts.map(function (account) {
+        return h(AccountEditRow, { key: account.id, account: account, data: props.data, balances: props.balances, onEdit: props.onEdit });
+      }));
+    }
+    return h(React.Fragment, null,
+      h('p', { className: 'sheet-intro account-manager-intro' }, 'Chọn một tài khoản để sửa tên, số dư, ngày tháng hoặc điều khoản vốn. Khoản vay và khoản phải thu liên quan sẽ được cập nhật cùng lịch dòng tiền.'),
+      h('div', { className: 'account-manager-summary' },
+        h('span', null, 'Đang hoạt động', h('strong', null, String(active.length))),
+        h('span', null, 'Đã lưu trữ', h('strong', null, String(archived.length)))),
+      active.length ? list(active, false) : h('div', { className: 'data-note' }, 'Chưa có tài khoản đang hoạt động.'),
+      h('button', { type: 'button', className: 'primary-button account-manager-add', onClick: props.onAdd }, 'Thêm tài khoản'),
+      archived.length ? h('section', { className: 'archived-accounts' }, h('h3', null, 'Đã lưu trữ'), list(archived, true)) : null);
+  }
+
   function Settings(props) {
     var s = props.data.settings;
     var state = React.useState({ hardFloor: s.hardFloor ? D.groupDigits(s.hardFloor) : '', operatingBuffer: s.operatingBuffer ? D.groupDigits(s.operatingBuffer) : '', comfortBuffer: s.comfortBuffer ? D.groupDigits(s.comfortBuffer) : '', horizonDays: s.horizonDays || 90, rolloverRate: props.data.controlAssumptions && props.data.controlAssumptions.creditCardRolloverCostRateMonthly ? String(props.data.controlAssumptions.creditCardRolloverCostRateMonthly) : '' });
@@ -1104,19 +1222,7 @@
       var hard = D.parseMoney(form.hardFloor), operating = Math.max(hard, D.parseMoney(form.operatingBuffer)), comfort = Math.max(operating, D.parseMoney(form.comfortBuffer));
       props.onSave({ hardFloor: hard, reserveFloor: hard, operatingBuffer: operating, comfortBuffer: comfort, horizonDays: Math.max(30, Math.min(365, Number(form.horizonDays) || 90)) }, Number(String(form.rolloverRate).replace(',', '.').replace('%', '')) || 0);
     }
-    function accountRow(a) {
-      var contract = props.data.contracts.filter(function (row) { return row.accountId === a.id; })[0];
-      var meta = D.ACCOUNT_TYPES[a.type] ? D.ACCOUNT_TYPES[a.type].label : a.type;
-      if (contract) {
-        meta += contract.status === 'closed' ? ' · Đã tất toán'
-          : contract.type === 'payable' && contract.repaymentMode === 'interest_only' ? ' · Chỉ lãi + gốc cuối kỳ'
-          : ' · Đang theo dõi';
-      }
-      return h('button', { type: 'button', className: 'account-edit-row', key: a.id, onClick: function () { props.onEditAccount(a); } },
-        h('div', { className: 'flow-icon' }, h(Icon, { name: D.isLiability(a) ? 'borrow' : D.isReceivable(a) ? 'people' : D.isLiquid(a) ? 'wallet' : 'asset' })),
-        h('div', { className: 'row-label' }, h('strong', { title: a.name }, a.name), h('span', null, meta)),
-        h('span', { className: 'row-value' }, compactMoney(props.balances[a.id] || 0)), h(Icon, { name: 'chevron' }));
-    }
+    function accountRow(a) { return h(AccountEditRow, { key: a.id, account: a, data: props.data, balances: props.balances, onEdit: props.onEditAccount }); }
     var activeAccounts = props.data.accounts.filter(function (a) { return !a.archived; });
     var archivedAccounts = props.data.accounts.filter(function (a) { return a.archived; });
     return h(React.Fragment, null,
@@ -1160,6 +1266,7 @@
     var subState = React.useState(null), subview = subState[0], setSubview = subState[1];
     var overlayState = React.useState(null), overlay = overlayState[0], setOverlay = overlayState[1];
     var accountState = React.useState(null), editingAccount = accountState[0], setEditingAccount = accountState[1];
+    var flowState = React.useState(null), editingFlow = flowState[0], setEditingFlow = flowState[1];
     var budgetState = React.useState(null), budgetEditor = budgetState[0], setBudgetEditor = budgetState[1];
     var recurringState = React.useState(null), editingRecurring = recurringState[0], setEditingRecurring = recurringState[1];
     var toastState = React.useState(loaded.error || ''), toast = toastState[0], setToast = toastState[1];
@@ -1191,6 +1298,45 @@
     function closeOverlay() { setOverlay(null); }
     function openAddAccount() { setEditingAccount(null); setOverlay('account'); }
     function openEditAccount(account) { setEditingAccount(account); setOverlay('account'); }
+    function openAccountManager() { setEditingAccount(null); setOverlay('accounts'); }
+    function openEditAccountById(accountId) {
+      var account = data.accounts.filter(function (row) { return row.id === accountId; })[0];
+      if (account) openEditAccount(account);
+    }
+    function openEditFlow(flowId) {
+      var flow = data.flows.filter(function (row) { return row.id === flowId && !row.deletedAt; })[0];
+      if (!flow) return setToast('Không tìm thấy giao dịch cần sửa.');
+      if (flow.kind === 'borrow' || flow.kind === 'lend' || flow.autoGenerated) {
+        var linkedContract = flow.contractId ? data.contracts.filter(function (row) { return row.id === flow.contractId; })[0] : null;
+        var linkedAccountId = linkedContract && linkedContract.accountId || flow.counterAccountId;
+        var linkedAccount = data.accounts.filter(function (row) { return row.id === linkedAccountId; })[0];
+        if (linkedAccount) return openEditAccount(linkedAccount);
+        return setToast('Khoản này cần được sửa từ tài khoản liên kết.');
+      }
+      setEditingFlow(flow);
+      setOverlay('flow-edit');
+    }
+    function saveFlowEdit(flow) {
+      var original = editingFlow;
+      commit(function (next) {
+        var index = next.flows.findIndex(function (row) { return row.id === flow.id; });
+        if (index < 0) return;
+        next.flows[index] = flow;
+        var affected = [];
+        if (original && original.contractId) affected.push(original.contractId);
+        if (flow.contractId && affected.indexOf(flow.contractId) < 0) affected.push(flow.contractId);
+        affected.forEach(function (contractId) {
+          var contract = next.contracts.filter(function (row) { return row.id === contractId; })[0];
+          if (!contract) return;
+          var remaining = contractState(contract, next.flows);
+          contract.status = remaining.principal <= 0 && remaining.interest <= 0 && remaining.fee <= 0 ? 'closed' : 'active';
+          contract.updatedAt = S.now();
+          rebuildContractSchedule(next, contract);
+        });
+      }, 'Đã cập nhật giao dịch.');
+      setEditingFlow(null);
+      setOverlay(null);
+    }
     function saveAccount(account, contractPatch, statementPatch) {
       var isEdit = data.accounts.some(function (row) { return row.id === account.id; });
       commit(function (next) {
@@ -1290,7 +1436,7 @@
         } else {
           var kind = type === 'other' ? 'fee' : type;
           var category = type === 'expense' ? categoryId(form.category) : form.category;
-          pushFlow(next, { kind: kind, accountId: form.accountId, counterAccountId: type === 'transfer' ? form.counterAccountId : null, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : 'EXPECTED', category: category, title: type === 'expense' ? categoryMeta(category).label : '', note: form.note || (type === 'expense' ? categoryMeta(category).label : form.category) });
+          pushFlow(next, { kind: kind, accountId: form.accountId, counterAccountId: type === 'transfer' ? form.counterAccountId : null, amount: form.amountValue, date: form.date, confirmed: actual, confidence: actual ? 'CERTAIN' : 'EXPECTED', category: category, title: type === 'expense' ? categoryMeta(category).label : '', note: form.note || (type === 'expense' ? categoryMeta(category).label : '') });
         }
       }, 'Đã ghi giao dịch.');
       setOverlay(null);
@@ -1323,6 +1469,9 @@
         view: view,
         onView: go,
         onAdd: function () { setOverlay('composer'); },
+        onManageAccounts: openAccountManager,
+        onEditAccount: openEditAccountById,
+        onEditFlow: openEditFlow,
         onCommit: commit
       });
       bottom = h(global.RootflowCapitalUI.BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
@@ -1338,8 +1487,9 @@
 
     return h('div', { className: 'app' }, screen,
       bottom,
-      overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onSave: saveEvent }) : null,
-      overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: closeOverlay }, h(AccountForm, {
+      overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onManageAccounts: openAccountManager, onSave: saveEvent }) : null,
+      overlay === 'accounts' ? h(Sheet, { title: 'Tài khoản & nguồn vốn', onClose: closeOverlay }, h(AccountManager, { data: data, balances: derived.balances, onAdd: openAddAccount, onEdit: openEditAccount })) : null,
+      overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: function () { setEditingAccount(null); setOverlay('accounts'); } }, h(AccountForm, {
         account: editingAccount,
         contract: editingAccount ? data.contracts.filter(function (row) { return row.accountId === editingAccount.id; })[0] : null,
         statement: editingAccount ? data.statements.filter(function (row) { return row.creditCardAccountId === editingAccount.id; }).sort(function (a, b) { return String(b.statementMonth || b.statementDate || '').localeCompare(String(a.statementMonth || a.statementDate || '')); })[0] : null,
@@ -1347,6 +1497,7 @@
         hasContractFlows: editingAccount ? data.flows.some(function (flow) { return flow.contractId && flow.counterAccountId === editingAccount.id && (flow.kind === 'borrow' || flow.kind === 'lend'); }) : false,
         liquidAccounts: derived.liquidAccounts, payableContracts: data.contracts.filter(function (row) { return row.type === 'payable' && row.status !== 'closed'; }), onSave: saveAccount
       })) : null,
+      overlay === 'flow-edit' && editingFlow ? h(Sheet, { title: 'Sửa giao dịch', onClose: function () { setEditingFlow(null); setOverlay(null); } }, h(FlowEditor, { flow: editingFlow, data: data, onSave: saveFlowEdit })) : null,
       overlay === 'budget' && budgetEditor ? h(Sheet, { title: 'Ngân sách · ' + budgetEditor.category.label, onClose: closeOverlay }, h(BudgetForm, { category: budgetEditor.category, month: budgetEditor.month, budget: budgetEditor.budget, onSave: saveBudget, onDelete: deleteBudget })) : null,
       overlay === 'recurring' ? h(Sheet, { title: editingRecurring ? 'Sửa nguồn thu' : 'Thêm nguồn thu', onClose: function () { setOverlay(null); setEditingRecurring(null); } }, h(RecurringIncomeForm, { income: editingRecurring, onSave: saveRecurring })) : null,
       overlay === 'settings' ? h(Sheet, { title: 'Cài đặt & dữ liệu', onClose: closeOverlay }, h(Settings, { data: data, balances: derived.balances, onSave: saveSettings, onAddAccount: openAddAccount, onEditAccount: openEditAccount, onEditRecurring: editRecurring, onBudgets: openBudgets, onExport: function () { S.exportFile(data); }, onImport: importBackup, onTest: diagnostics })) : null,
