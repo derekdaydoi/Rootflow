@@ -307,7 +307,8 @@
   /* Lịch hợp đồng là nguồn duy nhất cho cả UI và cashflow forecast.
      - principal_interest: gốc chia đều theo kỳ, lãi tính trên dư gốc đầu kỳ.
      - interest_only: mỗi kỳ chỉ trả lãi, toàn bộ gốc nằm ở kỳ cuối.
-     Lãi suất là %/tháng; kỳ lẻ cuối cùng được quy đổi theo số ngày / 30. */
+     Lãi suất mới là %/năm và accrual theo số ngày thực tế. Contract cũ chưa có
+     rate period vẫn giữ cách tính %/tháng để không làm đổi lịch sử. */
   function contractSchedule(contract) {
     if (!contract) return [];
     var principal = Math.max(0, contract.currentOutstanding !== undefined && contract.currentOutstanding !== null
@@ -336,6 +337,10 @@
         ? (contract.interestBasis === 'original_principal' || mode === 'interest_only' ? 'flat' : 'reducing_balance') : 'none';
     }
     var rate = Math.max(0, Number(contract.interestRate) || 0);
+    var ratePeriod = String(contract.interestRatePeriod || contract.ratePeriod || '').toLowerCase();
+    var annualRate = Math.max(0, Number(contract.annualInterestRate) || 0);
+    var annualDailyRate = annualRate > 0 || ratePeriod === 'annual' || ratePeriod === 'yearly' || ratePeriod === 'apr';
+    if (!(annualRate > 0) && annualDailyRate) annualRate = rate;
     var fixed = Math.max(0, Number(contract.fixedInterest) || 0);
     var original = Math.max(0, Number(contract.originalPrincipal) || principal);
     var contractFee = Math.max(0, Number(contract.feeAmount) || 0);
@@ -351,12 +356,18 @@
         } else interest = fixed;
       }
       else if (method === 'flat' || method === 'reducing_balance') {
-        var factor = 1;
         var previous = index ? dates[index - 1] : start;
-        if (frequency === 'at_maturity') factor = Math.max(0, diffDays(start, date) / 30);
-        else if (date !== addMonths(previous, 1)) factor = Math.max(0, diffDays(previous, date) / 30);
+        var accrualDays = Math.max(0, diffDays(previous, date));
         var interestBase = method === 'flat' || contract.interestBasis === 'original_principal' ? original : balance;
-        interest = Math.round(interestBase * rate / 100 * factor);
+        if (annualDailyRate) {
+          var denominator = String(contract.dayCountConvention || 'actual_365').toLowerCase() === 'actual_360' ? 360 : 365;
+          interest = Math.round(interestBase * annualRate / 100 * accrualDays / denominator);
+        } else {
+          var factor = 1;
+          if (frequency === 'at_maturity') factor = Math.max(0, diffDays(start, date) / 30);
+          else if (date !== addMonths(previous, 1)) factor = Math.max(0, accrualDays / 30);
+          interest = Math.round(interestBase * rate / 100 * factor);
+        }
       }
       var principalAmount = mode === 'interest_only' ? (isLast ? balance : 0)
         : isLast ? balance : Math.min(balance, basePrincipal);

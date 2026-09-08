@@ -91,6 +91,16 @@ const annualLoan = {
 };
 assert.strictEqual(D.capitalFundingCostSummary(annualLoan).knownInterest, 1200000);
 
+const annualDaily = D.contractSchedule({
+  id:'daily-annual', type:'payable', originalPrincipal:22000000, currentOutstanding:22000000,
+  startDate:'2026-06-25', firstPaymentDate:'2026-07-14', maturityDate:'2026-08-14',
+  interestFrequency:'monthly', repaymentMode:'principal_interest', actualInterestMethod:'reducing_balance',
+  interestBasis:'outstanding_principal', annualInterestRate:12, interestRate:12, interestRatePeriod:'annual',
+  dayCountConvention:'actual_365', feeFrequency:'none'
+});
+assert.strictEqual(annualDaily[0].interestAmount, Math.round(22000000 * 0.12 * 19 / 365));
+assert.strictEqual(annualDaily[1].interestAmount, Math.round(11000000 * 0.12 * 31 / 365));
+
 const final = D.finalSummary(data);
 assert(final.operating && final.capital && final.incomePlan && Array.isArray(final.upcoming));
 
