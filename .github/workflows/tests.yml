@@ -1,22 +1,66 @@
-name: Rootflow regression tests
+name: Rootflow homescreen icon release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Generate homescreen icons from canonical logo
+        run: |
+          set -euo pipefail
+          command -v convert
+          convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 180x180 -strip rootflow-touch-180-v2.png
+          convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 192x192 -strip rootflow-icon-192-v2.png
+          convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 512x512 -strip rootflow-icon-512-v2.png
+          file rootflow-touch-180-v2.png rootflow-icon-192-v2.png rootflow-icon-512-v2.png
+      - name: Point PWA metadata at the new logo
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          let index = fs.readFileSync('index.html', 'utf8');
+          index = index
+            .replace('href="rootflow-icon-192.png"', 'href="rootflow-icon-192-v2.png"')
+            .replace('href="rootflow-touch-180.png"', 'href="rootflow-touch-180-v2.png"');
+          fs.writeFileSync('index.html', index);
+
+          const manifest = JSON.parse(fs.readFileSync('manifest.json', 'utf8'));
+          manifest.icons = [
+            { src: 'rootflow-touch-180-v2.png', sizes: '180x180', type: 'image/png', purpose: 'any' },
+            { src: 'rootflow-icon-192-v2.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: 'rootflow-icon-512-v2.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ];
+          manifest.background_color = '#B7FF9E';
+          manifest.theme_color = '#0F6B45';
+          fs.writeFileSync('manifest.json', JSON.stringify(manifest, null, 2) + '\n');
+
+          let sw = fs.readFileSync('sw.js', 'utf8');
+          sw = sw
+            .replace('rootflow-cache-2026-09-09-green-logo-v5-direct-webp', 'rootflow-cache-2026-09-09-green-logo-v6-homescreen-icon')
+            .replace("'./rootflow-touch-180.png'", "'./rootflow-touch-180-v2.png'")
+            .replace("'./rootflow-icon-192.png'", "'./rootflow-icon-192-v2.png'")
+            .replace("'./rootflow-icon-512.png'", "'./rootflow-icon-512-v2.png'");
+          fs.writeFileSync('sw.js', sw);
+
+          let test = fs.readFileSync('tests/run-ui-contract-tests.js', 'utf8');
+          test = test
+            .replace("const themeCss = read('brand/rootflow-theme.css');", "const themeCss = read('brand/rootflow-theme.css');\nconst manifest = read('manifest.json');")
+            .replace("assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');", "assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');\nassert(index.includes('rootflow-touch-180-v2.png') && index.includes('rootflow-icon-192-v2.png'), 'browser and iOS homescreen metadata must use the supplied logo icon set');\nassert(manifest.includes('rootflow-icon-512-v2.png') && manifest.includes('rootflow-icon-192-v2.png'), 'web app manifest must use the new homescreen logo set');")
+            .replace("green-logo-v5-direct-webp", "green-logo-v6-homescreen-icon");
+          fs.writeFileSync('tests/run-ui-contract-tests.js', test);
+          NODE
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -43,3 +87,11 @@ jobs:
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+      - name: Commit homescreen icon release
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html manifest.json sw.js tests/run-ui-contract-tests.js rootflow-touch-180-v2.png rootflow-icon-192-v2.png rootflow-icon-512-v2.png
+          git commit -m "feat: use supplied logo for homescreen icon"
+          git push origin main
