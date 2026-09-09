@@ -2,11 +2,21 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
   <script>
     (function () {
       var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
       if (standalone) document.documentElement.classList.add('standalone-pwa');
+
+      function blockViewportGesture(event) {
+        event.preventDefault();
+      }
+      document.addEventListener('gesturestart', blockViewportGesture, { passive: false });
+      document.addEventListener('gesturechange', blockViewportGesture, { passive: false });
+      document.addEventListener('gestureend', blockViewportGesture, { passive: false });
+      document.addEventListener('touchmove', function (event) {
+        if (event.touches && event.touches.length > 1) event.preventDefault();
+      }, { passive: false });
     })();
   </script>
   <meta name="theme-color" content="#0F6B45">
