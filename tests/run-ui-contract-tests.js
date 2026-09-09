@@ -27,6 +27,7 @@ assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening spl
 [runtimeMark, installIcon].forEach((icon) => assert(icon.length > 1000 && icon.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical brand assets must be real PNG binaries'));
 assert(manifest.includes('brand/rootflow-icon.png') && manifest.includes('512x512') && manifest.includes('any maskable'), 'web app manifest must use one canonical Rootflow install icon');
 assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
+assert(splashCss.includes('.splash-ring{display:none!important}'), 'opening splash must not render ambient ring effects');
 assert(app.includes('function Splash()') && app.includes('var launchState = React.useState(true)') && app.includes('setLaunch(false)'), 'React must own the splash lifecycle after first paint');
 assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');
 assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');
@@ -85,7 +86,7 @@ assert(themeCss.includes('.rf-chart-confirmed{stroke:var(--rf-green-deep)}'), 'c
 assert(themeCss.includes('overscroll-behavior:none') && themeCss.includes('touch-action:pan-y') && themeCss.includes('overflow-x:hidden'), 'application shell must prevent viewport drift while preserving vertical scrolling');
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
 assert(sw.includes('brand/rootflow-splash.css') && sw.includes('brand/rootflow-mark.png') && sw.includes('brand/rootflow-icon.png') && sw.includes('operating-policy.js'), 'service worker must cache the canonical opening mark, install icon and operating policy');
-assert(sw.includes('rootflow-ui-2026-09-09-brand-r3'), 'service worker cache version must refresh the Rootwork-style brand release');
+assert(sw.includes('rootflow-ui-2026-09-09-brand-r4-norings'), 'service worker cache version must refresh the no-ring opening release');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
