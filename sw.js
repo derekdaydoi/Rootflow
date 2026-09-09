@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-09-green-logo-v6-homescreen-icon';
+var CACHE = 'rootflow-cache-2026-09-09-green-logo-v7-valid-png-splash';
 
 var ASSETS = [
   './',
@@ -7,7 +7,7 @@ var ASSETS = [
   './styles.css',
   './capital.css',
   './brand/rootflow-theme.css',
-  './brand/rootflow-opening-logo.webp?v=20260909-green-v4',
+  './rootflow-icon-512-v2.png?v=20260909-splash-v1',
   './operating-policy.js',
   './brand/rootflow-splash.css',
   './domain.js',
@@ -77,6 +77,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-theme\.css|rootflow-splash\.css|rootflow-opening-logo\.webp|rootflow-touch-180-v2\.png|rootflow-icon-192-v2\.png|rootflow-icon-512-v2\.png|operating-policy\.js|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-theme\.css|rootflow-splash\.css|rootflow-touch-180-v2\.png|rootflow-icon-192-v2\.png|rootflow-icon-512-v2\.png|operating-policy\.js|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });
