@@ -2,20 +2,20 @@
 :root{
   /* The only green used for branding/interactions. Exact Home Screen icon background. */
   --rf-brand:#baff9c;
-  --rf-brand-ink:#1c211c;
+  --rf-brand-ink:#111111;
 
-  /* Neutral cream system: no derived green tints. */
+  /* Neutral cream system: typography is true black for maximum legibility. */
   --rf-bg:#f7f0e4;
   --rf-surface:#fff9f0;
   --rf-surface-muted:#fbf4ea;
-  --rf-ink:#1c211c;
-  --rf-muted:#6d695f;
+  --rf-ink:#111111;
+  --rf-muted:#111111;
   --rf-line:#e5d8c6;
   --rf-danger:#b84b43;
   --rf-danger-soft:#fff0ed;
   --rf-warn:#9b651f;
   --rf-warn-soft:#fff3df;
-  --rf-shadow:0 4px 18px rgba(28,33,28,.055);
+  --rf-shadow:0 4px 18px rgba(17,17,17,.055);
 
   /* Legacy token names map onto the same canonical brand / neutral system. */
   --rf-green:var(--rf-brand);
@@ -29,22 +29,22 @@
   --green-deep:var(--rf-brand-ink);
   --green-soft:var(--rf-surface-muted);
   --text:var(--rf-ink);
-  --secondary:var(--rf-muted);
-  --muted:#7a756b;
+  --secondary:var(--rf-ink);
+  --muted:var(--rf-ink);
   --border:var(--rf-line);
   --positive:var(--rf-ink);
 }
 
 html,body,#root,.app,.page{width:100%;max-width:100%;overflow-x:hidden;background:var(--rf-bg)}
 html,body{overscroll-behavior:none;touch-action:pan-y;-webkit-text-size-adjust:100%}
-body{position:relative}
+body{position:relative;color:var(--rf-ink)}
 
 /* Cream chrome keeps the brand lime concentrated in interactive states. */
-.appbar{border-bottom-color:rgba(28,33,28,.08);background:rgba(247,240,228,.94);box-shadow:0 7px 24px rgba(28,33,28,.035)}
+.appbar{border-bottom-color:rgba(17,17,17,.08);background:rgba(247,240,228,.94);box-shadow:0 7px 24px rgba(17,17,17,.035)}
 .appbar::after{background:linear-gradient(to bottom,rgba(247,240,228,.78),rgba(247,240,228,0))}
-.bottom-nav{border-color:rgba(28,33,28,.10);background:rgba(255,249,240,.95);box-shadow:0 10px 30px rgba(28,33,28,.10)}
+.bottom-nav{border-color:rgba(17,17,17,.10);background:rgba(255,249,240,.95);box-shadow:0 10px 30px rgba(17,17,17,.10)}
 .sheet{background:var(--rf-bg)}
-.sheet-head{border-bottom-color:rgba(28,33,28,.09);background:rgba(247,240,228,.96)}
+.sheet-head{border-bottom-color:rgba(17,17,17,.09);background:rgba(247,240,228,.96)}
 
 /* All ordinary surfaces are cream/neutral, never green-tinted. */
 .rf-card,.action-list,.account-manager-summary>span,.input,.select,.date-control{background:var(--rf-surface);border-color:var(--rf-line)}
@@ -58,16 +58,36 @@ body{position:relative}
 .loan-schedule-preview{background:var(--rf-surface);border-color:var(--rf-line)}
 .schedule-interest-chip{background:var(--rf-surface);border-color:var(--rf-line)}
 
+/* Any typography sitting on cream is black. Lime is never used as body/link text on cream. */
+.rf-empty,.rf-home-intro>span,.rf-home-intro>p,.rf-status-line strong,.rf-status-line small,
+.rf-metric>span,.rf-metric>strong,.rf-metric>small,.rf-chart-legend,.rf-chart-low,
+.rf-section-head h2,.rf-text-action,.rf-section-note,.rf-event-row time,.rf-event-copy>strong,
+.rf-compact-card>span,.rf-compact-card>strong,.rf-compact-card>small,
+.rf-segmented button,.rf-capital-tabs button,.rf-screen-title>div>span,.rf-screen-title>div>strong,
+.rf-capital-hero>span,.rf-capital-hero>strong,.rf-capital-split>span,.rf-capital-split b,
+.rf-position-copy strong,.rf-position-copy span,.rf-position-value strong,.rf-position-value>span,
+.rf-edit-hint,.rf-net-result span,.rf-net-result strong,.rf-funding-copy strong,.rf-funding-copy span,
+.rf-funding-copy small,.rf-funding-value strong,.rf-funding-value>span,
+.rf-plan-intro h1,.rf-plan-intro p,.rf-plan-head>div:nth-child(2)>span,.rf-plan-head>div:nth-child(2)>strong,
+.rf-plan-rows>span,.rf-plan-rows b,.rf-consequence-card>span,.rf-consequence-card>small,
+.rf-overlay-head>strong,.rf-explain-total span,.rf-explain-total strong,.rf-available-result span,
+.rf-explain-row,.rf-explain-row strong,.rf-edit-form label,.field-label,.field-help,.row-label strong,
+.row-label span,.row-value,.schedule-preview-head>div:first-child>strong,.schedule-preview-head>div:first-child>span,
+.schedule-interest-chip span,.schedule-interest-chip strong,.schedule-date,.schedule-copy strong,.schedule-copy span,
+.schedule-total,.archive-help,.nav-button:not(.on),.brand-title-word,.brand-title-word strong,.appbar-title.brand{
+  color:var(--rf-ink)!important;
+}
+
 /* Hero uses the exact brand color with no gradient, tint or secondary green. */
 .rf-available-hero{
   color:var(--rf-brand-ink);
-  border:1px solid rgba(28,33,28,.10);
+  border:1px solid rgba(17,17,17,.10);
   background:var(--rf-brand);
-  box-shadow:0 12px 30px rgba(28,33,28,.10);
+  box-shadow:0 12px 30px rgba(17,17,17,.10);
 }
 .rf-hero-label,.rf-hero-value,.rf-hero-breakdown strong{color:var(--rf-brand-ink)}
-.rf-hero-breakdown{border-top-color:rgba(28,33,28,.15)}
-.rf-hero-breakdown>span{color:rgba(28,33,28,.68)}
+.rf-hero-breakdown{border-top-color:rgba(17,17,17,.15)}
+.rf-hero-breakdown>span{color:rgba(17,17,17,.72)}
 .rf-hero-explain{color:var(--rf-brand-ink)}
 
 /* One brand lime owns selected/action/progress states. */
@@ -77,14 +97,14 @@ body{position:relative}
 .rf-chart-expected{stroke:var(--rf-green-accent);opacity:1}
 .rf-chart-legend i{background:var(--rf-brand-ink)}
 .rf-chart-legend i.expected{background:var(--rf-brand);opacity:1}
-.primary-button,.nav-add{background:var(--rf-brand);border-color:rgba(28,33,28,.12);color:var(--rf-brand-ink);box-shadow:0 5px 14px rgba(28,33,28,.11)}
+.primary-button,.nav-add{background:var(--rf-brand);border-color:rgba(17,17,17,.12);color:var(--rf-brand-ink);box-shadow:0 5px 14px rgba(17,17,17,.11)}
 .primary-button:active,.nav-add:active{background:var(--rf-brand);color:var(--rf-brand-ink);filter:brightness(.97)}
 .nav-add .icon,.nav-add svg{color:var(--rf-brand-ink);stroke:currentColor}
 .nav-button.on{background:var(--rf-brand);color:var(--rf-brand-ink)}
 .status-pill,.rf-state-pill.good,.rf-confidence.certain{background:var(--rf-brand);color:var(--rf-brand-ink)}
 .account-manager-entry .flow-icon{background:var(--rf-brand);color:var(--rf-brand-ink)}
 
-/* Positive values are neutral dark ink; no second green is introduced for numbers. */
+/* Positive values are black on cream; semantic warning/danger colors remain reserved for alerts. */
 .positive,.rf-metric.good>strong,.row-value.positive,.flow-amount.positive,.metric-value.positive{color:var(--rf-ink)!important}
 
 /* Keep the interface concise. */
