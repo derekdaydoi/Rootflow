@@ -1,6 +1,6 @@
 /* Rootflow service worker. */
 /* Previous release marker retained for regression compatibility: rootflow-ui-2026-09-09-brand-r6-hybrid */
-var CACHE='rootflow-ui-2026-09-09-black-ink-r1';
+var CACHE='rootflow-ui-2026-09-09-confidence-r1';
 var ASSETS=['./','./index.html','./styles.css','./capital.css','./brand/rootflow-theme.css?v=20260909-brand-r8-black-ink','./brand/rootflow-fab.css?v=20260909-fab-r1','./brand/rootflow-splash.css?v=20260909-brand-r4-norings','./brand/rootflow-mark.png?v=20260909-brand-r3','./brand/rootflow-icon.png?v=20260909-brand-r6-hybrid','./operating-policy.js','./domain.js','./cashflow-domain.js','./capital-domain.js','./store.js','./selftest.js','./capital-ui.js','./app.js','./manifest.json?v=20260909-brand-r6-hybrid','./vendor/react.production.min.js','./vendor/react-dom.production.min.js'];
 self.addEventListener('install',function(event){event.waitUntil(caches.open(CACHE).then(function(cache){return cache.addAll(ASSETS)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(key){return key!==CACHE}).map(function(key){return caches.delete(key)}))}).then(function(){return self.clients.claim()}))});
