@@ -1,57 +1,22 @@
-name: Rootflow September release
+name: Rootflow regression tests
 
 on:
   push:
     branches:
       - main
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    if: github.actor != 'github-actions[bot]'
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Normalize staged logo payload
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p = Path('tools/rootflow-sept09-release.py')
-          s = p.read_text()
-          s = s.replace("logo_path.write_bytes(base64.b64decode(b64_path.read_text().strip()))", "payload = b64_path.read_text().strip(); payload += '=' * (-len(payload) % 4); logo_path.write_bytes(base64.b64decode(payload))")
-          p.write_text(s)
-          PY
-      - name: Apply liquidity and brand release
-        run: python tools/rootflow-sept09-release.py
-      - name: Align runtime cache and UI contracts
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          swp = Path('sw.js')
-          sw = swp.read_text()
-          marker = "  './capital.css',"
-          additions = "  './capital.css',\n  './brand/rootflow-theme.css',\n  './brand/rootflow-opening-logo.png',\n  './operating-policy.js',"
-          if "'./operating-policy.js'" not in sw:
-            sw = sw.replace(marker, additions)
-          swp.write_text(sw)
-
-          tp = Path('tests/run-ui-contract-tests.js')
-          t = tp.read_text()
-          t = t.replace("assert(index.includes('© 2026') && index.includes('@derekdaydoi'), 'opening splash must expose copyright ownership');", "assert(index.includes('(c) Copyright from derekdaydoi'), 'opening splash must expose requested copyright ownership');")
-          t = t.replace("assert(ui.includes('Kịch bản chắc chắn'), 'cashflow must expose conservative projection');", "assert(ui.includes('Stress 14 ngày'), 'cashflow must expose delayed-collection stress projection');")
-          t = t.replace("assert(ui.includes('Có dòng tiền dự kiến'), 'expected projection must be visually separate');", "assert(ui.includes('Base case'), 'base projection must be visually separate');")
-          if "operating-policy.js" not in t:
-            t = t.replace("assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');", "assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');\nassert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');")
-          t = t.replace("assert(sw.includes(\"'./brand/rootflow-splash.css'\"), 'service worker must cache the restored splash stylesheet');", "assert(sw.includes(\"'./brand/rootflow-splash.css'\") && sw.includes(\"'./brand/rootflow-theme.css'\") && sw.includes(\"'./brand/rootflow-opening-logo.png'\") && sw.includes(\"'./operating-policy.js'\"), 'service worker must cache the opening brand and operating policy runtime');")
-          tp.write_text(t)
-          PY
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -78,19 +43,3 @@ jobs:
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
-      - name: Release contract
-        run: |
-          test -s brand/rootflow-opening-logo.png
-          file brand/rootflow-opening-logo.png | grep -q PNG
-          grep -q 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống' index.html
-          grep -q '(c) Copyright from derekdaydoi' index.html
-          grep -q 'operating-policy.js' index.html
-          grep -q 'Stress 14 ngày' capital-ui.js
-          grep -q 'Base case' capital-ui.js
-      - name: Publish source
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'feat: align liquidity policy and opening brand' || exit 0
-          git push origin HEAD:main
