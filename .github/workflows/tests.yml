@@ -29,9 +29,9 @@ jobs:
           import base64
 
           root = Path('.')
-          src = root / 'rootflow-icon-512-v2.png'
+          src = root / 'rootflow-icon-512-v3.png'
           im = Image.open(src).convert('RGBA')
-          crop = im.crop((82, 82, 430, 430))
+          crop = im
           outputs = [
               (180, 'rootflow-touch-180-v3.png'),
               (192, 'rootflow-icon-192-v3.png'),
