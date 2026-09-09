@@ -30,6 +30,28 @@ jobs:
           PY
       - name: Apply liquidity and brand release
         run: python tools/rootflow-sept09-release.py
+      - name: Align runtime cache and UI contracts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          swp = Path('sw.js')
+          sw = swp.read_text()
+          marker = "  './capital.css',"
+          additions = "  './capital.css',\n  './brand/rootflow-theme.css',\n  './brand/rootflow-opening-logo.png',\n  './operating-policy.js',"
+          if "'./operating-policy.js'" not in sw:
+            sw = sw.replace(marker, additions)
+          swp.write_text(sw)
+
+          tp = Path('tests/run-ui-contract-tests.js')
+          t = tp.read_text()
+          t = t.replace("assert(index.includes('© 2026') && index.includes('@derekdaydoi'), 'opening splash must expose copyright ownership');", "assert(index.includes('(c) Copyright from derekdaydoi'), 'opening splash must expose requested copyright ownership');")
+          t = t.replace("assert(ui.includes('Kịch bản chắc chắn'), 'cashflow must expose conservative projection');", "assert(ui.includes('Stress 14 ngày'), 'cashflow must expose delayed-collection stress projection');")
+          t = t.replace("assert(ui.includes('Có dòng tiền dự kiến'), 'expected projection must be visually separate');", "assert(ui.includes('Base case'), 'base projection must be visually separate');")
+          if "operating-policy.js" not in t:
+            t = t.replace("assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');", "assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');\nassert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');")
+          t = t.replace("assert(sw.includes(\"'./brand/rootflow-splash.css'\"), 'service worker must cache the restored splash stylesheet');", "assert(sw.includes(\"'./brand/rootflow-splash.css'\") && sw.includes(\"'./brand/rootflow-theme.css'\") && sw.includes(\"'./brand/rootflow-opening-logo.png'\") && sw.includes(\"'./operating-policy.js'\"), 'service worker must cache the opening brand and operating policy runtime');")
+          tp.write_text(t)
+          PY
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -61,8 +83,10 @@ jobs:
           test -s brand/rootflow-opening-logo.png
           file brand/rootflow-opening-logo.png | grep -q PNG
           grep -q 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống' index.html
+          grep -q '(c) Copyright from derekdaydoi' index.html
           grep -q 'operating-policy.js' index.html
           grep -q 'Stress 14 ngày' capital-ui.js
+          grep -q 'Base case' capital-ui.js
       - name: Publish source
         run: |
           git config user.name 'github-actions[bot]'
