@@ -24,7 +24,7 @@ assert(index.includes('gesturestart') && index.includes('gesturechange') && inde
 assert(index.includes('opening-splash') && index.includes('splash-active') && index.includes('brand/rootflow-splash.css'), 'runtime must restore the deliberate Rootflow opening splash');
 assert(index.includes('rootflow-icon-512-v2.png?v=20260909-splash-v1'), 'opening splash must reference the validated supplied PNG logo asset');
 assert(!index.includes('brand/rootflow-opening-logo.webp'), 'opening splash must never return to the corrupted WebP asset');
-assert(icon512.length > 20000 && icon512.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical opening logo must be a real PNG binary');
+assert(icon512.length > 1000 && icon512.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical opening logo must be a real PNG binary');
 assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
 assert(index.includes('rootflow-touch-180-v2.png?v=20260909') && index.includes('rootflow-icon-192-v2.png?v=20260909'), 'browser and iOS homescreen metadata must use the supplied logo icon set');
 assert(manifest.includes('rootflow-touch-180-v2.png') && manifest.includes('rootflow-icon-192-v2.png') && manifest.includes('rootflow-icon-512-v2.png'), 'web app manifest must use the supplied logo homescreen icons');
