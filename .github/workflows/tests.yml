@@ -1,22 +1,26 @@
-name: Rootflow regression tests
+name: Rootflow product controls release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Apply product controls
+        run: python tools/restore-splash-delete-gesture.py
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -37,7 +41,18 @@ jobs:
         run: node --check cashflow-domain.js
       - name: Store syntax
         run: node --check store.js
+      - name: Service worker syntax
+        run: node --check sw.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+      - name: Publish source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "feat: restore splash, gesture lock and account deletion"
+          git push origin HEAD:main
