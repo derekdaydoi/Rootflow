@@ -12,7 +12,11 @@ const ui = read('capital-ui.js');
 const sw = read('sw.js');
 const splashCss = read('brand/rootflow-splash.css');
 const themeCss = read('brand/rootflow-theme.css');
+const manifest = read('manifest.json');
 const openingLogo = fs.readFileSync(path.join(__dirname, '..', 'brand/rootflow-opening-logo.webp'));
+const touchIcon = fs.readFileSync(path.join(__dirname, '..', 'rootflow-touch-180-v2.png'));
+const icon192 = fs.readFileSync(path.join(__dirname, '..', 'rootflow-icon-192-v2.png'));
+const icon512 = fs.readFileSync(path.join(__dirname, '..', 'rootflow-icon-512-v2.png'));
 
 assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
 assert(!index.includes('effects.css'), 'retired motion-template stylesheet must not load');
@@ -22,6 +26,9 @@ assert(index.includes('opening-splash') && index.includes('splash-active') && in
 assert(index.includes('brand/rootflow-opening-logo.webp?v=20260909-green-v4'), 'opening splash must reference the direct supplied logo asset');
 assert(openingLogo.length > 20000 && openingLogo.slice(0, 4).toString('ascii') === 'RIFF' && openingLogo.slice(8, 12).toString('ascii') === 'WEBP', 'canonical opening logo must be a real direct WebP binary');
 assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
+assert(index.includes('rootflow-touch-180-v2.png?v=20260909') && index.includes('rootflow-icon-192-v2.png?v=20260909'), 'browser and iOS homescreen metadata must use the supplied logo icon set');
+assert(manifest.includes('rootflow-touch-180-v2.png') && manifest.includes('rootflow-icon-192-v2.png') && manifest.includes('rootflow-icon-512-v2.png'), 'web app manifest must use the supplied logo homescreen icons');
+[touchIcon, icon192, icon512].forEach((icon) => assert(icon.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'homescreen icon must be a real PNG binary'));
 assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
 assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');
 assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');
@@ -81,7 +88,8 @@ assert(themeCss.includes('overscroll-behavior:none') && themeCss.includes('touch
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
 assert(sw.includes("'./brand/rootflow-splash.css'") && sw.includes("'./brand/rootflow-theme.css'") && sw.includes('rootflow-opening-logo.webp?v=20260909-green-v4') && sw.includes("'./operating-policy.js'"), 'service worker must cache the opening brand and operating policy runtime');
 assert(sw.includes('rootflow-opening-logo\\.webp') && sw.includes('rootflow-theme\\.css'), 'opening logo and theme must use network-first refresh policy');
-assert(sw.includes('green-logo-v5-direct-webp'), 'service worker cache version must refresh the direct-logo release');
+assert(sw.includes('green-logo-v6-homescreen-icon'), 'service worker cache version must refresh the supplied homescreen icon release');
+assert(sw.includes('rootflow-touch-180-v2\\.png') && sw.includes('rootflow-icon-192-v2\\.png') && sw.includes('rootflow-icon-512-v2\\.png'), 'homescreen icon assets must use network-first refresh policy');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
