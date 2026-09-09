@@ -1,0 +1,1 @@
+Rootflow brand release r2 uses binary assets `brand/rootflow-mark.png` and `brand/rootflow-icon.png` generated from the supplied master artwork. This marker exists only to make the canonical split explicit in source history.
