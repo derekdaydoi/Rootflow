@@ -24,6 +24,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
 
           path = Path('app.js')
           text = path.read_text()
@@ -113,10 +114,9 @@ jobs:
 
           sw_path = Path('sw.js')
           sw = sw_path.read_text()
-          old = "var CACHE='rootflow-ui-2026-09-09-fab-r1';"
-          if old not in sw:
-              raise SystemExit('service-worker cache marker missing')
-          sw = sw.replace(old, "var CACHE='rootflow-ui-2026-09-09-confidence-r1';", 1)
+          sw, count = re.subn(r"var CACHE='rootflow-ui-[^']+';", "var CACHE='rootflow-ui-2026-09-09-confidence-r1';", sw, count=1)
+          if count != 1:
+              raise SystemExit(f'service-worker cache marker: expected one match, found {count}')
           sw_path.write_text(sw)
           PY
       - name: Financial invariants
