@@ -16,8 +16,9 @@ assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
 assert(!index.includes('effects.css'), 'retired motion-template stylesheet must not load');
 assert(!index.includes('user-scalable=no') && !index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
 assert(index.includes('opening-splash') && index.includes('splash-active') && index.includes('brand/rootflow-splash.css'), 'runtime must restore the deliberate Rootflow opening splash');
-assert(index.includes('© 2026') && index.includes('@derekdaydoi'), 'opening splash must expose copyright ownership');
+assert(index.includes('(c) Copyright from derekdaydoi'), 'opening splash must expose requested copyright ownership');
 assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
+assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');
 assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');
 assert(!index.includes('account-editor.js') && !index.includes('account-editor.css'), 'runtime must not load imperative account-editor bridges');
 assert(!index.includes('compat.js') && !index.includes('store-adapter.js') && !index.includes('i18n-base.js') && !index.includes('i18n-capital.js'), 'retired compatibility scripts must not load');
@@ -34,8 +35,8 @@ assert(!ui.includes('TÀI SẢN RÒNG'), 'net worth must not return as Home hero
 ['Hôm nay', 'Dòng tiền', 'Vốn', 'Kế hoạch'].forEach(label => assert(ui.includes(label), `navigation must include ${label}`));
 assert(ui.includes('Xem cách tính'), 'available cash must be explainable');
 assert(ui.includes('[7, 30, 90]'), 'cashflow must support 7/30/90-day horizons');
-assert(ui.includes('Kịch bản chắc chắn'), 'cashflow must expose conservative projection');
-assert(ui.includes('Có dòng tiền dự kiến'), 'expected projection must be visually separate');
+assert(ui.includes('Stress 14 ngày'), 'cashflow must expose delayed-collection stress projection');
+assert(ui.includes('Base case'), 'base projection must be visually separate');
 assert(ui.includes('Nguồn vốn'), 'capital view must expose funding sources');
 assert(ui.includes('Vốn đang chạy'), 'capital positions must be a primary concept');
 assert(ui.includes("onEdit: function () { props.onEdit('salary'); }"), 'salary must be editable from planning');
@@ -71,7 +72,7 @@ numericWeights.forEach(rule => assert(/(?:400|500|600|700)$/.test(rule), `typogr
 
 
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
-assert(sw.includes("'./brand/rootflow-splash.css'"), 'service worker must cache the restored splash stylesheet');
+assert(sw.includes("'./brand/rootflow-splash.css'") && sw.includes("'./brand/rootflow-theme.css'") && sw.includes("'./brand/rootflow-opening-logo.png'") && sw.includes("'./operating-policy.js'"), 'service worker must cache the opening brand and operating policy runtime');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 

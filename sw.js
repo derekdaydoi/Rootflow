@@ -1,11 +1,14 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-09-splash-delete-gesture';
+var CACHE = 'rootflow-cache-2026-09-09-liquidity-logo';
 
 var ASSETS = [
   './',
   './index.html',
   './styles.css',
   './capital.css',
+  './brand/rootflow-theme.css',
+  './brand/rootflow-opening-logo.png',
+  './operating-policy.js',
   './brand/rootflow-splash.css',
   './domain.js',
   './cashflow-domain.js',

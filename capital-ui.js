@@ -51,9 +51,9 @@
     return Math.max(0, Number(String(value || '').replace(/[^0-9.-]/g, '')) || 0);
   }
   function statusMeta(status) {
-    if (status === 'SHORTFALL') return { cls: 'danger', label: 'Thiếu thanh khoản', note: 'Dòng tiền chắc chắn tạo funding gap nếu không bổ sung tiền.' };
-    if (status === 'THIN_BUFFER') return { cls: 'warn', label: 'Buffer còn mỏng', note: 'Đủ nghĩa vụ tối thiểu nhưng chưa đạt mức dự phòng.' };
-    return { cls: 'good', label: 'Thanh khoản ổn', note: 'Kịch bản chắc chắn đang nằm trong vùng vận hành an toàn.' };
+    if (status === 'SHORTFALL') return { cls: 'danger', label: 'Base case thiếu thanh khoản', note: 'Lịch tiền vào/ra hiện tại tạo funding gap trong kịch bản vận hành cơ sở.' };
+    if (status === 'THIN_BUFFER') return { cls: 'warn', label: 'Buffer còn mỏng', note: 'Base case vẫn chạy được nhưng mức dự phòng còn mỏng.' };
+    return { cls: 'good', label: 'Thanh khoản ổn', note: 'Base case nằm trong vùng vận hành; stress được theo dõi riêng.' };
   }
   function confidenceMeta(value) {
     var key = String(value || 'UNKNOWN').toUpperCase();
@@ -128,8 +128,8 @@
         expectedPath ? h('path', { className: 'rf-chart-expected', d: expectedPath }) : null,
         confirmedPath ? h('path', { className: 'rf-chart-confirmed', d: confirmedPath }) : null),
       h('div', { className: 'rf-chart-legend' },
-        h('span', null, h('i', { className: 'confirmed' }), 'Kịch bản chắc chắn'),
-        h('span', null, h('i', { className: 'expected' }), 'Có dòng tiền dự kiến'),
+        h('span', null, h('i', { className: 'confirmed' }), 'Stress 14 ngày'),
+        h('span', null, h('i', { className: 'expected' }), 'Base case'),
         h('span', null, h('i', { className: 'buffer' }), 'Mức nên giữ')),
       props.confirmed && props.confirmed.projectedLow !== undefined ? h('div', { className: 'rf-chart-low' }, 'Điểm thấp nhất: ', h('strong', null, money(props.confirmed.projectedLow))) : null);
   }
@@ -190,7 +190,7 @@
         h('div', { className: 'rf-explain-row' }, h('span', null, 'Chi phí đáo thẻ dự kiến'), h('strong', null, money(req.rolloverNeed))),
         h('div', { className: 'rf-explain-row' }, h('span', null, 'Dự phòng an toàn'), h('strong', null, money(op.safetyReserve))),
         h('div', { className: 'rf-explain-row total' }, h('span', null, 'Tổng cần giữ'), h('strong', null, money(op.recommendedCash)))),
-      h('section', { className: 'rf-available-result' }, h('span', null, 'Tiền có thể dùng'), h('strong', null, money(op.availableCash)), h('small', null, 'Dòng tiền Expected không được dùng để nâng mức an toàn hôm nay.')));
+      h('section', { className: 'rf-available-result' }, h('span', null, 'Tiền có thể dùng'), h('strong', null, money(op.availableCash)), h('small', null, 'Base case dùng forecast; stress trì hoãn khoản thu dự kiến 14 ngày.')));
   }
 
   function Overlay(props) {
@@ -206,7 +206,7 @@
     var confirmed = projectionSummary(props.data, 30, 'confirmed');
     var expected = projectionSummary(props.data, 30, 'expected');
     return h('div', { className: 'rf-os-screen rf-home' },
-      h('header', { className: 'rf-home-intro' }, h('span', null, fmtDate(D.today(), true)), h('p', null, 'Quyền sử dụng tiền, không chỉ số dư.')),
+      h('header', { className: 'rf-home-intro' }, h('span', null, fmtDate(D.today(), true))),
       h('section', { className: 'rf-available-hero' },
         h('div', { className: 'rf-hero-label' }, 'Tiền có thể dùng'),
         h('div', { className: 'rf-hero-value' }, money(op.availableCash)),
@@ -214,7 +214,7 @@
         h('button', { type: 'button', className: 'rf-hero-explain', onClick: props.onExplain }, 'Xem cách tính ', icon('chevron'))),
       h('section', { className: 'rf-card rf-liquidity-card' },
         h('div', { className: 'rf-status-line' }, h('span', { className: cx('rf-status-dot', status.cls) }), h('div', null, h('strong', null, status.label), h('small', null, status.note))),
-        h('div', { className: 'rf-liquidity-kpis' }, h(Metric, { label: 'Điểm thấp nhất 30 ngày', value: money(op.projectedLow), note: op.pressureDate ? 'Áp lực: ' + fmtDate(op.pressureDate, false) : '', cls: op.projectedLow < 0 ? 'danger' : '' }), h(Metric, { label: 'Vốn có thể triển khai', value: money(op.deployableCapital), note: 'Sau mức giữ và sinh hoạt', cls: op.deployableCapital > 0 ? 'good' : '' })),
+        h('div', { className: 'rf-liquidity-kpis' }, h(Metric, { label: 'Điểm thấp nhất · Base', value: money(op.projectedLow), note: op.pressureDate ? 'Áp lực: ' + fmtDate(op.pressureDate, false) : '', cls: op.projectedLow < 0 ? 'danger' : '' }), h(Metric, { label: 'Stress gap · 14 ngày', value: money(op.stressGap || 0), note: op.stressGap > 0 ? 'Cần thêm nếu khoản thu trễ' : 'Đủ chịu stress hiện tại', cls: op.stressGap > 0 ? 'danger' : 'good' })),
         h(Chart, { confirmed: confirmed, expected: expected, reference: op.recommendedCash })),
       h('section', { className: 'rf-card' }, h(SectionHead, { title: 'Việc sắp tới', action: events.length ? 'Dòng tiền' : '', onAction: props.onCashflow }), h('div', { className: 'rf-event-list' }, events.length ? events.map(function (event, i) { return h(EventRow, { event: event, onEdit: !event.synthetic && props.onEditFlow ? function () { props.onEditFlow(event.id); } : null, key: event.id || event.date + '-' + i }); }) : h('p', { className: 'rf-empty' }, 'Chưa có dòng tiền tương lai có ngày cụ thể.'))),
       h('section', { className: 'rf-home-plan-grid' },
