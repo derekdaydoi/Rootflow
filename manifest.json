@@ -7,7 +7,7 @@
   "id": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#BAFF9C",
+  "background_color": "#F7FAF5",
   "theme_color": "#BAFF9C",
   "categories": [
     "finance",
@@ -17,7 +17,7 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "brand/rootflow-icon.png?v=20260909-brand-r5-theme",
+      "src": "brand/rootflow-icon.png?v=20260909-brand-r6-hybrid",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

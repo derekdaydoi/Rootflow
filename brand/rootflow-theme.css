@@ -1,64 +1,93 @@
-/* Rootflow brand theme — anchored to the exact Home Screen icon background. */
+/* Rootflow hybrid brand theme — lime identity, neutral operating canvas. */
 :root{
-  --rf-brand-bg:#baff9c;
-  --rf-green:#168a55;
-  --rf-green-deep:#0f5f3f;
-  --rf-green-accent:#59cf24;
-  --rf-green-soft:#ddffcf;
-  --rf-bg:var(--rf-brand-bg);
-  --rf-surface:#f8fff4;
-  --rf-ink:#123326;
-  --rf-muted:#587060;
-  --rf-line:#9bdc81;
-  --rf-danger:#c64a43;
+  /* Brand comes directly from the Home Screen icon background. */
+  --rf-brand:#baff9c;
+  --rf-brand-strong:#a6ef83;
+  --rf-brand-soft:#efffe8;
+  --rf-brand-ink:#123d27;
+
+  /* Financial UI stays neutral so the brand color remains an accent, not a wash. */
+  --rf-green:#237449;
+  --rf-green-deep:var(--rf-brand-ink);
+  --rf-green-accent:#7edb59;
+  --rf-green-soft:var(--rf-brand-soft);
+  --rf-bg:#f7faf5;
+  --rf-surface:#ffffff;
+  --rf-surface-muted:#fbfdf9;
+  --rf-ink:#172019;
+  --rf-muted:#68756d;
+  --rf-line:#dce8de;
+  --rf-danger:#b84b43;
   --rf-danger-soft:#fff0ed;
   --rf-warn:#8b611f;
   --rf-warn-soft:#fff5df;
-  --rf-shadow:0 3px 12px rgba(15,95,63,.07);
+  --rf-shadow:0 4px 18px rgba(18,61,39,.055);
 
-  /* Base application tokens use the same palette. */
-  --bg:var(--rf-brand-bg);
-  --surface:#f8fff4;
-  --surface-soft:#e8ffdc;
-  --green:#168a55;
-  --green-deep:#0f5f3f;
-  --green-soft:#ddffcf;
-  --text:#123326;
-  --secondary:#587060;
-  --muted:#6f8578;
-  --border:#9bdc81;
-  --positive:#16794b;
+  /* Base application tokens inherit the same hierarchy. */
+  --bg:var(--rf-bg);
+  --surface:var(--rf-surface);
+  --surface-soft:#f1f6f1;
+  --green:var(--rf-green);
+  --green-deep:var(--rf-green-deep);
+  --green-soft:var(--rf-green-soft);
+  --text:var(--rf-ink);
+  --secondary:var(--rf-muted);
+  --muted:#7b877f;
+  --border:var(--rf-line);
+  --positive:var(--rf-green);
 }
 
-html,body,#root,.app,.page{width:100%;max-width:100%;overflow-x:hidden;background:var(--rf-brand-bg)}
+html,body,#root,.app,.page{width:100%;max-width:100%;overflow-x:hidden;background:var(--rf-bg)}
 html,body{overscroll-behavior:none;touch-action:pan-y;-webkit-text-size-adjust:100%}
 body{position:relative}
 
-/* Chrome and navigation inherit the icon background instead of a grey shell. */
-.appbar{border-bottom-color:rgba(15,95,63,.14);background:rgba(186,255,156,.9);box-shadow:0 7px 24px rgba(15,95,63,.045)}
-.appbar::after{background:linear-gradient(to bottom,rgba(186,255,156,.62),rgba(186,255,156,0))}
-.bottom-nav{border-color:rgba(15,95,63,.16);background:rgba(248,255,244,.88);box-shadow:0 10px 30px rgba(15,95,63,.13)}
-.sheet{background:#efffe7}
-.sheet-head{border-bottom-color:rgba(15,95,63,.14);background:rgba(239,255,231,.94)}
+/* App chrome stays quiet; lime is reserved for identity and active states. */
+.appbar{border-bottom-color:rgba(18,61,39,.08);background:rgba(247,250,245,.91);box-shadow:0 7px 24px rgba(18,61,39,.035)}
+.appbar::after{background:linear-gradient(to bottom,rgba(247,250,245,.7),rgba(247,250,245,0))}
+.bottom-nav{border-color:rgba(18,61,39,.10);background:rgba(255,255,255,.92);box-shadow:0 10px 30px rgba(18,61,39,.10)}
+.sheet{background:var(--rf-bg)}
+.sheet-head{border-bottom-color:rgba(18,61,39,.09);background:rgba(247,250,245,.94)}
 
-/* Surfaces remain readable, but all neutrals are now green-tinted derivatives. */
+/* Neutral cards with green-tinted structure. */
 .rf-card,.action-list,.account-manager-summary>span,.input,.select,.date-control{background:var(--rf-surface);border-color:var(--rf-line)}
-.rf-metric{background:#f1ffeb;border-color:#b8e9a5}
-.rf-segmented,.rf-capital-tabs{background:#d9f7cd}
-.rf-confidence{background:#eaf4e6}
-.rf-editable-row:hover{background:#efffe8}
-.rf-editable-row:active{background:var(--rf-green-soft)}
-.account-current-card,.schedule-preview-head,.account-manager-entry{background:var(--rf-green-soft);border-color:#9fd889}
-.loan-schedule-preview{background:#f6fff2;border-color:#9fd889}
-.schedule-interest-chip{background:var(--rf-surface);border-color:#a8dc92}
+.rf-card{box-shadow:var(--rf-shadow)}
+.rf-metric{background:var(--rf-surface-muted);border-color:#e6eee7}
+.rf-segmented,.rf-capital-tabs{background:#edf2ed}
+.rf-confidence{background:#f0f4f0}
+.rf-editable-row:hover{background:#f8fbf7}
+.rf-editable-row:active{background:var(--rf-brand-soft)}
+.account-current-card,.schedule-preview-head,.account-manager-entry{background:var(--rf-brand-soft);border-color:#cde8c1}
+.loan-schedule-preview{background:#fbfef9;border-color:#dce8de}
+.schedule-interest-chip{background:var(--rf-surface);border-color:#d7e6d8}
 
-/* Primary visual language. */
-.rf-available-hero{background:linear-gradient(145deg,#0d5136,#0f6b45 62%,#168a55);box-shadow:0 12px 34px rgba(15,95,63,.17)}
-.rf-card-icon,.rf-position-mark{background:var(--rf-green-soft);color:var(--rf-green-deep)}
-.rf-segmented button.on,.rf-capital-tabs button.on{background:var(--rf-green-deep);color:#fff;box-shadow:0 4px 14px rgba(15,95,63,.14)}
-.rf-chart-confirmed{stroke:var(--rf-green-deep)}
-.rf-chart-expected{stroke:var(--rf-green-accent);opacity:.82}
-.primary-button,.nav-add{background:var(--rf-green-deep);border-color:var(--rf-green-deep)}
+/* Brand hero: same lime as the icon, with dark financial typography. */
+.rf-available-hero{
+  color:var(--rf-brand-ink);
+  border:1px solid #aeea94;
+  background:linear-gradient(145deg,#dfffd2 0%,var(--rf-brand) 62%,var(--rf-brand-strong) 100%);
+  box-shadow:0 12px 30px rgba(80,145,57,.12);
+}
+.rf-hero-label,.rf-hero-value,.rf-hero-breakdown strong{color:var(--rf-brand-ink)}
+.rf-hero-breakdown{border-top-color:rgba(18,61,39,.16)}
+.rf-hero-breakdown>span{color:rgba(18,61,39,.68)}
+.rf-hero-explain{color:var(--rf-brand-ink)}
 
+/* Lime owns active/selected/progress states; dark green owns text and semantics. */
+.rf-card-icon,.rf-position-mark,.flow-icon{background:var(--rf-brand-soft);color:var(--rf-brand-ink)}
+.rf-segmented button.on,.rf-capital-tabs button.on{background:var(--rf-brand);color:var(--rf-brand-ink);box-shadow:0 3px 10px rgba(89,167,53,.13)}
+.rf-chart-confirmed{stroke:var(--rf-brand-ink)}
+.rf-chart-expected{stroke:var(--rf-green-accent);opacity:.84}
+.rf-chart-legend i{background:var(--rf-brand-ink)}
+.rf-chart-legend i.expected{background:var(--rf-green-accent)}
+.primary-button,.nav-add{background:var(--rf-brand);border-color:var(--rf-brand-strong);color:var(--rf-brand-ink);box-shadow:0 5px 14px rgba(89,167,53,.15)}
+.primary-button:active,.nav-add:active{background:var(--rf-brand-strong);color:var(--rf-brand-ink)}
+.nav-button.on{background:var(--rf-brand-soft);color:var(--rf-brand-ink)}
+.status-pill,.rf-state-pill.good,.rf-confidence.certain{background:var(--rf-brand-soft);color:var(--rf-brand-ink)}
+.account-manager-entry .flow-icon{background:#fff;color:var(--rf-brand-ink)}
+
+/* Positive numbers stay readable dark green instead of using the light brand fill. */
+.positive,.rf-metric.good>strong,.row-value.positive,.flow-amount.positive,.metric-value.positive{color:var(--rf-green)!important}
+
+/* Keep the interface concise. */
 .rf-home-intro>p,.rf-section-note{display:none!important}
 .rf-status-line small{max-width:42rem}
