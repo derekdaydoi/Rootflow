@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-09-liquidity-logo';
+var CACHE = 'rootflow-cache-2026-09-09-green-logo-v2';
 
 var ASSETS = [
   './',
@@ -7,7 +7,7 @@ var ASSETS = [
   './styles.css',
   './capital.css',
   './brand/rootflow-theme.css',
-  './brand/rootflow-opening-logo.png',
+  './brand/rootflow-opening-logo.png?v=20260909-green-v2',
   './operating-policy.js',
   './brand/rootflow-splash.css',
   './domain.js',
@@ -22,8 +22,7 @@ var ASSETS = [
   './vendor/react-dom.production.min.js',
   './rootflow-touch-180.png',
   './rootflow-icon-192.png',
-  './rootflow-icon-512.png',
-  './brand/rootflow-mark.png'
+  './rootflow-icon-512.png'
 ];
 
 self.addEventListener('install', function (event) {
@@ -78,6 +77,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-splash\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-theme\.css|rootflow-splash\.css|rootflow-opening-logo\.png|operating-policy\.js|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });
