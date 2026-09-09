@@ -7,10 +7,7 @@
     (function () {
       var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
       if (standalone) document.documentElement.classList.add('standalone-pwa');
-
-      function blockViewportGesture(event) {
-        event.preventDefault();
-      }
+      function blockViewportGesture(event) { event.preventDefault(); }
       document.addEventListener('gesturestart', blockViewportGesture, { passive: false });
       document.addEventListener('gesturechange', blockViewportGesture, { passive: false });
       document.addEventListener('gestureend', blockViewportGesture, { passive: false });
@@ -21,37 +18,35 @@
   </script>
   <meta name="theme-color" content="#0F6B45">
   <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Rootflow">
   <meta name="description" content="Rootflow — hệ thống điều hành vốn và dòng tiền cá nhân.">
   <title>Rootflow — Vốn & Dòng tiền</title>
-  <link rel="manifest" href="manifest.json?v=20260909-homescreen-v2&rev=final">
-  <link rel="icon" href="rootflow-icon-192-v2.png?v=20260909&rev=final" sizes="192x192" type="image/png">
-  <link rel="apple-touch-icon" href="rootflow-touch-180-v2.png?v=20260909&rev=final" sizes="180x180">
-  <link rel="preload" as="image" href="rootflow-icon-512-v2.png?v=20260909-splash-v1&rev=final" type="image/png">
+  <link rel="preload" as="image" href="brand/rootflow-mark.png?v=20260909-brand-r3" type="image/png">
+  <link rel="icon" href="brand/rootflow-icon.png?v=20260909-brand-r3" type="image/png">
+  <link rel="apple-touch-icon" href="brand/rootflow-icon.png?v=20260909-brand-r3">
+  <link rel="manifest" href="manifest.json?v=20260909-brand-r3">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="capital.css">
   <link rel="stylesheet" href="brand/rootflow-theme.css">
-  <link rel="stylesheet" href="brand/rootflow-splash.css">
+  <link rel="stylesheet" href="brand/rootflow-splash.css?v=20260909-brand-r3">
 </head>
-<body class="splash-active">
-  <div id="opening-splash" class="opening-splash" aria-hidden="true">
-    <div class="splash-orbit splash-orbit-a"></div>
-    <div class="splash-orbit splash-orbit-b"></div>
-    <div class="splash-lockup">
-      <div class="splash-logo-frame">
-        <img class="splash-logo" src="rootflow-icon-512-v2.png?v=20260909-splash-v1&rev=final" alt="" aria-hidden="true" loading="eager" decoding="sync" fetchpriority="high">
+<body>
+  <div id="root">
+    <div class="splash" role="status" aria-label="Rootflow đang khởi động">
+      <div class="splash-ring splash-ring-a" aria-hidden="true"></div>
+      <div class="splash-ring splash-ring-b" aria-hidden="true"></div>
+      <div class="splash-lock">
+        <img src="brand/rootflow-mark.png?v=20260909-brand-r3" alt="" class="splash-logo" draggable="false" aria-hidden="true">
+        <strong class="splash-tagline">Rootflow - Nơi dòng tiền được quản trị theo hệ thống</strong>
+        <div class="splash-loader" aria-hidden="true"><span><i></i></span></div>
       </div>
-      <div class="splash-copy">
-        <div class="splash-tagline">Rootflow - Nơi dòng tiền được quản trị theo hệ thống</div>
-        <div class="splash-copyright">© 2026 derekdaydoi. All rights reserved.</div>
-      </div>
+      <small class="splash-copyright">© 2026 derekdaydoi. All rights reserved.</small>
     </div>
   </div>
-  <div id="root"><div class="boot">Đang mở Rootflow…</div></div>
   <noscript><div class="boot">Rootflow cần JavaScript để chạy.</div></noscript>
-
   <script src="vendor/react.production.min.js"></script>
   <script src="vendor/react-dom.production.min.js"></script>
   <script src="domain.js"></script>
@@ -62,16 +57,5 @@
   <script src="selftest.js"></script>
   <script src="capital-ui.js"></script>
   <script src="app.js"></script>
-  <script>
-    (function () {
-      var splash = document.getElementById('opening-splash');
-      if (!splash) return;
-      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      window.setTimeout(function () {
-        document.body.classList.remove('splash-active');
-        splash.remove();
-      }, reduced ? 900 : 4300);
-    })();
-  </script>
 </body>
 </html>

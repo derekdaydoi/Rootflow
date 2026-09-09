@@ -7,7 +7,7 @@
   "id": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#B7FF9E",
+  "background_color": "#BAFF9C",
   "theme_color": "#0F6B45",
   "categories": [
     "finance",
@@ -17,19 +17,7 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "rootflow-touch-180-v2.png?rev=final",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "rootflow-icon-192-v2.png?rev=final",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "rootflow-icon-512-v2.png?rev=final",
+      "src": "brand/rootflow-icon.png?v=20260909-brand-r3",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

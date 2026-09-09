@@ -2,29 +2,25 @@
 
 ## Identity
 
-Rootflow uses the approved warning-jar-and-cash artwork supplied by derekdaydoi.
+Rootflow uses the approved cash-jar warning mark from the supplied master artwork.
 
-- Launch / icon green `#BAFF9C`
-- Deep green `#0F6B45` for primary product chrome and launch progress
-- Purple `#1C0072`, red `#DB354D`, cream `#F9EDE0` belong to the artwork itself
+- Deep green `#0F6B45` — primary action and text accent
+- Launch green `#BAFF9C` — launch and homescreen background
+- White / warm neutral — product surfaces
 
-## Canonical brand assets
+## Brand assets
 
-Runtime and install assets are deliberately separated, following the Rootwork pattern:
+Runtime and install assets are deliberately separated, following the stable Rootwork pattern:
 
-- `brand/rootflow-mark.png` — transparent 512×512 runtime mark used on the opening screen.
-- `brand/rootflow-icon.png` — 512×512 homescreen/PWA icon with the canonical green background and a larger, safe-area-aware mark.
+- `brand/rootflow-mark.png` — transparent 512×512 runtime mark for the opening screen. No background, replacement SVG, WebP wrapper, CSS image hack, blur, glow, or drop-shadow.
+- `brand/rootflow-icon.png` — 512×512 homescreen/PWA icon with the canonical launch-green background and enlarged artwork.
 
-Do not use the homescreen icon as the opening-screen mark. Do not generate SVG/WebP substitutes or reuse retired root-level icon files for runtime branding.
+Do not use the homescreen icon as the runtime splash mark.
 
 ## Launch motion
 
-The opening screen uses the canonical green background, static subtle concentric rings, centered runtime mark, the product statement, a short deep-green progress bar, and the copyright line.
+The opening screen is present in the initial HTML first paint and React owns the same splash state after mount. Motion is restrained: mark fade/translate, tagline fade, and a short progress bar. No bounce, halo burst, morph, blur, or scale overshoot.
 
-Motion is deliberately restrained: no blur, glow, bounce, morph, or scale overshoot. Reduced-motion preferences disable decorative transitions.
+## Copyright
 
-## Copy
-
-`Rootflow - Nơi dòng tiền được quản trị theo hệ thống`
-
-`© 2026 derekdaydoi. All rights reserved.`
+`Rootflow`, the approved brand mark and this product identity are © 2026 derekdaydoi. All rights reserved.

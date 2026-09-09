@@ -962,6 +962,18 @@
         h('div', { className: 'data-note' }, 'Local-first · Không tài khoản · Không analytics · Không theo dõi. Backup trước khi xóa dữ liệu trình duyệt.')));
   }
 
+
+  function Splash() {
+    return h('div', { className: 'splash', role: 'status', 'aria-label': 'Rootflow đang khởi động' },
+      h('div', { className: 'splash-ring splash-ring-a', 'aria-hidden': 'true' }),
+      h('div', { className: 'splash-ring splash-ring-b', 'aria-hidden': 'true' }),
+      h('div', { className: 'splash-lock' },
+        h('img', { src: 'brand/rootflow-mark.png?v=20260909-brand-r3', alt: '', className: 'splash-logo', draggable: false, 'aria-hidden': 'true' }),
+        h('strong', { className: 'splash-tagline' }, 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống'),
+        h('div', { className: 'splash-loader', 'aria-hidden': 'true' }, h('span', null, h('i')))),
+      h('small', { className: 'splash-copyright' }, '© 2026 derekdaydoi. All rights reserved.'));
+  }
+
   function App() {
     var loaded = React.useMemo(function () { return S.load(); }, []);
     var dataState = React.useState(loaded.data), data = dataState[0], setData = dataState[1];
@@ -973,8 +985,10 @@
     var budgetState = React.useState(null), budgetEditor = budgetState[0], setBudgetEditor = budgetState[1];
     var recurringState = React.useState(null), editingRecurring = recurringState[0], setEditingRecurring = recurringState[1];
     var toastState = React.useState(loaded.error || ''), toast = toastState[0], setToast = toastState[1];
+    var launchState = React.useState(true), launch = launchState[0], setLaunch = launchState[1];
 
     React.useEffect(function () { S.persist(); }, []);
+    React.useEffect(function () { var reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; var t = setTimeout(function () { setLaunch(false); }, reduced ? 700 : 1900); return function () { clearTimeout(t); }; }, []);
     React.useEffect(function () { if (!toast) return; var t = setTimeout(function () { setToast(''); }, 3200); return function () { clearTimeout(t); }; }, [toast]);
 
     function commit(mutator, message) {
@@ -1230,7 +1244,9 @@
       bottom = h(global.RootflowCapitalUI.BottomNav, { view: view, onGo: go, onAdd: function () { setOverlay('composer'); } });
     }
 
-    return h('div', { className: 'app' }, screen,
+    return h(React.Fragment, null,
+      launch ? h(Splash) : null,
+      h('div', { className: 'app' }, screen,
       bottom,
       overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onManageAccounts: openAccountManager, onSave: saveEvent }) : null,
       overlay === 'accounts' ? h(Sheet, { title: 'Tài khoản & nguồn vốn', onClose: closeOverlay }, h(AccountManager, { data: data, balances: derived.balances, onAdd: openAddAccount, onEdit: openEditAccount })) : null,
@@ -1251,7 +1267,7 @@
       overlay === 'budget' && budgetEditor ? h(Sheet, { title: 'Ngân sách · ' + budgetEditor.category.label, onClose: closeOverlay }, h(BudgetForm, { category: budgetEditor.category, month: budgetEditor.month, budget: budgetEditor.budget, onSave: saveBudget, onDelete: deleteBudget })) : null,
       overlay === 'recurring' ? h(Sheet, { title: editingRecurring ? 'Sửa nguồn thu' : 'Thêm nguồn thu', onClose: function () { setOverlay(null); setEditingRecurring(null); } }, h(RecurringIncomeForm, { income: editingRecurring, onSave: saveRecurring })) : null,
       overlay === 'settings' ? h(Sheet, { title: 'Cài đặt & dữ liệu', onClose: closeOverlay }, h(Settings, { data: data, balances: derived.balances, onSave: saveSettings, onAddAccount: openAddAccount, onEditAccount: openEditAccount, onEditRecurring: editRecurring, onBudgets: openBudgets, onExport: function () { S.exportFile(data); }, onImport: importBackup, onTest: diagnostics })) : null,
-      toast ? h('div', { className: 'toast', role: 'status' }, toast) : null);
+      toast ? h('div', { className: 'toast', role: 'status' }, toast) : null));
   }
 
   function ErrorBoundary(props) { React.Component.call(this, props); this.state = { error: null }; }
