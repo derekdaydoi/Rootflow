@@ -20,7 +20,8 @@ jobs:
       - name: Generate homescreen icons from canonical logo
         run: |
           set -euo pipefail
-          command -v convert
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq imagemagick
           convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 180x180 -strip rootflow-touch-180-v2.png
           convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 192x192 -strip rootflow-icon-192-v2.png
           convert brand/rootflow-opening-logo.webp -filter Lanczos -resize 512x512 -strip rootflow-icon-512-v2.png
