@@ -1,0 +1,23 @@
+/* Rootflow bottom-nav add action: canonical lime button with black plus. */
+.rf-bottom-nav .nav-add,
+.bottom-nav .nav-add,
+button.nav-add{
+  background:#BAFF9C!important;
+  border-color:#BAFF9C!important;
+  color:#111!important;
+  box-shadow:0 5px 14px rgba(28,33,28,.11)!important;
+}
+.rf-bottom-nav .nav-add:active,
+.bottom-nav .nav-add:active,
+button.nav-add:active{
+  background:#BAFF9C!important;
+  color:#111!important;
+  filter:brightness(.97);
+}
+.nav-add .rf-icon,
+.nav-add .icon,
+.nav-add svg,
+.nav-add svg *{
+  color:#111!important;
+  stroke:#111!important;
+}
