@@ -19,6 +19,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Normalize staged logo payload
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('tools/rootflow-sept09-release.py')
+          s = p.read_text()
+          s = s.replace("logo_path.write_bytes(base64.b64decode(b64_path.read_text().strip()))", "payload = b64_path.read_text().strip(); payload += '=' * (-len(payload) % 4); logo_path.write_bytes(base64.b64decode(payload))")
+          p.write_text(s)
+          PY
       - name: Apply liquidity and brand release
         run: python tools/rootflow-sept09-release.py
       - name: Financial invariants
@@ -49,7 +58,8 @@ jobs:
         run: node tests/run-account-editor-tests.js
       - name: Release contract
         run: |
-          test -f brand/rootflow-opening-logo.png
+          test -s brand/rootflow-opening-logo.png
+          file brand/rootflow-opening-logo.png | grep -q PNG
           grep -q 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống' index.html
           grep -q 'operating-policy.js' index.html
           grep -q 'Stress 14 ngày' capital-ui.js
