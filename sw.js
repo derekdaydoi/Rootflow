@@ -1,5 +1,5 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-09-green-logo-v2';
+var CACHE = 'rootflow-cache-2026-09-09-green-logo-v3';
 
 var ASSETS = [
   './',
@@ -7,7 +7,7 @@ var ASSETS = [
   './styles.css',
   './capital.css',
   './brand/rootflow-theme.css',
-  './brand/rootflow-opening-logo.png?v=20260909-green-v2',
+  './brand/rootflow-opening-logo.svg?v=20260909-green-v3',
   './operating-policy.js',
   './brand/rootflow-splash.css',
   './domain.js',
@@ -77,6 +77,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-theme\.css|rootflow-splash\.css|rootflow-opening-logo\.png|operating-policy\.js|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-theme\.css|rootflow-splash\.css|rootflow-opening-logo\.svg|operating-policy\.js|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });
