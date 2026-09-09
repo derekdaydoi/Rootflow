@@ -1,0 +1,58 @@
+name: Rootflow brand release r4
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/brand-release-r4.yml
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build Rootwork-style brand release
+        run: |
+          python -m pip install --quiet pillow
+          python tools/rootflow-brand-release-r3.py
+      - name: Financial invariants
+        run: node tests/run-tests.js
+      - name: Cashflow regressions
+        run: node tests/run-cashflow-tests.js
+      - name: Store regressions
+        run: node tests/run-store-tests.js
+      - name: Canonical cashflow regressions
+        run: node tests/run-canonical-tests.js
+      - name: Capital decision regressions
+        run: node tests/run-capital-tests.js
+      - name: Syntax checks
+        run: |
+          node --check app.js
+          node --check operating-policy.js
+          node --check capital-ui.js
+          node --check capital-domain.js
+          node --check cashflow-domain.js
+          node --check store.js
+      - name: UI contracts
+        run: |
+          node tests/run-ui-contract-tests.js
+          node tests/run-account-editor-tests.js
+      - name: Publish release source
+        run: |
+          rm -f tools/rootflow-brand-release.py tools/rootflow-brand-release-r3.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix: adopt Rootwork launch and homescreen brand architecture"
+          git push origin HEAD:main
