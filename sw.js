@@ -7,7 +7,7 @@ var ASSETS = [
   './styles.css',
   './capital.css',
   './brand/rootflow-theme.css',
-  './rootflow-icon-512-v2.png?v=20260909-splash-v1',
+  './rootflow-icon-512-v2.png?v=20260909-splash-v1&rev=final',
   './operating-policy.js',
   './brand/rootflow-splash.css',
   './domain.js',
@@ -17,12 +17,12 @@ var ASSETS = [
   './selftest.js',
   './capital-ui.js',
   './app.js',
-  './manifest.json?v=20260909-homescreen-v2',
+  './manifest.json?v=20260909-homescreen-v2&rev=final',
   './vendor/react.production.min.js',
   './vendor/react-dom.production.min.js',
-  './rootflow-touch-180-v2.png?v=20260909',
-  './rootflow-icon-192-v2.png?v=20260909',
-  './rootflow-icon-512-v2.png'
+  './rootflow-touch-180-v2.png?v=20260909&rev=final',
+  './rootflow-icon-192-v2.png?v=20260909&rev=final',
+  './rootflow-icon-512-v2.png?rev=final'
 ];
 
 self.addEventListener('install', function (event) {
