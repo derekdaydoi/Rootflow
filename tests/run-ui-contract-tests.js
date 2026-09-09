@@ -12,12 +12,14 @@ const ui = read('capital-ui.js');
 const sw = read('sw.js');
 const splashCss = read('brand/rootflow-splash.css');
 const themeCss = read('brand/rootflow-theme.css');
+const openingLogo = read('brand/rootflow-opening-logo.svg');
 
 assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
 assert(!index.includes('effects.css'), 'retired motion-template stylesheet must not load');
 assert(!index.includes('user-scalable=no') && !index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
 assert(index.includes('opening-splash') && index.includes('splash-active') && index.includes('brand/rootflow-splash.css'), 'runtime must restore the deliberate Rootflow opening splash');
-assert(index.includes('brand/rootflow-opening-logo.png?v=20260909-green-v2'), 'opening splash must reference the versioned supplied logo');
+assert(index.includes('brand/rootflow-opening-logo.svg?v=20260909-green-v3'), 'opening splash must reference the canonical supplied logo');
+assert(openingLogo.includes('data:image/webp;base64,') && openingLogo.includes('viewBox="0 0 448 448"'), 'canonical opening logo must carry the embedded supplied artwork');
 assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
 assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
 assert(index.includes('operating-policy.js') && index.indexOf('operating-policy.js') < index.indexOf('capital-ui.js'), 'operating policy must load before React presentation captures domain functions');
@@ -75,8 +77,8 @@ numericWeights.forEach(rule => assert(/(?:400|500|600|700)$/.test(rule), `typogr
 assert(themeCss.includes('--rf-green-deep:#0f5f3f') && !themeCss.includes('#24106d'), 'application theme must stay green-first instead of purple-first');
 assert(themeCss.includes('.rf-chart-confirmed{stroke:var(--rf-green-deep)}'), 'confirmed cashflow must use the primary green visual language');
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
-assert(sw.includes("'./brand/rootflow-splash.css'") && sw.includes("'./brand/rootflow-theme.css'") && sw.includes('rootflow-opening-logo.png?v=20260909-green-v2') && sw.includes("'./operating-policy.js'"), 'service worker must cache the opening brand and operating policy runtime');
-assert(sw.includes('rootflow-opening-logo\\.png') && sw.includes('rootflow-theme\\.css'), 'opening logo and theme must use network-first refresh policy');
+assert(sw.includes("'./brand/rootflow-splash.css'") && sw.includes("'./brand/rootflow-theme.css'") && sw.includes('rootflow-opening-logo.svg?v=20260909-green-v3') && sw.includes("'./operating-policy.js'"), 'service worker must cache the opening brand and operating policy runtime');
+assert(sw.includes('rootflow-opening-logo\\.svg') && sw.includes('rootflow-theme\\.css'), 'opening logo and theme must use network-first refresh policy');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
