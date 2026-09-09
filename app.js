@@ -285,10 +285,26 @@
   function Sheet(props) {
     React.useEffect(function () {
       function key(event) { if (event.key === 'Escape') props.onClose(); }
+      function blockGesture(event) { event.preventDefault(); }
+      function blockMultiTouch(event) { if (event.touches && event.touches.length > 1) event.preventDefault(); }
       document.addEventListener('keydown', key);
-      return function () { document.removeEventListener('keydown', key); };
-    }, [props.onClose]);
-    return h('div', { className: 'sheet-backdrop', onMouseDown: function (e) { if (e.target === e.currentTarget) props.onClose(); } },
+      document.body.classList.add('sheet-open');
+      if (props.lockGestures) {
+        document.addEventListener('gesturestart', blockGesture, { passive: false });
+        document.addEventListener('gesturechange', blockGesture, { passive: false });
+        document.addEventListener('touchmove', blockMultiTouch, { passive: false });
+      }
+      return function () {
+        document.removeEventListener('keydown', key);
+        document.body.classList.remove('sheet-open');
+        if (props.lockGestures) {
+          document.removeEventListener('gesturestart', blockGesture, { passive: false });
+          document.removeEventListener('gesturechange', blockGesture, { passive: false });
+          document.removeEventListener('touchmove', blockMultiTouch, { passive: false });
+        }
+      };
+    }, [props.onClose, props.lockGestures]);
+    return h('div', { className: 'sheet-backdrop' + (props.lockGestures ? ' gesture-locked' : ''), onMouseDown: function (e) { if (e.target === e.currentTarget) props.onClose(); } },
       h('section', { className: 'sheet', role: 'dialog', 'aria-modal': 'true', 'aria-label': props.title },
         h('header', { className: 'sheet-head' },
           props.onBack ? h(IconButton, { icon: 'back', label: 'Quay lại', onClick: props.onBack }) : h('div', { style: { width: 40 } }),
@@ -553,8 +569,9 @@
       h(Field, { label: 'Ghi chú' }, h(TextInput, { value: form.note, onChange: function (e) { set('note', e.target.value); }, placeholder: 'Thông tin thêm (không bắt buộc)' })),
       error ? h('div', { className: 'field-error' }, error) : null,
       h('button', { type: 'button', className: 'primary-button', onClick: save }, account ? 'Lưu thay đổi' : 'Lưu tài khoản'),
-      account ? h('button', { type: 'button', className: form.archived ? 'secondary-button account-archive' : 'danger-button account-archive', onClick: function () { set('archived', !form.archived); } }, form.archived ? 'Khôi phục tài khoản' : 'Ngừng theo dõi tài khoản') : null,
-      account ? h('p', { className: 'archive-help' }, form.archived ? 'Tài khoản sẽ trở lại các báo cáo sau khi lưu.' : 'Chỉ có thể lưu trữ khi số dư hiện tại bằng 0; lịch sử vẫn được giữ nguyên.') : null);
+      account ? h('button', { type: 'button', className: 'secondary-button account-archive', onClick: function () { set('archived', !form.archived); } }, form.archived ? 'Khôi phục tài khoản' : 'Ngừng theo dõi tài khoản') : null,
+      account && props.onDelete ? h('button', { type: 'button', className: 'danger-button account-delete', onClick: function () { props.onDelete(account); } }, 'Xóa tài khoản') : null,
+      account ? h('p', { className: 'archive-help' }, form.archived ? 'Tài khoản sẽ trở lại các báo cáo sau khi lưu.' : 'Ngừng theo dõi chỉ ẩn tài khoản và giữ lịch sử. Xóa tài khoản sẽ xóa vĩnh viễn tài khoản cùng dữ liệu liên quan.') : null);
   }
 
   var EVENT_TYPES = [
@@ -1058,6 +1075,55 @@
       }, isEdit ? 'Đã cập nhật tài khoản.' : 'Đã thêm tài khoản.');
       setOverlay(null); setEditingAccount(null);
     }
+    function deleteAccount(account) {
+      if (!account) return;
+      var ownedContractIds = data.contracts.filter(function (row) { return row.accountId === account.id; }).map(function (row) { return row.id; });
+      var linkedFlowCount = data.flows.filter(function (flow) {
+        return flow && !flow.deletedAt && (flow.accountId === account.id || flow.counterAccountId === account.id || ownedContractIds.indexOf(flow.contractId) >= 0);
+      }).length;
+      var warning = 'Xóa vĩnh viễn “' + (account.name || 'tài khoản') + '”?';
+      if (linkedFlowCount) warning += '\n\n' + linkedFlowCount + ' giao dịch liên quan và hợp đồng/sao kê gắn với tài khoản cũng sẽ bị xóa.';
+      warning += '\n\nKhông thể hoàn tác. Hãy xuất backup trước nếu cần giữ lại lịch sử.';
+      if (!global.confirm(warning)) return;
+      commit(function (next) {
+        var contractIds = next.contracts.filter(function (row) { return row.accountId === account.id; }).map(function (row) { return row.id; });
+        next.flows = next.flows.filter(function (flow) {
+          return flow.accountId !== account.id && flow.counterAccountId !== account.id && contractIds.indexOf(flow.contractId) < 0;
+        });
+        next.contracts = next.contracts.filter(function (row) { return row.accountId !== account.id; });
+        next.contracts.forEach(function (row) {
+          var changed = false;
+          if (contractIds.indexOf(row.fundingContractId) >= 0) {
+            row.fundingContractId = null;
+            if (row.fundingSource === 'borrowed') row.fundingSource = 'mixed';
+            changed = true;
+          }
+          if (row.settlementAccountId === account.id) { row.settlementAccountId = ''; changed = true; }
+          if (Array.isArray(row.fundingAllocations)) {
+            var before = row.fundingAllocations.length;
+            row.fundingAllocations = row.fundingAllocations.filter(function (allocation) {
+              return allocation && allocation.accountId !== account.id && contractIds.indexOf(allocation.contractId) < 0;
+            });
+            if (row.fundingAllocations.length !== before) changed = true;
+          }
+          if (changed) row.updatedAt = S.now();
+        });
+        next.statements = next.statements.filter(function (row) { return row.creditCardAccountId !== account.id; });
+        next.nonCashEvents = next.nonCashEvents.filter(function (row) { return row.accountId !== account.id && contractIds.indexOf(row.contractId) < 0; });
+        next.scenarios = next.scenarios.filter(function (row) { return row.accountId !== account.id && row.counterAccountId !== account.id; });
+        next.recurringIncomes = next.recurringIncomes.map(function (income) {
+          if (income.accountId !== account.id && income.settlementAccountId !== account.id) return income;
+          var copy = Object.assign({}, income);
+          if (copy.accountId === account.id) copy.accountId = '';
+          if (copy.settlementAccountId === account.id) copy.settlementAccountId = '';
+          copy.updatedAt = S.now();
+          return copy;
+        });
+        next.accounts = next.accounts.filter(function (row) { return row.id !== account.id; });
+      }, 'Đã xóa vĩnh viễn tài khoản và dữ liệu liên quan.');
+      setEditingAccount(null);
+      setOverlay('accounts');
+    }
     function counterparty(next, name) {
       var normalized = String(name || '').trim();
       var found = next.counterparties.filter(function (p) { return p.name.toLowerCase() === normalized.toLowerCase(); })[0];
@@ -1168,7 +1234,7 @@
       bottom,
       overlay === 'composer' ? h(EventComposer, { data: data, onClose: closeOverlay, onManageAccounts: openAccountManager, onSave: saveEvent }) : null,
       overlay === 'accounts' ? h(Sheet, { title: 'Tài khoản & nguồn vốn', onClose: closeOverlay }, h(AccountManager, { data: data, balances: derived.balances, onAdd: openAddAccount, onEdit: openEditAccount })) : null,
-      overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: function () { setEditingAccount(null); setOverlay('accounts'); } }, h(AccountForm, {
+      overlay === 'account' ? h(Sheet, { title: editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản', onClose: function () { setEditingAccount(null); setOverlay('accounts'); }, lockGestures: true }, h(AccountForm, {
         account: editingAccount,
         contract: editingAccount ? data.contracts.filter(function (row) { return row.accountId === editingAccount.id; })[0] : null,
         statement: editingAccount ? data.statements.filter(function (row) { return row.creditCardAccountId === editingAccount.id; }).sort(function (a, b) { return String(b.statementMonth || b.statementDate || '').localeCompare(String(a.statementMonth || a.statementDate || '')); })[0] : null,
@@ -1179,7 +1245,7 @@
           var linkedByContract = flow.contractId && data.contracts.some(function (contract) { return contract.id === flow.contractId && contract.accountId === editingAccount.id; });
           return (linkedByAccount || linkedByContract) && (flow.kind === 'borrow' || flow.kind === 'lend' || flow.kind === 'repay' || flow.kind === 'collect');
         }) : false,
-        liquidAccounts: derived.liquidAccounts, payableContracts: data.contracts.filter(function (row) { return row.type === 'payable' && row.status !== 'closed'; }), onSave: saveAccount
+        liquidAccounts: derived.liquidAccounts, payableContracts: data.contracts.filter(function (row) { return row.type === 'payable' && row.status !== 'closed'; }), onSave: saveAccount, onDelete: deleteAccount
       })) : null,
       overlay === 'flow-edit' && editingFlow ? h(Sheet, { title: 'Sửa giao dịch', onClose: function () { setEditingFlow(null); setOverlay(null); } }, h(FlowEditor, { flow: editingFlow, data: data, onSave: saveFlowEdit })) : null,
       overlay === 'budget' && budgetEditor ? h(Sheet, { title: 'Ngân sách · ' + budgetEditor.category.label, onClose: closeOverlay }, h(BudgetForm, { category: budgetEditor.category, month: budgetEditor.month, budget: budgetEditor.budget, onSave: saveBudget, onDelete: deleteBudget })) : null,

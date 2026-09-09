@@ -642,3 +642,9 @@ button { color: inherit; }
   font-size: 12px;
   line-height: 1.45;
 }
+/* Account editor gesture + destructive-action controls. */
+body.sheet-open { overflow:hidden;overscroll-behavior:none; }
+.sheet-backdrop.gesture-locked { touch-action:pan-y;overscroll-behavior:none; }
+.sheet-backdrop.gesture-locked .sheet { touch-action:pan-y;overscroll-behavior:contain; }
+.account-delete { margin-top:10px; }
+

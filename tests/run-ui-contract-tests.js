@@ -10,11 +10,14 @@ const css = read('capital.css');
 const baseCss = read('styles.css');
 const ui = read('capital-ui.js');
 const sw = read('sw.js');
+const splashCss = read('brand/rootflow-splash.css');
 
 assert(index.includes('capital.css'), 'canonical capital stylesheet must load');
 assert(!index.includes('effects.css'), 'retired motion-template stylesheet must not load');
 assert(!index.includes('user-scalable=no') && !index.includes('maximum-scale=1'), 'viewport must remain accessibility-safe');
-assert(!index.includes('opening-splash') && !index.includes('splash-active'), 'runtime must open directly without the legacy animated splash');
+assert(index.includes('opening-splash') && index.includes('splash-active') && index.includes('brand/rootflow-splash.css'), 'runtime must restore the deliberate Rootflow opening splash');
+assert(index.includes('© 2026') && index.includes('@derekdaydoi'), 'opening splash must expose copyright ownership');
+assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
 assert(index.indexOf('capital-ui.js') < index.indexOf('app.js'), 'React presentation must load before the application controller');
 assert(!index.includes('account-editor.js') && !index.includes('account-editor.css'), 'runtime must not load imperative account-editor bridges');
 assert(!index.includes('compat.js') && !index.includes('store-adapter.js') && !index.includes('i18n-base.js') && !index.includes('i18n-capital.js'), 'retired compatibility scripts must not load');
@@ -44,6 +47,8 @@ assert(ui.includes('props.onCommit'), 'presentation edits must delegate persiste
 assert(ui.includes('props.onOpenSettings'), 'canonical app bar must expose settings and data');
 assert(app.includes("onOpenSettings: function () { setOverlay('settings'); }"), 'app bar settings action must open the settings/data sheet');
 assert(app.includes("'Xuất backup'") && app.includes("'Nhập backup'"), 'settings/data sheet must expose export and import backup controls');
+assert(app.includes("'Xóa tài khoản'") && app.includes('function deleteAccount(account)'), 'account editor must expose hard delete in addition to archive');
+assert(app.includes('lockGestures: true') && app.includes('gesturestart'), 'account editor must lock background/pinch gestures without changing the global viewport');
 assert(ui.includes('props.onEditAccount(row.accountId)') && ui.includes('props.onEditAccount(source.accountId)'), 'capital positions and funding sources must open their canonical account editor');
 assert(ui.includes('Giao dịch đã nhập') && ui.includes('props.onEditFlow'), 'recorded cashflows must expose correction from the canonical cashflow screen');
 assert(ui.includes("recordedAll.slice(0, 12)") && ui.includes("'Xem tất cả'"), 'cashflow history must stay compact without hiding older editable records');
@@ -66,6 +71,7 @@ numericWeights.forEach(rule => assert(/(?:400|500|600|700)$/.test(rule), `typogr
 
 
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
+assert(sw.includes("'./brand/rootflow-splash.css'"), 'service worker must cache the restored splash stylesheet');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 

@@ -1,11 +1,12 @@
 /* Rootflow service worker. */
-var CACHE = 'rootflow-cache-2026-09-08-backup-controls';
+var CACHE = 'rootflow-cache-2026-09-09-splash-delete-gesture';
 
 var ASSETS = [
   './',
   './index.html',
   './styles.css',
   './capital.css',
+  './brand/rootflow-splash.css',
   './domain.js',
   './cashflow-domain.js',
   './capital-domain.js',
@@ -74,6 +75,6 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== location.origin) return;
 
   var navigation = req.mode === 'navigate';
-  var coreAsset = /\/(index\.html|styles\.css|capital\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
+  var coreAsset = /\/(index\.html|styles\.css|capital\.css|rootflow-splash\.css|app\.js|capital-ui\.js|domain\.js|cashflow-domain\.js|capital-domain\.js|store\.js|selftest\.js|manifest\.json)$/.test(url.pathname);
   event.respondWith(navigation || coreAsset ? networkFirst(req, navigation) : cacheFirst(req));
 });

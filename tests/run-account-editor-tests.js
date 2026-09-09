@@ -18,6 +18,9 @@ assert(!sw.includes('account-editor.js') && !sw.includes('account-editor.css'), 
 assert(app.includes('function AccountForm(props)'), 'AccountForm must remain React-owned');
 assert(app.includes("overlay === 'account' ? h(Sheet"), 'account editing must mount through React sheet state');
 assert(app.includes("editingAccount ? 'Sửa tài khoản' : 'Thêm tài khoản'"), 'account sheet must preserve edit/add semantics');
+assert(app.includes('lockGestures: true') && app.includes('blockMultiTouch'), 'account sheet must prevent pinch/background drift while preserving single-finger form scroll');
+assert(app.includes('function deleteAccount(account)') && app.includes("'Xóa tài khoản'"), 'account editor must expose hard delete');
+assert(app.includes('next.flows = next.flows.filter') && app.includes('next.statements = next.statements.filter') && app.includes('next.accounts = next.accounts.filter'), 'hard delete must cascade owned records instead of leaving dangling references');
 assert(app.includes('function AccountManager(props)'), 'account management must be a first-class React view');
 assert(app.includes("overlay === 'accounts' ? h(Sheet"), 'canonical UI must mount the account manager through application state');
 assert(app.includes('onManageAccounts: openAccountManager'), 'canonical screens must expose the account manager');
@@ -36,5 +39,6 @@ assert(!app.includes('MutationObserver'), 'application controller must not use M
 assert(css.includes('font-size:16px'), 'mobile editable controls must avoid iOS focus auto-zoom');
 assert(css.includes('env(safe-area-inset-bottom'), 'sheets/mobile chrome must respect safe areas');
 assert(css.includes('dvh'), 'viewport-sensitive UI must use dynamic viewport units');
+assert(css.includes('.sheet-backdrop.gesture-locked') && css.includes('body.sheet-open'), 'account sheet must contain gestures and background scrolling');
 
 console.log('Rootflow React account editor contract tests passed.');
