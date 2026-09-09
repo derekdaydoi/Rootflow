@@ -16,6 +16,9 @@
   --rf-shadow:0 2px 10px rgba(15,95,63,.05);
 }
 html,body,.page{background:var(--rf-bg)}
+html,body,#root,.app,.page{width:100%;max-width:100%;overflow-x:hidden}
+html,body{overscroll-behavior:none;touch-action:pan-y;-webkit-text-size-adjust:100%}
+body{position:relative}
 .rf-available-hero{background:linear-gradient(145deg,#0d5136,#0f6b45 62%,#168a55);box-shadow:0 12px 34px rgba(15,95,63,.16)}
 .rf-card-icon,.rf-position-mark{background:var(--rf-green-soft);color:var(--rf-green-deep)}
 .rf-segmented button.on,.rf-capital-tabs button.on{background:var(--rf-green-deep);color:#fff;box-shadow:0 4px 14px rgba(15,95,63,.14)}
