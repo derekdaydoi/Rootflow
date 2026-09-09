@@ -22,10 +22,11 @@ assert(index.includes('user-scalable=no') && index.includes('maximum-scale=1') &
 assert(index.includes('gesturestart') && index.includes('gesturechange') && index.includes('touches.length > 1'), 'global viewport must block iOS pinch and multi-touch zoom gestures');
 assert(index.includes('class="splash"') && index.includes('brand/rootflow-splash.css'), 'initial HTML must paint the Rootwork-style Rootflow splash before React');
 assert(index.includes('brand/rootflow-mark.png?v=20260909-brand-r3'), 'runtime splash must use the transparent canonical mark');
-assert(index.includes('brand/rootflow-icon.png?v=20260909-brand-r3'), 'browser and iOS homescreen metadata must use the canonical install icon');
+assert(index.includes('brand/rootflow-icon.png?v=20260909-brand-r5-theme'), 'browser and iOS homescreen metadata must use the current canonical install icon');
 assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
 [runtimeMark, installIcon].forEach((icon) => assert(icon.length > 1000 && icon.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical brand assets must be real PNG binaries'));
 assert(manifest.includes('brand/rootflow-icon.png') && manifest.includes('512x512') && manifest.includes('any maskable'), 'web app manifest must use one canonical Rootflow install icon');
+assert(manifest.includes('"background_color": "#BAFF9C"') && manifest.includes('"theme_color": "#BAFF9C"'), 'PWA shell must use the Home Screen icon background as its brand canvas');
 assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');
 assert(splashCss.includes('.splash-ring{display:none!important}'), 'opening splash must not render ambient ring effects');
 assert(app.includes('function Splash()') && app.includes('var launchState = React.useState(true)') && app.includes('setLaunch(false)'), 'React must own the splash lifecycle after first paint');
@@ -81,12 +82,13 @@ assert(baseCss.includes('-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
 const numericWeights = (baseCss + '\n' + css).match(/font-weight:\s*(\d+)/g) || [];
 numericWeights.forEach(rule => assert(/(?:400|500|600|700)$/.test(rule), `typography must use a deliberate native weight: ${rule}`));
 
+assert(themeCss.includes('--rf-brand-bg:#baff9c') && themeCss.includes('--rf-bg:var(--rf-brand-bg)') && themeCss.includes('--bg:var(--rf-brand-bg)'), 'application canvas must be anchored to the exact Home Screen icon background');
 assert(themeCss.includes('--rf-green-deep:#0f5f3f') && !themeCss.includes('#24106d'), 'application theme must stay green-first instead of purple-first');
 assert(themeCss.includes('.rf-chart-confirmed{stroke:var(--rf-green-deep)}'), 'confirmed cashflow must use the primary green visual language');
 assert(themeCss.includes('overscroll-behavior:none') && themeCss.includes('touch-action:pan-y') && themeCss.includes('overflow-x:hidden'), 'application shell must prevent viewport drift while preserving vertical scrolling');
 assert(!sw.includes('effects.css') && !sw.includes('compat.js') && !sw.includes('store-adapter.js'), 'service worker must cache only the canonical runtime');
 assert(sw.includes('brand/rootflow-splash.css') && sw.includes('brand/rootflow-mark.png') && sw.includes('brand/rootflow-icon.png') && sw.includes('operating-policy.js'), 'service worker must cache the canonical opening mark, install icon and operating policy');
-assert(sw.includes('rootflow-ui-2026-09-09-brand-r4-norings'), 'service worker cache version must refresh the no-ring opening release');
+assert(sw.includes('rootflow-ui-2026-09-09-brand-r5-theme'), 'service worker cache version must refresh the Home Screen anchored theme');
 assert(sw.includes("if (navigation) return caches.match('./index.html')"), 'HTML fallback must be navigation-only');
 assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');
 
