@@ -1,24 +1,24 @@
-/* Rootflow logo-derived application theme. Keep secondary copy restrained. */
+/* Rootflow green-first application theme. Secondary colors stay semantic only. */
 :root{
-  --rf-green:#4dbd22;
-  --rf-green-deep:#24106d;
+  --rf-green:#168a55;
+  --rf-green-deep:#0f5f3f;
   --rf-green-accent:#59cf24;
-  --rf-green-soft:#e8ffdc;
-  --rf-bg:#f6f4ed;
-  --rf-surface:#fffdf8;
-  --rf-ink:#201646;
-  --rf-muted:#716a83;
-  --rf-line:#e8e3ef;
-  --rf-danger:#d63f45;
-  --rf-danger-soft:#fff0ef;
+  --rf-green-soft:#e9f8e3;
+  --rf-bg:#f4f8f2;
+  --rf-surface:#ffffff;
+  --rf-ink:#153326;
+  --rf-muted:#66786d;
+  --rf-line:#dce9df;
+  --rf-danger:#c64a43;
+  --rf-danger-soft:#fff0ed;
   --rf-warn:#9a641f;
   --rf-warn-soft:#fff5df;
-  --rf-shadow:0 2px 10px rgba(36,16,109,.045);
+  --rf-shadow:0 2px 10px rgba(15,95,63,.05);
 }
 html,body,.page{background:var(--rf-bg)}
-.rf-available-hero{background:linear-gradient(145deg,#24106d,#38208a 72%,#4a2ba0);box-shadow:0 12px 34px rgba(36,16,109,.16)}
+.rf-available-hero{background:linear-gradient(145deg,#0d5136,#0f6b45 62%,#168a55);box-shadow:0 12px 34px rgba(15,95,63,.16)}
 .rf-card-icon,.rf-position-mark{background:var(--rf-green-soft);color:var(--rf-green-deep)}
-.rf-segmented button.on,.rf-capital-tabs button.on{background:var(--rf-green-deep);color:#fff;box-shadow:0 4px 14px rgba(36,16,109,.16)}
-.rf-chart-confirmed{stroke:#d63f45}.rf-chart-expected{stroke:#59cf24;opacity:.82}
+.rf-segmented button.on,.rf-capital-tabs button.on{background:var(--rf-green-deep);color:#fff;box-shadow:0 4px 14px rgba(15,95,63,.14)}
+.rf-chart-confirmed{stroke:var(--rf-green-deep)}.rf-chart-expected{stroke:var(--rf-green-accent);opacity:.82}
 .rf-home-intro>p,.rf-section-note{display:none!important}
 .rf-status-line small{max-width:42rem}
