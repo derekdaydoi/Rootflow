@@ -1,22 +1,26 @@
-name: Rootflow regression tests
+name: Rootflow September release
 
 on:
   push:
     branches:
       - main
-  pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  test:
+  release:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Apply liquidity and brand release
+        run: python tools/rootflow-sept09-release.py
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -29,6 +33,8 @@ jobs:
         run: node tests/run-capital-tests.js
       - name: Application syntax
         run: node --check app.js
+      - name: Operating policy syntax
+        run: node --check operating-policy.js
       - name: Capital UI syntax
         run: node --check capital-ui.js
       - name: Capital domain syntax
@@ -41,3 +47,16 @@ jobs:
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
+      - name: Release contract
+        run: |
+          test -f brand/rootflow-opening-logo.png
+          grep -q 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống' index.html
+          grep -q 'operating-policy.js' index.html
+          grep -q 'Stress 14 ngày' capital-ui.js
+      - name: Publish source
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'feat: align liquidity policy and opening brand' || exit 0
+          git push origin HEAD:main
