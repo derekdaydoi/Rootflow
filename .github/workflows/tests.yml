@@ -1,262 +1,22 @@
-name: Rootflow brand release
+name: Rootflow regression tests
 
 on:
   push:
     branches:
       - main
+  pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  release:
-    if: github.actor != 'github-actions[bot]'
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Build canonical brand assets
-        run: |
-          python -m pip install --quiet pillow
-          cat brand/.rootflow-mark.b64.00 brand/.rootflow-mark.b64.01 brand/.rootflow-mark.b64.02 | tr -d '\n\r ' | base64 -d > brand/rootflow-mark.png
-          python - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-          mark_path = Path('brand/rootflow-mark.png')
-          mark = Image.open(mark_path).convert('RGBA')
-          if mark.size != (512, 512):
-              raise SystemExit(f'bad runtime mark size: {mark.size}')
-          bbox = mark.getchannel('A').getbbox()
-          if not bbox:
-              raise SystemExit('runtime mark has no alpha content')
-          subject = mark.crop(bbox)
-          target_h = 448
-          target_w = round(subject.width * target_h / subject.height)
-          subject = subject.resize((target_w, target_h), Image.Resampling.LANCZOS)
-          icon = Image.new('RGBA', (512, 512), (186, 255, 156, 255))
-          icon.alpha_composite(subject, ((512-target_w)//2, (512-target_h)//2))
-          icon.convert('RGB').save('brand/rootflow-icon.png', optimize=True)
-          check = Image.open('brand/rootflow-icon.png')
-          if check.size != (512, 512):
-              raise SystemExit('bad install icon size')
-          PY
-      - name: Apply Rootwork launch architecture
-        run: |
-          cat > index.html <<'HTML'
-          <!doctype html>
-          <html lang="vi">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
-            <script>
-              (function () {
-                var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
-                if (standalone) document.documentElement.classList.add('standalone-pwa');
-                function blockViewportGesture(event) { event.preventDefault(); }
-                document.addEventListener('gesturestart', blockViewportGesture, { passive: false });
-                document.addEventListener('gesturechange', blockViewportGesture, { passive: false });
-                document.addEventListener('gestureend', blockViewportGesture, { passive: false });
-                document.addEventListener('touchmove', function (event) {
-                  if (event.touches && event.touches.length > 1) event.preventDefault();
-                }, { passive: false });
-              })();
-            </script>
-            <meta name="theme-color" content="#0F6B45">
-            <meta name="color-scheme" content="light">
-            <meta name="mobile-web-app-capable" content="yes">
-            <meta name="apple-mobile-web-app-capable" content="yes">
-            <meta name="apple-mobile-web-app-status-bar-style" content="default">
-            <meta name="apple-mobile-web-app-title" content="Rootflow">
-            <meta name="description" content="Rootflow — hệ thống điều hành vốn và dòng tiền cá nhân.">
-            <title>Rootflow — Vốn & Dòng tiền</title>
-            <link rel="preload" as="image" href="brand/rootflow-mark.png?v=20260909-brand-r2" type="image/png">
-            <link rel="icon" href="brand/rootflow-icon.png?v=20260909-brand-r2" type="image/png">
-            <link rel="apple-touch-icon" href="brand/rootflow-icon.png?v=20260909-brand-r2">
-            <link rel="manifest" href="manifest.json?v=20260909-brand-r2">
-            <link rel="stylesheet" href="styles.css">
-            <link rel="stylesheet" href="capital.css">
-            <link rel="stylesheet" href="brand/rootflow-theme.css">
-            <link rel="stylesheet" href="brand/rootflow-splash.css?v=20260909-brand-r2">
-          </head>
-          <body>
-            <div id="root">
-              <div class="splash" role="status" aria-label="Rootflow đang khởi động">
-                <div class="splash-ring splash-ring-a" aria-hidden="true"></div>
-                <div class="splash-ring splash-ring-b" aria-hidden="true"></div>
-                <div class="splash-lock">
-                  <img src="brand/rootflow-mark.png?v=20260909-brand-r2" alt="" class="splash-logo" draggable="false" aria-hidden="true">
-                  <strong class="splash-tagline">Rootflow - Nơi dòng tiền được quản trị theo hệ thống</strong>
-                  <div class="splash-loader" aria-hidden="true"><span><i></i></span></div>
-                </div>
-                <small class="splash-copyright">© 2026 derekdaydoi. All rights reserved.</small>
-              </div>
-            </div>
-            <noscript><div class="boot">Rootflow cần JavaScript để chạy.</div></noscript>
-            <script src="vendor/react.production.min.js"></script>
-            <script src="vendor/react-dom.production.min.js"></script>
-            <script src="domain.js"></script>
-            <script src="cashflow-domain.js"></script>
-            <script src="capital-domain.js"></script>
-            <script src="operating-policy.js"></script>
-            <script src="store.js"></script>
-            <script src="selftest.js"></script>
-            <script src="capital-ui.js"></script>
-            <script src="app.js"></script>
-          </body>
-          </html>
-          HTML
-
-          cat > manifest.json <<'JSON'
-          {
-            "name": "Rootflow",
-            "short_name": "Rootflow",
-            "description": "Hệ thống điều hành vốn và dòng tiền cá nhân — biết cần giữ bao nhiêu, có thể dùng bao nhiêu và vốn đang ở đâu.",
-            "start_url": "./",
-            "scope": "./",
-            "id": "./",
-            "display": "standalone",
-            "orientation": "portrait",
-            "background_color": "#BAFF9C",
-            "theme_color": "#0F6B45",
-            "categories": ["finance", "productivity"],
-            "lang": "vi",
-            "dir": "ltr",
-            "icons": [
-              {
-                "src": "brand/rootflow-icon.png?v=20260909-brand-r2",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any maskable"
-              }
-            ]
-          }
-          JSON
-
-          cat > brand/rootflow-splash.css <<'CSS'
-          /* Rootflow launch identity — Rootwork architecture: runtime mark != install icon. */
-          html:has(.splash),body:has(.splash){overflow:hidden;overscroll-behavior:none}
-          .splash{--rf-launch-bg:#baff9c;--rf-launch-ink:#123326;--rf-launch-green:#0f6b45;pointer-events:none;position:fixed;z-index:1000;inset:0;min-width:320px;display:grid;place-items:center;overflow:hidden;background:var(--rf-launch-bg)}
-          .splash-lock{position:relative;z-index:2;width:min(88vw,430px);display:grid;justify-items:center;text-align:center;transform:translateY(-2vh)}
-          .splash-logo{display:block;width:min(76vw,320px);height:auto;max-height:48vh;object-fit:contain;-webkit-user-drag:none;user-select:none;opacity:0;transform:translateY(8px);animation:rf-mark-in .45s .05s ease-out forwards}
-          .splash-tagline{max-width:380px;margin-top:8px;color:var(--rf-launch-ink);font-size:clamp(17px,4.7vw,21px);font-weight:700;line-height:1.38;letter-spacing:-.022em;text-wrap:balance;opacity:0;transform:translateY(7px);animation:rf-copy-in .4s .34s ease-out forwards}
-          .splash-loader{width:144px;margin-top:18px;opacity:0;animation:rf-copy-in .25s .55s ease-out forwards}
-          .splash-loader span{display:block;height:4px;overflow:hidden;border-radius:999px;background:rgba(15,107,69,.16)}
-          .splash-loader i{display:block;width:100%;height:100%;border-radius:inherit;background:var(--rf-launch-green);transform:translateX(-100%);animation:rf-progress 1.35s .5s cubic-bezier(.25,.7,.25,1) forwards}
-          .splash-copyright{position:absolute;z-index:2;left:20px;right:20px;bottom:calc(26px + env(safe-area-inset-bottom,0px));text-align:center;color:rgba(18,51,38,.62);font-size:11px;font-weight:500;line-height:1.35;letter-spacing:.008em;opacity:0;animation:rf-copy-in .35s .62s ease-out forwards}
-          .splash-ring{position:absolute;left:50%;top:45%;aspect-ratio:1;border:1px solid rgba(15,107,69,.105);border-radius:50%;transform:translate(-50%,-50%)}
-          .splash-ring-a{width:min(92vw,430px)}.splash-ring-b{width:min(126vw,590px);border-color:rgba(15,107,69,.07)}
-          @keyframes rf-mark-in{to{opacity:1;transform:translateY(0)}}
-          @keyframes rf-copy-in{to{opacity:1;transform:translateY(0)}}
-          @keyframes rf-progress{to{transform:translateX(0)}}
-          @media(max-width:420px){.splash-logo{width:min(80vw,306px)}.splash-tagline{padding:0 10px}}
-          @media(prefers-reduced-motion:reduce){.splash-logo,.splash-tagline,.splash-loader,.splash-copyright,.splash-loader i{animation:none!important;opacity:1!important;transform:none!important}}
-          CSS
-
-          cat > sw.js <<'JS'
-          /* Rootflow service worker. */
-          var CACHE = 'rootflow-ui-2026-09-09-brand-r2';
-          var ASSETS = [
-            './','./index.html','./styles.css','./capital.css','./brand/rootflow-theme.css',
-            './brand/rootflow-splash.css?v=20260909-brand-r2','./brand/rootflow-mark.png?v=20260909-brand-r2','./brand/rootflow-icon.png?v=20260909-brand-r2',
-            './operating-policy.js','./domain.js','./cashflow-domain.js','./capital-domain.js','./store.js','./selftest.js','./capital-ui.js','./app.js',
-            './manifest.json?v=20260909-brand-r2','./vendor/react.production.min.js','./vendor/react-dom.production.min.js'
-          ];
-          self.addEventListener('install',function(event){event.waitUntil(caches.open(CACHE).then(function(cache){return cache.addAll(ASSETS)}).then(function(){return self.skipWaiting()}))});
-          self.addEventListener('activate',function(event){event.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(key){return key!==CACHE}).map(function(key){return caches.delete(key)}))}).then(function(){return self.clients.claim()}))});
-          function remember(req,res){if(res&&res.status===200&&res.type==='basic'){var copy=res.clone();caches.open(CACHE).then(function(cache){cache.put(req,copy)})}return res}
-          function networkFirst(req){return fetch(req).then(function(res){return remember(req,res)}).catch(function(){return caches.match(req).then(function(hit){return hit||caches.match('./index.html')})})}
-          function cacheFirst(req){return caches.match(req).then(function(hit){if(hit)return hit;return fetch(req).then(function(res){return remember(req,res)})})}
-          self.addEventListener('fetch',function(event){var req=event.request;if(req.method!=='GET')return;var url=new URL(req.url);if(url.origin!==location.origin)return;event.respondWith(req.mode==='navigate'?networkFirst(req):cacheFirst(req))});
-          JS
-
-          python - <<'PY'
-          from pathlib import Path
-          def must_replace(text, old, new, label):
-              if old not in text:
-                  raise SystemExit('patch target missing: ' + label)
-              return text.replace(old, new, 1)
-
-          app_path = Path('app.js')
-          app = app_path.read_text(encoding='utf-8')
-          splash_fn = """
-          function Splash() {
-            return h('div', { className: 'splash', role: 'status', 'aria-label': 'Rootflow đang khởi động' },
-              h('div', { className: 'splash-ring splash-ring-a', 'aria-hidden': 'true' }),
-              h('div', { className: 'splash-ring splash-ring-b', 'aria-hidden': 'true' }),
-              h('div', { className: 'splash-lock' },
-                h('img', { src: 'brand/rootflow-mark.png?v=20260909-brand-r2', alt: '', className: 'splash-logo', draggable: false, 'aria-hidden': 'true' }),
-                h('strong', { className: 'splash-tagline' }, 'Rootflow - Nơi dòng tiền được quản trị theo hệ thống'),
-                h('div', { className: 'splash-loader', 'aria-hidden': 'true' }, h('span', null, h('i')))),
-              h('small', { className: 'splash-copyright' }, '© 2026 derekdaydoi. All rights reserved.'));
-          }
-
-          """
-          app = must_replace(app, '  function App() {\n', splash_fn + '  function App() {\n', 'Splash component')
-          app = must_replace(app,
-              "    var toastState = React.useState(loaded.error || ''), toast = toastState[0], setToast = toastState[1];\n\n    React.useEffect(function () { S.persist(); }, []);",
-              "    var toastState = React.useState(loaded.error || ''), toast = toastState[0], setToast = toastState[1];\n    var launchState = React.useState(true), launch = launchState[0], setLaunch = launchState[1];\n\n    React.useEffect(function () { S.persist(); }, []);\n    React.useEffect(function () { var reduced = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches; var t = setTimeout(function () { setLaunch(false); }, reduced ? 700 : 1900); return function () { clearTimeout(t); }; }, []);",
-              'launch state')
-          app = must_replace(app,
-              "    return h('div', { className: 'app' }, screen,\n",
-              "    return h(React.Fragment, null,\n      launch ? h(Splash) : null,\n      h('div', { className: 'app' }, screen,\n",
-              'app return prefix')
-          app = must_replace(app,
-              "      toast ? h('div', { className: 'toast', role: 'status' }, toast) : null);\n  }",
-              "      toast ? h('div', { className: 'toast', role: 'status' }, toast) : null));\n  }",
-              'app return suffix')
-          app_path.write_text(app, encoding='utf-8')
-
-          test_path = Path('tests/run-ui-contract-tests.js')
-          test = test_path.read_text(encoding='utf-8')
-          old_reads = """const touchIcon = fs.readFileSync(path.join(__dirname, '..', 'rootflow-touch-180-v2.png'));
-const icon192 = fs.readFileSync(path.join(__dirname, '..', 'rootflow-icon-192-v2.png'));
-const icon512 = fs.readFileSync(path.join(__dirname, '..', 'rootflow-icon-512-v2.png'));"""
-          new_reads = """const runtimeMark = fs.readFileSync(path.join(__dirname, '..', 'brand/rootflow-mark.png'));
-const installIcon = fs.readFileSync(path.join(__dirname, '..', 'brand/rootflow-icon.png'));"""
-          test = must_replace(test, old_reads, new_reads, 'brand file reads')
-          old_brand = """assert(index.includes('opening-splash') && index.includes('splash-active') && index.includes('brand/rootflow-splash.css'), 'runtime must restore the deliberate Rootflow opening splash');
-assert(index.includes('rootflow-icon-512-v2.png?v=20260909-splash-v1'), 'opening splash must reference the validated supplied PNG logo asset');
-assert(!index.includes('brand/rootflow-opening-logo.webp'), 'opening splash must never return to the corrupted WebP asset');
-assert(icon512.length > 1000 && icon512.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical opening logo must be a real PNG binary');
-assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
-assert(index.includes('rootflow-touch-180-v2.png?v=20260909') && index.includes('rootflow-icon-192-v2.png?v=20260909'), 'browser and iOS homescreen metadata must use the supplied logo icon set');
-assert(manifest.includes('rootflow-touch-180-v2.png') && manifest.includes('rootflow-icon-192-v2.png') && manifest.includes('rootflow-icon-512-v2.png'), 'web app manifest must use the supplied logo homescreen icons');
-[touchIcon, icon192, icon512].forEach((icon) => assert(icon.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'homescreen icon must be a real PNG binary'));
-assert(splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must respect reduced-motion preference');"""
-          new_brand = """assert(index.includes('class=\"splash\"') && index.includes('brand/rootflow-splash.css?v=20260909-brand-r2'), 'HTML must carry the first-paint splash before React boots');
-assert(index.includes('brand/rootflow-mark.png?v=20260909-brand-r2'), 'opening splash must use the canonical transparent runtime mark');
-assert(index.includes('brand/rootflow-icon.png?v=20260909-brand-r2'), 'browser and iOS install metadata must use the canonical install icon');
-assert(index.includes('mobile-web-app-capable') && index.includes('apple-mobile-web-app-capable'), 'mobile install metadata must cover standard and iOS PWA modes');
-assert(!index.includes('rootflow-icon-512-v2.png') && !index.includes('rootflow-touch-180-v2.png'), 'retired root-level icons must not remain in active startup metadata');
-[runtimeMark, installIcon].forEach((image) => assert(image.length > 1000 && image.slice(0, 8).toString('hex') === '89504e470d0a1a0a', 'canonical brand asset must be a real PNG binary'));
-assert(index.includes('© 2026 derekdaydoi. All rights reserved.'), 'opening splash must expose standard copyright ownership');
-assert(manifest.includes('brand/rootflow-icon.png?v=20260909-brand-r2') && !manifest.includes('rootflow-icon-512-v2.png'), 'manifest must expose one canonical install icon instead of legacy variants');
-assert(splashCss.includes('#baff9c') && splashCss.includes('prefers-reduced-motion:reduce'), 'opening splash must use the supplied green and respect reduced motion');
-assert(!splashCss.includes('blur(') && !splashCss.includes('drop-shadow') && !splashCss.includes('scale('), 'launch motion must avoid blur, shadow and scale overshoot');
-assert(app.includes('function Splash()') && app.includes('launchState = React.useState(true)') && app.includes('launch ? h(Splash) : null'), 'React must own the splash lifetime after first paint, matching Rootwork architecture');"""
-          test = must_replace(test, old_brand, new_brand, 'brand assertions')
-          old_sw = """assert(sw.includes(\"'./brand/rootflow-splash.css'\") && sw.includes(\"'./brand/rootflow-theme.css'\") && sw.includes('rootflow-icon-512-v2.png?v=20260909-splash-v1') && sw.includes(\"'./operating-policy.js'\"), 'service worker must cache the opening brand and operating policy runtime');
-assert(!sw.includes('rootflow-opening-logo.webp'), 'service worker must not cache the corrupted WebP opening logo');
-assert(sw.includes('rootflow-icon-512-v2\\\\.png') && sw.includes('rootflow-theme\\\\.css'), 'opening logo and theme must use network-first refresh policy');
-assert(sw.includes('green-logo-v7-valid-png-splash'), 'service worker cache version must refresh the valid PNG splash release');
-assert(sw.includes('rootflow-touch-180-v2\\\\.png') && sw.includes('rootflow-icon-192-v2\\\\.png') && sw.includes('rootflow-icon-512-v2\\\\.png'), 'homescreen icon assets must use network-first refresh policy');
-assert(sw.includes(\"if (navigation) return caches.match('./index.html')\"), 'HTML fallback must be navigation-only');
-assert(sw.includes('return Response.error()'), 'missing JS/CSS must not silently receive index HTML');"""
-          new_sw = """assert(sw.includes('rootflow-ui-2026-09-09-brand-r2'), 'service worker cache version must advance with the canonical brand release');
-assert(sw.includes('brand/rootflow-mark.png?v=20260909-brand-r2') && sw.includes('brand/rootflow-icon.png?v=20260909-brand-r2'), 'service worker must cache runtime and install brand assets separately');
-assert(!sw.includes('rootflow-touch-180-v2.png') && !sw.includes('rootflow-icon-512-v2.png'), 'service worker must not retain legacy icon variants');
-assert(sw.includes(\"req.mode==='navigate'?networkFirst(req):cacheFirst(req)\"), 'navigation must remain network-first while versioned assets stay cache-first');"""
-          test = must_replace(test, old_sw, new_sw, 'service worker assertions')
-          test_path.write_text(test, encoding='utf-8')
-          PY
-
-          rm -f brand/.brand-r2-source.txt brand/rootflow-mark.base64 brand/.rootflow-mark.b64.00 brand/.rootflow-mark.b64.01 brand/.rootflow-mark.b64.02
-
       - name: Financial invariants
         run: node tests/run-tests.js
       - name: Cashflow regressions
@@ -267,22 +27,19 @@ assert(sw.includes(\"req.mode==='navigate'?networkFirst(req):cacheFirst(req)\"),
         run: node tests/run-canonical-tests.js
       - name: Capital decision regressions
         run: node tests/run-capital-tests.js
-      - name: Syntax
-        run: |
-          node --check app.js
-          node --check operating-policy.js
-          node --check capital-ui.js
-          node --check capital-domain.js
-          node --check cashflow-domain.js
-          node --check store.js
+      - name: Application syntax
+        run: node --check app.js
+      - name: Operating policy syntax
+        run: node --check operating-policy.js
+      - name: Capital UI syntax
+        run: node --check capital-ui.js
+      - name: Capital domain syntax
+        run: node --check capital-domain.js
+      - name: Cashflow domain syntax
+        run: node --check cashflow-domain.js
+      - name: Store syntax
+        run: node --check store.js
       - name: UI contract
         run: node tests/run-ui-contract-tests.js
       - name: React ownership contract
         run: node tests/run-account-editor-tests.js
-      - name: Publish canonical Rootflow brand
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "fix: adopt Rootwork brand asset architecture"
-          git push origin HEAD:main
