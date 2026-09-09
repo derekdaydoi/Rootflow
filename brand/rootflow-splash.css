@@ -1,35 +1,42 @@
-/* Rootflow opening — palette derived from the supplied logo. */
+/* Rootflow opening — green-first palette with the supplied logo as the focal asset. */
 body.splash-active{overflow:hidden}
 .opening-splash{
-  --logo-mint:#b7ff9e;
-  --logo-green:#59cf24;
-  --logo-deep:#24106d;
-  --logo-cream:#f5eadb;
-  --logo-red:#e84043;
+  --splash-green:#0f6b45;
+  --splash-green-2:#168a55;
+  --splash-lime:#59cf24;
+  --splash-mint:#b7ff9e;
+  --splash-bg:#f1f9ed;
+  --splash-ink:#123326;
   pointer-events:none;position:fixed;z-index:1000;inset:0;min-width:320px;display:grid;place-items:center;overflow:hidden;
-  background:var(--logo-mint);
+  background:linear-gradient(180deg,#dff6d5 0%,#eef9e8 46%,#f5faf2 100%);
   animation:rf-splash-screen 4.25s cubic-bezier(.22,.72,.25,1) both;
 }
 .opening-splash::before{
-  content:"";position:absolute;inset:-18%;background:
-  radial-gradient(circle at 50% 38%,rgba(245,234,219,.82) 0 11%,rgba(245,234,219,0) 38%),
-  radial-gradient(circle at 50% 50%,rgba(89,207,36,.22),rgba(89,207,36,0) 50%);
-  animation:rf-bg-breathe 3.1s ease-out both;
+  content:"";position:absolute;inset:-20%;background:
+  radial-gradient(circle at 50% 34%,rgba(89,207,36,.28) 0 10%,rgba(89,207,36,0) 34%),
+  radial-gradient(circle at 50% 52%,rgba(15,107,69,.11),rgba(15,107,69,0) 52%);
+  animation:rf-bg-breathe 3.2s ease-out both;
 }
-.splash-lockup{position:relative;z-index:2;width:min(86vw,440px);display:grid;justify-items:center;transform:translateY(-2vh)}
-.splash-logo-frame{width:min(68vw,300px);aspect-ratio:1;display:grid;place-items:center;border-radius:34px;overflow:hidden;box-shadow:0 24px 70px rgba(36,16,109,.13);animation:rf-logo-enter 1.05s .12s cubic-bezier(.16,.9,.22,1.08) both}
-.splash-logo{display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.015)}
-.splash-copy{display:grid;justify-items:center;max-width:360px;margin-top:22px;text-align:center}
-.splash-tagline{opacity:0;color:var(--logo-deep);font-size:clamp(17px,4.7vw,21px);font-weight:750;line-height:1.35;letter-spacing:-.025em;text-wrap:balance;transform:translateY(10px);animation:rf-copy-enter .66s 1.48s cubic-bezier(.2,.82,.25,1) forwards}
-.splash-copyright{opacity:0;margin-top:11px;color:rgba(36,16,109,.68);font-size:11px;font-weight:600;line-height:1.3;letter-spacing:.01em;transform:translateY(7px);animation:rf-copy-enter .56s 1.9s cubic-bezier(.2,.82,.25,1) forwards}
-.splash-orbit{position:absolute;border:2px solid rgba(36,16,109,.10);border-radius:50%;opacity:0}
-.splash-orbit-a{width:min(78vw,390px);aspect-ratio:1;animation:rf-orbit 1.65s .72s ease-out both}
-.splash-orbit-b{width:min(94vw,520px);aspect-ratio:1;animation:rf-orbit 1.9s .92s ease-out both}
-@keyframes rf-logo-enter{0%{opacity:0;transform:translateY(18px) scale(.78);filter:blur(7px)}58%{opacity:1;transform:translateY(-3px) scale(1.025);filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+.splash-lockup{position:relative;z-index:2;width:min(88vw,440px);display:grid;justify-items:center;transform:translateY(-2vh)}
+.splash-logo-frame{
+  width:min(70vw,304px);aspect-ratio:1;display:grid;place-items:center;border-radius:36px;overflow:hidden;
+  background:var(--splash-mint) url('rootflow-opening-logo.png?v=20260909-green-v2') center/cover no-repeat;
+  border:1px solid rgba(15,107,69,.10);
+  box-shadow:0 24px 72px rgba(15,107,69,.16),0 0 0 9px rgba(255,255,255,.34);
+  animation:rf-logo-enter 1.02s .1s cubic-bezier(.16,.9,.22,1.08) both;
+}
+.splash-logo{display:block;width:100%;height:100%;object-fit:cover;visibility:visible;opacity:1;transform:scale(1.006);image-rendering:auto}
+.splash-copy{display:grid;justify-items:center;max-width:370px;margin-top:24px;text-align:center}
+.splash-tagline{opacity:0;color:var(--splash-ink);font-size:clamp(17px,4.7vw,21px);font-weight:700;line-height:1.38;letter-spacing:-.022em;text-wrap:balance;transform:translateY(10px);animation:rf-copy-enter .66s 1.42s cubic-bezier(.2,.82,.25,1) forwards}
+.splash-copyright{opacity:0;margin-top:12px;color:rgba(18,51,38,.62);font-size:11px;font-weight:500;line-height:1.35;letter-spacing:.008em;transform:translateY(7px);animation:rf-copy-enter .56s 1.86s cubic-bezier(.2,.82,.25,1) forwards}
+.splash-orbit{position:absolute;border:1.5px solid rgba(15,107,69,.13);border-radius:50%;opacity:0}
+.splash-orbit-a{width:min(80vw,400px);aspect-ratio:1;animation:rf-orbit 1.65s .66s ease-out both}
+.splash-orbit-b{width:min(98vw,530px);aspect-ratio:1;animation:rf-orbit 1.9s .9s ease-out both}
+@keyframes rf-logo-enter{0%{opacity:0;transform:translateY(18px) scale(.82)}60%{opacity:1;transform:translateY(-3px) scale(1.022)}100%{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes rf-copy-enter{to{opacity:1;transform:translateY(0)}}
-@keyframes rf-orbit{0%{opacity:0;transform:scale(.72)}35%{opacity:.68}100%{opacity:0;transform:scale(1.12)}}
-@keyframes rf-bg-breathe{0%{transform:scale(.92);opacity:.55}100%{transform:scale(1.06);opacity:1}}
+@keyframes rf-orbit{0%{opacity:0;transform:scale(.74)}35%{opacity:.62}100%{opacity:0;transform:scale(1.12)}}
+@keyframes rf-bg-breathe{0%{transform:scale(.94);opacity:.56}100%{transform:scale(1.05);opacity:1}}
 @keyframes rf-splash-screen{0%{opacity:0}4%{opacity:1}89%{opacity:1}100%{opacity:0;visibility:hidden}}
-@media(max-width:420px){.splash-logo-frame{width:min(72vw,286px);border-radius:30px}.splash-copy{margin-top:18px;padding:0 8px}}
-@media(prefers-reduced-motion:reduce){.opening-splash{animation:rf-splash-screen-reduced .9s linear both}.opening-splash::before,.splash-logo-frame,.splash-tagline,.splash-copyright,.splash-orbit{animation:none!important;opacity:1!important;transform:none!important;filter:none!important}.splash-orbit{display:none}}
+@media(max-width:420px){.splash-logo-frame{width:min(74vw,290px);border-radius:31px}.splash-copy{margin-top:20px;padding:0 10px}}
+@media(prefers-reduced-motion:reduce){.opening-splash{animation:rf-splash-screen-reduced .9s linear both}.opening-splash::before,.splash-logo-frame,.splash-tagline,.splash-copyright,.splash-orbit{animation:none!important;opacity:1!important;transform:none!important}.splash-orbit{display:none}}
 @keyframes rf-splash-screen-reduced{0%,78%{opacity:1}100%{opacity:0;visibility:hidden}}
